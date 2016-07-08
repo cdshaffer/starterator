@@ -387,15 +387,18 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
         {Gene Name} is a member of Pham {Number}: {Suggested Start Coordinates}
     """
     file_name = os.path.join(file_path, "%sSuggestedStarts.pdf" % (phage_name))
+    text_file_name = os.path.join(file_path, "%sSuggestedStarts.txt" % (phage_name))
     if check_file(file_name):
         return
     doc = SimpleDocTemplate(file_name, pagesize=reportlab.lib.pagesizes.letter)
     story = []
+    just_text = []
     print "making suggested starts page"
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name="paragraph"))
     styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
     text = '<font size=14> Suggested Start Coordinates</font>'
+    just_text.append(' Suggested Start Coordinates')
     story.append(Paragraph(text, styles['Center']))
     story.append(Spacer(1, 12))
     for gene_id in sorted(phage_genes.iterkeys()):
@@ -405,10 +408,17 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
         suggested_start = phage_gene["suggested_start"]
         if pham == None:
             text = '<font size=12> %s is not a member of an existing Pham </font>' % (gene.gene_id)
+            simple_text = '%s is not a member of an existing Pham ' % (gene.gene_id)
         else:
             text = '<font size=12> %s is a member of Pham %s:  %s </font>' % (gene.gene_id, pham, suggested_start)
+            simple_text = '%s is a member of Pham %s:  %s ' % (gene.gene_id, pham, suggested_start)
         story.append(Paragraph(text, styles['Normal']))
+        just_text.append(simple_text)
     doc.build(story)
+    print "writing text file"
+    with open(text_file_name, 'w' ) as outfile:
+        outfile.write("\n".join(just_text))
+
 
 def make_fasta_file(genes, fasta_file):
     count = SeqIO.write(genes, fasta_file, 'fasta')
