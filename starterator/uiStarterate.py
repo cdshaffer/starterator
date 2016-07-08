@@ -294,7 +294,7 @@ class StarteratorThread(threading.Thread):
         self.stop_thread = threading.Event()
 
     def run(self):
-        self.starterate()
+        self.starterate() #running thread starts here
 
     def starterate(self):
         try:

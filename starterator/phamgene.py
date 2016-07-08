@@ -109,8 +109,16 @@ def find_upstream_stop_site(start, stop, orientation, phage_sequence):
     while not stop_site_found:
         ahead_of_start += 99
         if orientation == 'R':
-            sequence = Seq(phage_sequence[stop-1:(start+ahead_of_start)],
-                    IUPAC.unambiguous_dna)
+            if start + ahead_of_start > len(phage_sequence):     #i.e. hit end of phage while looking for stop
+                ahead_of_start = len(phage_sequence) - start
+                ahead_of_start = ahead_of_start - ahead_of_start % 3
+                sequence = Seq(phage_sequence[stop:(start+ahead_of_start)],
+                               IUPAC.unambiguous_dna)
+                sequence = sequence.reverse_complement()
+                return sequence, ahead_of_start
+
+            sequence = Seq(phage_sequence[stop:(start+ahead_of_start)],
+                           IUPAC.unambiguous_dna)
             sequence = sequence.reverse_complement()
             if stop < 400:
                 return sequence, ahead_of_start

@@ -398,7 +398,7 @@ def make_fasta_file(genes, fasta_file):
 
 def main():
     args = parse_arguments()
-    print "hi from making files", args.make
+    print "hi from making files main() ", args.make
     if 'graph' in args.make:
         print args.pickle_file
         pham = cPickle.load(open(args.pickle_file.strip('"'), 'rb'))
@@ -415,7 +415,7 @@ def main():
         make_suggested_starts(phage, args.phage, args.dir)
 
     if 'text' in args.make:
-        print args.pickle_file
+        print "Load pickle file " + str(args.pickle_file)
         pham = cPickle.load(open(args.pickle_file.strip('"'), 'rb'))
         graph_start_sites(args, pham, args.dir)
         print "phage", args.phage

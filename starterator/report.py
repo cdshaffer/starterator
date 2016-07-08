@@ -49,6 +49,11 @@ class PhageReport(Report):
     
     def final_report(self):
         self.get_phams()
+        for phm in self._phams.keys():
+            if self._phams[phm][0].orientation == 'R' and self._phams[phm][0].start == self.seq_length:
+                print 'found probable broken gene, deleting ' + self._phams[phm][0].gene_id + ' from list to starterate'
+                pass #change this to delete the entry from self._phams
+
         self.make_reports()
         self.make_phage_pages()
         final = self.merge_reports()
