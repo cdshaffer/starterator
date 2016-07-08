@@ -206,6 +206,7 @@ class PhamGene(Gene):
         self.suggested_start = {}
 
 
+
     def make_gene(self):
         """
            makes the gene 
@@ -216,6 +217,13 @@ class PhamGene(Gene):
         gene_no = gene_no.split(" ")[0]
         self.gene_id = self.phage_name + "_" + gene_no
         self.gene_id = self.gene_id.replace('-', "_")
+
+        checkDraft = re.compile('_draft', re.IGNORECASE)
+        if checkDraft.search(self.gene_id) is not None:
+            self.draftStatus = True
+        else:
+            self.draftStatus = False
+
         phage_sequence = phage.get_sequence()
         if self.orientation == 'R':
             temp_start = self.stop
