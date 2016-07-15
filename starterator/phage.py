@@ -94,15 +94,17 @@ class Phage(object):
             # gene.Name can be in from gp<Number>, gene<Number>, or <PHAGE_NAME>_<Number>
             results = get_db().query(
                 "SELECT `pham`.`GeneID`, `pham`.`name`, `gene`.Name,\n\
-                `gene`.`Start`, `gene`.`Stop`, `gene`.`Orientation`\n\
+                `gene`.`Start`, `gene`.`Stop`, `gene`.`Orientation` , `gene`.`length`\n\
                 FROM `pham` JOIN `gene` on `pham`.`GeneID` = `gene`.`GeneID`\n\
                 WHERE `gene`.`PhageID` = %s", self.phage_id)
             for row in results:
+                if row[4] - row[3] != row[6]:   #inconsistent gene data; likely wrap around gene, skip for now
+                    continue
                 if row[1] not in self.phams:
                     self.phams[row[1]] = []
                 gene = phamgene.PhamGene(row[0], row[3], row[4], row[5], self.phage_id)
                 self.phams[row[1]].append(gene)
-        return self.phams
+        return self.phams  #this links genes in phage to pham number
 
 class UnPhamPhage(Phage):
     def __init__(name, fasta_file, profile_file):

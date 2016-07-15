@@ -109,8 +109,16 @@ def find_upstream_stop_site(start, stop, orientation, phage_sequence):
     while not stop_site_found:
         ahead_of_start += 99
         if orientation == 'R':
-            sequence = Seq(phage_sequence[stop-1:(start+ahead_of_start)],
-                    IUPAC.unambiguous_dna)
+            if start + ahead_of_start > len(phage_sequence):     #i.e. hit end of phage while looking for stop
+                ahead_of_start = len(phage_sequence) - start
+                ahead_of_start = ahead_of_start - ahead_of_start % 3
+                sequence = Seq(phage_sequence[stop:(start+ahead_of_start)],
+                               IUPAC.unambiguous_dna)
+                sequence = sequence.reverse_complement()
+                return sequence, ahead_of_start
+
+            sequence = Seq(phage_sequence[stop:(start+ahead_of_start)],
+                           IUPAC.unambiguous_dna)
             sequence = sequence.reverse_complement()
             if stop < 400:
                 return sequence, ahead_of_start
@@ -198,6 +206,7 @@ class PhamGene(Gene):
         self.suggested_start = {}
 
 
+
     def make_gene(self):
         """
            makes the gene 
@@ -208,6 +217,13 @@ class PhamGene(Gene):
         gene_no = gene_no.split(" ")[0]
         self.gene_id = self.phage_name + "_" + gene_no
         self.gene_id = self.gene_id.replace('-', "_")
+
+        checkDraft = re.compile('_draft', re.IGNORECASE)
+        if checkDraft.search(self.gene_id) is not None:
+            self.draftStatus = True
+        else:
+            self.draftStatus = False
+
         phage_sequence = phage.get_sequence()
         if self.orientation == 'R':
             temp_start = self.stop

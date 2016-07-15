@@ -12,6 +12,8 @@
 import subprocess
 import cPickle
 import PyPDF2
+import sys
+
 import phams
 import phamgene
 import phage
@@ -49,6 +51,11 @@ class PhageReport(Report):
     
     def final_report(self):
         self.get_phams()
+        for phm in self._phams.keys():
+            if self._phams[phm][0].orientation == 'R' and self._phams[phm][0].start == self.seq_length:
+                print 'found probable broken gene, deleting ' + self._phams[phm][0].gene_id + ' from list to starterate'
+                pass #change this to delete the entry from self._phams
+
         self.make_reports()
         self.make_phage_pages()
         final = self.merge_reports()
@@ -229,11 +236,19 @@ class UnPhamPhageReport(PhageReport):
 
 class GeneReport(Report):
     def __init__(self, phage_name, number=None, whole_phage=False, fasta_file=None):
+        """
+
+        :param phage_name: name of phage
+        :param number: gene number
+        :param whole_phage: bool
+        :param fasta_file: name of file
+        """
         Report.__init__(self)
         self.phage_name = phage_name
         self.number = number
         self.all = whole_phage
         self.fasta = fasta_file
+
 
     def get_pham(self, pham_no=None, genes=None):
         if pham_no and genes:
@@ -303,7 +318,8 @@ class UnPhamGeneReport(GeneReport):
         self.start = start
         self.stop = stop
         self.orientation = orientation
-        self.fasta = fasta
+        self.fasta_file = fasta_file
+
 
     def get_sequence(self):
         if not self.sequence:
@@ -322,8 +338,7 @@ class UnPhamGeneReport(GeneReport):
     def make_gene(self, start, stop, orientation):
         sequence = self.get_sequence()
         try:
-            gene = phamgene.UnPhamGene(number, start, stop, orientation, self.name, 
-                                sequence)
+            gene = phamgene.UnPhamGene(self.number, start, stop, orientation, self.name, sequence)
         except:
             raise StarteratorError("The gene could not be made! Check to make sure coordinates are correct. Start: %s, Stop: %s, Orientation: %s" % 
                 (start, stop, orientation))
@@ -332,7 +347,7 @@ class UnPhamGeneReport(GeneReport):
 
 
     def get_pham(self, pham_no, gene):
-        self.pham = pham.Pham(pham_no, [gene])
+        self.pham = phams.Pham(pham_no, [gene])
         pham.add(gene)
         return pham_no
 
