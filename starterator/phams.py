@@ -225,7 +225,7 @@ class Pham(object):
         start_stats["most_not_called"] = []
         start_stats["no_most_called"] = []
         genes_without_most_called = []
-        print genes_start_most_called
+        print "phams.find_most_common_start: genes_start_most_called " + str(genes_start_most_called)
         for gene in self.genes.values():
             if gene.gene_id in start_stats["possible"][most_called_start_index]:
                 if gene.gene_id in genes_start_most_called:

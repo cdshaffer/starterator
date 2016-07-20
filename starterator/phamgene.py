@@ -110,9 +110,9 @@ def find_upstream_stop_site(start, stop, orientation, phage_sequence):
         ahead_of_start += 99
         if orientation == 'R':
             if start + ahead_of_start > len(phage_sequence):     #i.e. hit end of phage while looking for stop
-                ahead_of_start = len(phage_sequence) - start
+                ahead_of_start = len(phage_sequence) - start -1  # start is zero based counting
                 ahead_of_start = ahead_of_start - ahead_of_start % 3
-                sequence = Seq(phage_sequence[stop:(start+ahead_of_start)],
+                sequence = Seq(phage_sequence[stop:(start+ahead_of_start+1)],
                                IUPAC.unambiguous_dna)
                 sequence = sequence.reverse_complement()
                 return sequence, ahead_of_start
@@ -164,8 +164,7 @@ def new_PhamGene(db_id, start, stop, orientation, phage_id, phage_sequence=None)
     if db_id == None:
         return UnPhamGene(db_id, start, stop, orientation, phage_id, phage_sequence)
     if pham_genes.get(db_id, True):
-        pham_genes[db_id] = PhamGene(db_id, start, stop,
-                                 orientation, phage_id)
+        pham_genes[db_id] = PhamGene(db_id, start, stop, orientation, phage_id)
     return pham_genes[db_id]
 
 def get_gene_number(gene_name):
@@ -209,7 +208,9 @@ class PhamGene(Gene):
 
     def make_gene(self):
         """
-           makes the gene 
+           makes the gene which is a SeqRecord from Biopython. In this case the "gene" should
+           include all the sequence upstream of the annotated start all the way to the first
+           in frame stop codon.
         """
         phage = new_phage(phage_id=self.phage_id)
         self.phage_name = phage.get_name()
@@ -337,6 +338,9 @@ class PhamGene(Gene):
             (amount of sequence before the previous stop site) is the same, if the candidate
             starts of the genes are the same, and if the alignment gaps or not are the same
             (This is essentially, they would look the same on the graph output)
+
+            TODO currenly only "is_equal" if the start coordinate is the identical base coordinate
+            would make sense to compare the annotated start index
         """
         if self.start != other.start:
             return False
@@ -350,6 +354,7 @@ class PhamGene(Gene):
         self.sequence.features.sort()
         other.sequence.features.sort()
         for feature1, feature2 in zip(self.sequence.features, other.sequence.features):
+            print "phamgene.is_equal comparing features"
             if feature1.location.start != feature2.location.start:
                 return False
             if feature1.location.end != feature2.location.end:

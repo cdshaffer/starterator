@@ -191,9 +191,9 @@ class StarteratorEnterInformation(Gtk.Dialog):
         db = self.db_connect()
         phamgene.check_protein_db(self.config_info['count'])
         phage_name = self.find_phage_in_db(db, str(self.info['phage']))
-        print 'new phage name', self.info['phage']
-        print 'phamerated', self.info['phamerated']
-        print 'all', self.info['all']
+        print 'uiStarterate.starterate new phage, name is ', self.info['phage']
+        print 'uiStarterate.starterate phamerated is ', self.info['phamerated']
+        print 'uiStarterate.starterate self.info.all is ', self.info['all']
         if phage_name == None and self.info["phamerated"] and not self.info["pham"]:
             self.phameratored_exception(self.info["phage"])
             return
@@ -330,7 +330,7 @@ class StarteratorThread(threading.Thread):
                 # clean up files?
                 # show dialog
                 return
-            print 'help after starterator finished'
+            print 'uiStarterate.starterate openning dialog after starterator finished'
             Gdk.threads_enter()
             done_dialog = StarteratorFinishedDialog(self.parent, self.final_file)
             response = done_dialog.run()
