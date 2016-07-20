@@ -342,7 +342,7 @@ class PhamGene(Gene):
             TODO currenly only "is_equal" if the start coordinate is the identical base coordinate
             would make sense to compare the annotated start index
         """
-        if self.start != other.start:
+        if self.alignment_start_site != other.alignment_start_site:
             return False
         if self.ahead_of_start != other.ahead_of_start:
             return False
