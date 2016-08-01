@@ -147,7 +147,7 @@ class StarteratorThread(threading.Thread):
             dialog = Gtk.MessageDialog(self.parent, 0, Gtk.MessageType.ERROR,
                                        Gtk.ButtonsType.CANCEL, "Starterator has encountered an error")
             dialog.format_secondary_text(
-                "Please try again. If problem persists \nplease post to seaphages.org Starterator forums.")
+                "Please try again. For more help \nsee the troubleshooting guide in the\nseaphages.org Starterator forum.")
             dialog.run()
             dialog.destroy()
             Gdk.threads_leave()
