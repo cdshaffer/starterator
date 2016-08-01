@@ -273,7 +273,7 @@ class StarteratorEnterInformation(Gtk.Dialog):
             self.info['phamerated'] = True
             return results[0][0]
 
-    def check_pham_number():
+    def check_pham_number(self):
         pass
 
     def update_starterator(self, label_text, progress_amount):
