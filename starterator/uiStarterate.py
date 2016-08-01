@@ -267,10 +267,10 @@ class StarteratorEnterInformation(Gtk.Dialog):
             or Name like %s \n\
             or Name = %s", (phage + '-%', phage + '_%', phage))
         if len(results) < 1:
-            self.info['phamerated'] == False
+            self.info['phamerated'] = False
             return None
         else:
-            self.info['phamerated'] == True
+            self.info['phamerated'] = True
             return results[0][0]
 
     def check_pham_number():
