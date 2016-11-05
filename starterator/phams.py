@@ -192,7 +192,13 @@ class Pham(object):
         """
         # TODO:
             # add functionality for ignoring DRAFT phages?
+        # use term Called_start for all genes irrespective of method to determine location of start codon
+        # use term Annotated_start for genes in which manual annotation was used to determine start codon
+        # use term predicted_start for gene in which computational prediction was used to determine start codon
         all_start_sites = [gene.alignment_start_site for gene in self.genes.values()]
+        all_annotated_start_sites = [gene.alignment_start_site for gene in self.genes.values() if not gene.draftStatus]
+        all_predicted_start_sites = [gene.alignment_start_site for gene in self.genes.values() if gene.draftStatus]
+
         all_start_sites_set = set([gene.alignment_start_site for gene in self.genes.values()])
         start_stats = {}
         # creates two lists each containing a list of gene ids
@@ -216,10 +222,24 @@ class Pham(object):
                     start_stats["called_starts"][i+1].append(gene.gene_id)
 
         all_starts_count = Counter(all_start_sites)
+        all_annot_count = Counter(all_annotated_start_sites)
+        all_predicted_count = Counter(all_predicted_start_sites)
+
         called_starts_count = all_starts_count.most_common()
+        annot_starts_count = all_annot_count.most_common()
+        predicted_starts_count = all_predicted_count.most_common()
+
         most_called_start_index = self.total_possible_starts.index(called_starts_count[0][0])+1
+        most_annot_start_index = self.total_possible_starts.index(annot_starts_count[0][0])+1
+        most_predicted_start_index = self.total_possible_starts.index(predicted_starts_count[0][0])+1
+
         genes_start_most_called = start_stats["called_starts"][most_called_start_index]
+        genes_start_most_annot = start_stats["called_starts"][most_annot_start_index]
+        genes_start_most_predicted = start_stats["called_starts"][most_predicted_start_index]
+
         start_stats["most_called_start"] = most_called_start_index
+        start_stats["most_annotated_start"] = most_annot_start_index
+        start_stats["most_predicted_start"] = most_predicted_start_index
         # start_stats["most_called"] = start_stats["called_starts"][most_called_start_index]
         start_stats["most_called"] = []
         start_stats["most_not_called"] = []
