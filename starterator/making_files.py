@@ -82,11 +82,11 @@ def output_start_sites(stats):
         most_called_start = stats["most_called_start"]
         total_genes = len(stats["most_called"])+ len(stats["most_not_called"]) + len(stats["no_most_called"])
         output = []
-
-        output.append('"Most Called" Start (combined computer predictions and manual annotations): %s (number based on diagram)'
+        output.append("Start numbers based on diagram:")
+        output.append('"Most Called" Start (combined computer predictions and manual annotations): %s '
                          % most_called_start)
-        output.append('"Most Annotated" Start (manual annotations only): code needed')
-        output.append('"Most Predicted" Start (computer predictions only): code needed')
+        output.append('"Most Annotated" Start (manual annotations only): %s' % stats["most_annotated_start"])
+        output.append('"Most Predicted" Start (computer predictions only): %s' % stats["most_predicted_start"])
         percent_with_most_called = (float(len(stats["most_called"])) 
                                     /total_genes *100 )
 
