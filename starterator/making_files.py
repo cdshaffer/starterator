@@ -82,6 +82,8 @@ def output_start_sites(stats):
         most_called_start = stats["most_called_start"]
         total_genes = len(stats["most_called"])+ len(stats["most_not_called"]) + len(stats["no_most_called"])
         output = []
+        geneCount = 1
+        output.append("")
         output.append("Start numbers based on diagram:")
         output.append('"Most Called" Start (combined computer predictions and manual annotations): %s '
                          % most_called_start)
@@ -289,20 +291,22 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name="paragraph"))
     styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
-    text = '<font size=14> Pham %s Report </font>' % pham_no
+    text = '<font size=14> Pham %s Report </font>' % pham_no  #item A
     story.append(Paragraph(text, styles['Center']))
     story.append(Spacer(1, 12))
     currentDate = time.strftime("%x")
-    rundate = '<font size=12>This analysis was run %s. </font>' % currentDate
+    rundate = '<font size=12>This analysis was run %s. </font>' % currentDate  #item B
     story.append(Paragraph(rundate, styles["Normal"]))
     story.append(Spacer(1,12))
+
+    #note is item C:
     note = '<font size=12>Note: In the above figure, yellow indicates the location of called starts comprised solely of computational predictions, '
     note += 'green indicates the location of called starts with at least 1 manual gene annotation. In the text below, numbers found inside '
     note += 'square brackets (i.e. []) are derived from biopython and are zero-based, add 1 to the coordinate to find the corresponding location in a 1-based coordinate system. </font>'
 
     story.append(Paragraph(note, styles["Normal"]))
     story.append(Spacer(1,12))
-    story.append(Paragraph('Phages represented in each track:', styles["Normal"]))
+    story.append(Paragraph('<font size=12>Phages represented in each track:</font>', styles["Normal"])) #item D start
 
     groups = pham.group_similar_genes()
     tracks_info = []
@@ -312,10 +316,14 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
         tracks_info.append("<font size=12> "+ u'\u2022'+" %s</font>" % text)
     for line in tracks_info:
         story.append(Paragraph(line, styles["Normal"]))
-    story.append(Spacer(1, 12))
+    story.append(Spacer(1, 12))  #item D end
     if only_pham:
+        draftCount = sum(1 for g in pham.genes.values() if g.draftStatus)
+        summaryText = "<font size=12>Pham number %s has %s members, %s are drafts.</font>" % (pham_no, len(pham.genes), draftCount )
+        story.append(Paragraph(summaryText, styles["Normal"]))  #item E
+
         start_stats = pham.stats["most_common"]
-        output = output_start_sites(start_stats)
+        output = output_start_sites(start_stats) #this does items F through ??
         for line in output:
             if line == '':
                 story.append(Spacer(1, 12))
