@@ -82,8 +82,8 @@ def output_start_sites(stats):
         most_called_start = stats["most_called_start"]
         total_genes = len(stats["most_called"])+ len(stats["most_not_called"]) + len(stats["no_most_called"])
         output = []
-        geneCount = 1
         output.append("")
+        annotatedCount = len(stats["called_starts"][stats[most_annotated_start]])
         output.append("Start numbers based on diagram:")
         output.append('"Most Called" Start (combined computer predictions and manual annotations): %s '
                          % most_called_start)
@@ -318,11 +318,15 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
         story.append(Paragraph(line, styles["Normal"]))
     story.append(Spacer(1, 12))  #item D end
     if only_pham:
+        phamCount = len(pham.genes.values())
         draftCount = sum(1 for g in pham.genes.values() if g.draftStatus)
+        annotCount = phamCount - draftCount
         summaryText = "<font size=12>Pham number %s has %s members, %s are drafts.</font>" % (pham_no, len(pham.genes), draftCount )
         story.append(Paragraph(summaryText, styles["Normal"]))  #item E
 
         start_stats = pham.stats["most_common"]
+        start_stats["phamCount"] = phamCount
+        start_stats["annotCount"] = annotCount
         output = output_start_sites(start_stats) #this does items F through ??
         for line in output:
             if line == '':
