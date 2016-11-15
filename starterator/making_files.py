@@ -80,23 +80,27 @@ def output_start_sites(stats):
             start sites for this pham  
         """
         most_called_start = stats["most_called_start"]
-        total_genes = len(stats["most_called"])+ len(stats["most_not_called"]) + len(stats["no_most_called"])
+        most_annotated_start = stats["most_annotated_start"]
+        total_genes = stats["phamCount"]
+        annotatedCount = stats["annotCount"]
+        draftCount = stats["phamCount"] - stats["annotCount"]
         output = []
         output.append("")
-        annotatedCount = len(stats["called_starts"][stats[most_annotated_start]])
-        output.append("Start numbers based on diagram:")
-        output.append('"Most Called" Start (combined computer predictions and manual annotations): %s '
-                         % most_called_start)
-        output.append('"Most Annotated" Start (manual annotations only): %s' % stats["most_annotated_start"])
-        output.append('"Most Predicted" Start (computer predictions only): %s' % stats["most_predicted_start"])
-        percent_with_most_called = (float(len(stats["most_called"])) 
-                                    /total_genes *100 )
 
-        output.append('Percent of genes that begin at the "Most Called" start: %10.1f%%'
-                        % percent_with_most_called )
-        output.append('Genes that call the "Most Called" start:')
+        output.append("Start numbers based on diagram, info on published annotations and draft predictions:")
+
+        output.append('"Most Annotated" Start is %s, annotated in %s of %s genes.' % (str(stats["most_annotated_start"]), str(annotatedCount), str(total_genes)))
+        output.append('"Most Predicted" Start is %s, predicted in %s of %s genes.' % (str(stats["most_predicted_start"]), str(draftCount), str(total_genes)))
+        output.append('"Most Called" Start (combined computer predictions and manual annotations): %s '
+                      % most_called_start)
+        # percent_with_most_annotated = (float(len(stats["most_called"]))
+        #                             /total_genes *100 )
+        #
+        # output.append('Percent of genes that begin at the "Most Annotated" start: %10.1f%%'
+        #                 % percent_with_most_called )
+        output.append('Genes that call the "Most Annotated" start:')
         s = u'\u2022' + ''
-        for gene in stats["most_called"]:
+        for gene in stats["called_starts"][most_annotated_start]:
             s += gene+ ", "
         output.append(s)
         output.append("")
@@ -299,13 +303,15 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     story.append(Paragraph(rundate, styles["Normal"]))
     story.append(Spacer(1,12))
 
-    #note is item C:
-    note = '<font size=12>Note: In the above figure, yellow indicates the location of called starts comprised solely of computational predictions, '
-    note += 'green indicates the location of called starts with at least 1 manual gene annotation. In the text below, numbers found inside '
-    note += 'square brackets (i.e. []) are derived from biopython and are zero-based, add 1 to the coordinate to find the corresponding location in a 1-based coordinate system. </font>'
-
-    story.append(Paragraph(note, styles["Normal"]))
+    phamCount = len(pham.genes.values())
+    draftCount = sum(1 for g in pham.genes.values() if g.draftStatus)
+    annotCount = phamCount - draftCount
+    summaryText = "<font size=12>Pham number %s has %s members, %s are drafts.</font>" % (
+    pham_no, len(pham.genes), draftCount)
+    story.append(Paragraph(summaryText, styles["Normal"]))  # item E
     story.append(Spacer(1,12))
+
+
     story.append(Paragraph('<font size=12>Phages represented in each track:</font>', styles["Normal"])) #item D start
 
     groups = pham.group_similar_genes()
@@ -318,11 +324,6 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
         story.append(Paragraph(line, styles["Normal"]))
     story.append(Spacer(1, 12))  #item D end
     if only_pham:
-        phamCount = len(pham.genes.values())
-        draftCount = sum(1 for g in pham.genes.values() if g.draftStatus)
-        annotCount = phamCount - draftCount
-        summaryText = "<font size=12>Pham number %s has %s members, %s are drafts.</font>" % (pham_no, len(pham.genes), draftCount )
-        story.append(Paragraph(summaryText, styles["Normal"]))  #item E
 
         start_stats = pham.stats["most_common"]
         start_stats["phamCount"] = phamCount
@@ -338,22 +339,22 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
             # else:
             #     story.append(Paragraph(text, styles['Normal']))
         # story.append()
-        story.append(Paragraph("<font size=14>Suggested Starts:</font>", styles["Normal"]))
-        suggested_start = output_suggested_starts(pham, all_genes=True)
-        story.append(Spacer(1, 12))
+        # story.append(Paragraph("<font size=14>Suggested Starts:</font>", styles["Normal"]))
+        # suggested_start = output_suggested_starts(pham, all_genes=True)
+        # story.append(Spacer(1, 12))
 
-        for line in suggested_start:
-            text = '<font size=12>%s</font>' % line
-            story.append(Paragraph(text, styles["Normal"]))
+        # for line in suggested_start:
+        #     text = '<font size=12>%s</font>' % line
+        #     story.append(Paragraph(text, styles["Normal"]))
     else:
-        story.append(Paragraph("<font size=14>Suggested Starts: </font>", styles["Normal"]))
-        starts = pham.stats["most_common"]
-        suggested_start = output_suggested_starts(pham, args.phage)
-        story.append(Spacer(1, 12))
-
-        for line in suggested_start:
-            text = '<font size=12>%s</font>' % line
-            story.append(Paragraph(text, styles["Normal"]))
+        # story.append(Paragraph("<font size=14>Suggested Starts: </font>", styles["Normal"]))
+        # starts = pham.stats["most_common"]
+        # suggested_start = output_suggested_starts(pham, args.phage)
+        # story.append(Spacer(1, 12))
+        #
+        # for line in suggested_start:
+        #     text = '<font size=12>%s</font>' % line
+        #     story.append(Paragraph(text, styles["Normal"]))
         story.append(Paragraph("",styles["Normal"]))
         story.append(Paragraph("<font size=12>Gene Information:</font>", styles["Normal"]))
         pham_possible_starts = pham.total_possible_starts
@@ -369,7 +370,13 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
                 story.append(Paragraph("<font size = 12> Candidate Starts for %s: </font>" % (gene.gene_id), styles["Normal"]))
                 story.append(Paragraph("<font size = 12>"+ str(candidate_starts) + "</font>" , styles["Normal"]))
 
-        
+
+    #note is item C:
+    note = '<font size=12>Note: In the above figure, yellow indicates the location of called starts comprised solely of computational predictions, '
+    note += 'green indicates the location of called starts with at least 1 manual gene annotation. In the text below, numbers found inside '
+    note += 'square brackets (i.e. []) are derived from biopython and are zero-based, add 1 to the coordinate to find the corresponding location in a 1-based coordinate system. </font>'
+
+    story.append(Paragraph(note, styles["Normal"]))
     doc.build(story)
 
 
