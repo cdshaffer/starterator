@@ -192,7 +192,13 @@ class Pham(object):
         """
         # TODO:
             # add functionality for ignoring DRAFT phages?
+        # use term Called_start for all genes irrespective of method to determine location of start codon
+        # use term Annotated_start for genes in which manual annotation was used to determine start codon
+        # use term predicted_start for gene in which computational prediction was used to determine start codon
         all_start_sites = [gene.alignment_start_site for gene in self.genes.values()]
+        all_annotated_start_sites = [gene.alignment_start_site for gene in self.genes.values() if not gene.draftStatus]
+        all_predicted_start_sites = [gene.alignment_start_site for gene in self.genes.values() if gene.draftStatus]
+
         all_start_sites_set = set([gene.alignment_start_site for gene in self.genes.values()])
         start_stats = {}
         # creates two lists each containing a list of gene ids
@@ -216,31 +222,52 @@ class Pham(object):
                     start_stats["called_starts"][i+1].append(gene.gene_id)
 
         all_starts_count = Counter(all_start_sites)
+        all_annot_count = Counter(all_annotated_start_sites)
+        all_predicted_count = Counter(all_predicted_start_sites)
+
         called_starts_count = all_starts_count.most_common()
+        annot_starts_count = all_annot_count.most_common()
+        predicted_starts_count = all_predicted_count.most_common()
+
         most_called_start_index = self.total_possible_starts.index(called_starts_count[0][0])+1
+        most_annot_start_index = self.total_possible_starts.index(annot_starts_count[0][0])+1
+        most_predicted_start_index = self.total_possible_starts.index(predicted_starts_count[0][0])+1
+
         genes_start_most_called = start_stats["called_starts"][most_called_start_index]
+        genes_start_most_annot = start_stats["called_starts"][most_annot_start_index]
+        genes_start_most_predicted = start_stats["called_starts"][most_predicted_start_index]
+
         start_stats["most_called_start"] = most_called_start_index
+        start_stats["most_annotated_start"] = most_annot_start_index
+        start_stats["most_predicted_start"] = most_predicted_start_index
         # start_stats["most_called"] = start_stats["called_starts"][most_called_start_index]
         start_stats["most_called"] = []
         start_stats["most_not_called"] = []
         start_stats["no_most_called"] = []
+        start_stats["most_annotated"] = []
+        start_stats["most_not_annotated"] = []
+        start_stats["no_most_annotated"] = []
+
         genes_without_most_called = []
         print "phams.find_most_common_start: genes_start_most_called " + str(genes_start_most_called)
         for gene in self.genes.values():
-            if gene.gene_id in start_stats["possible"][most_called_start_index]:
-                if gene.gene_id in genes_start_most_called:
+            if gene.gene_id in start_stats["possible"][most_annot_start_index]:
+                if gene.gene_id in genes_start_most_annot:
                     if gene.orientation == 'F':   #only +1 for forward genes
+                    #genes where most called start is present and it is called as the start are "most_called"
                         gene.suggested_start["most_called"] =(most_called_start_index, gene.start+1)
                     else:
                         gene.suggested_start["most_called"] =(most_called_start_index, gene.start)
                     start_stats["most_called"].append(gene.gene_id)
                 else:
+                    #genes where most called start is present but the start is not the called start are "most_not_called
                     start_stats["most_not_called"].append(gene.gene_id)
                     most_called_alignment_index = self.total_possible_starts[most_called_start_index-1]
                     suggested_start = gene.alignment_index_to_coord(most_called_alignment_index) #+1 issue dealt with in function
                     gene.suggested_start["most_called"] = (most_called_start_index, suggested_start)
 
             else:
+                #genes where the most called start is NOT even present are no_most_called
                 start_stats["no_most_called"].append(gene.gene_id)
                 possible_starts_coords = []
                 for start in gene.alignment_candidate_starts:
@@ -249,7 +276,34 @@ class Pham(object):
                     possible_starts_coords.append((index, new_start))
                 gene.suggested_start["most_called"] = possible_starts_coords
 
+            if gene.gene_id in start_stats["possible"][most_annot_start_index]:
+                if gene.gene_id in genes_start_most_called:
+                    # code below used for deprecated "suggested starts" list
+                    # if gene.orientation == 'F':  # only +1 for forward genes
+                    #     # genes where most annotated start is present and it is called as the start are "most_annotated"
+                    #     gene.suggested_start["most_annotated"] = (most_annot_start_index, gene.start + 1)
+                    # else:
+                    #     gene.suggested_start["most_annotated"] = (most_annot_start_index, gene.start)
+                    start_stats["most_annotated"].append(gene.gene_id)
+                else:
+                    # genes where most annotated start is present but the start is not the called start are "most_not_annotated
+                    start_stats["most_not_annotated"].append(gene.gene_id)
+                    # code below used for deprecated "suggested starts" list
+                    most_annot_alignment_index = self.total_possible_starts[most_annot_start_index - 1]
+                    suggested_start = gene.alignment_index_to_coord(
+                        most_annot_alignment_index)  # +1 issue dealt with in function
+                    gene.suggested_start["most_called"] = (most_annot_start_index, suggested_start)
 
+            else:
+                # genes where the most annotated start is NOT even present are no_most_annot
+                start_stats["no_most_annot"].append(gene.gene_id)
+                # Code below used for deprecated "suggested starts" list
+                # possible_starts_coords = []
+                # for start in gene.alignment_candidate_starts:
+                #     index = self.total_possible_starts.index(start) + 1
+                #     new_start = gene.alignment_index_to_coord(start) + 1
+                #     possible_starts_coords.append((index, new_start))
+                # gene.suggested_start["most_called"] = possible_starts_coords
         self.stats["most_common"] = start_stats
         return start_stats
 
