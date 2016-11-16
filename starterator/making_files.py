@@ -112,7 +112,7 @@ def output_start_sites(stats):
         output.append('')
         output.append('Genes that do not have the "Most Annotated" start:')
         s = u'\u2022' + ""
-        for gene in stats["no_most_annotated"]:
+        for gene in stats["no_most_annot"]:
             s += gene + ", "
         output.append(s + '')
         output.append('')
