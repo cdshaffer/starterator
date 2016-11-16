@@ -88,10 +88,17 @@ def output_start_sites(stats):
         output = []
         output.append("")
 
-        output.append("Info on published annotations and draft predictions (start numbers based on diagram):")
+        annotated_with_most_annotated_called = \
+            [g.gene_id for g in stats["annot_list"] if g.gene_id in stats["called_start"][most_annotated_start] ]
+        annotated_with_most_predicted_called = \
+            [g.gene_id for g in stats["draft_list"] if g.gene_id in stats["called_start"][most_called_start] ]
 
-        output.append('"Most Annotated" Start is %s, annotated in %s of %s genes.' % (str(stats["most_annotated_start"]), str(annotatedCount), str(total_genes)))
-        output.append('"Most Predicted" Start is %s, predicted in %s of %s genes.' % (str(stats["most_predicted_start"]), str(draftCount), str(total_genes)))
+        output.append("Info on published annotations (start numbers based on diagram):")
+
+        output.append('"Most Annotated" Start is %s, annotated in %s of %s annotated genes.'
+                      % (str(most_annotated_start), str(len(annotated_with_most_annotated_called)) str(annotatedCount)))
+        output.append('"Most Predicted" Start is %s, annotated in %s of %s genes.'
+                      % (str(stats["most_predicted_start"]), str(len(draft_with_most_annotated_called)), str(total_genes)))
         output.append('"Most Called" Start is %s, called in %s of %s genes.' % (str(stats["most_called_start"]), str(calledCount), str(total_genes)))
         # percent_with_most_annotated = (float(len(stats["most_called"]))
         #                             /total_genes *100 )
