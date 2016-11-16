@@ -83,7 +83,7 @@ def output_start_sites(stats):
         most_annotated_start = stats["most_annotated_start"]
         total_genes = stats["phamCount"]
         annotatedCount = stats["annotCount"]
-        draftCount = stats["phamCount"] - stats["annotCount"]
+        draftCount = stats["draftCount"]
         calledCount = len(stats["called_starts"][most_called_start])
         output = []
         output.append("")
