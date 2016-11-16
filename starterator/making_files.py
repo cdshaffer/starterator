@@ -84,15 +84,15 @@ def output_start_sites(stats):
         total_genes = stats["phamCount"]
         annotatedCount = stats["annotCount"]
         draftCount = stats["phamCount"] - stats["annotCount"]
+        calledCount = len(stats["called_starts"][most_called_start])
         output = []
         output.append("")
 
-        output.append("Start numbers based on diagram, info on published annotations and draft predictions:")
+        output.append("Info on published annotations and draft predictions (start numbers based on diagram):")
 
         output.append('"Most Annotated" Start is %s, annotated in %s of %s genes.' % (str(stats["most_annotated_start"]), str(annotatedCount), str(total_genes)))
         output.append('"Most Predicted" Start is %s, predicted in %s of %s genes.' % (str(stats["most_predicted_start"]), str(draftCount), str(total_genes)))
-        output.append('"Most Called" Start (combined computer predictions and manual annotations): %s '
-                      % most_called_start)
+        output.append('"Most Called" Start is %s, called in %s of %s genes.' % (str(stats["most_called_start"]), str(calledCount), str(total_genes)))
         # percent_with_most_annotated = (float(len(stats["most_called"]))
         #                             /total_genes *100 )
         #
@@ -104,29 +104,29 @@ def output_start_sites(stats):
             s += gene+ ", "
         output.append(s)
         output.append("")
-        output.append('Genes that have the "Most Called" start but do not call it:')
+        output.append('Genes that have the "Most Annotated" start but do not call it:')
         s = u'\u2022' + ''
-        for gene in stats["most_not_called"]:
+        for gene in stats["most_not_annotated"]:
             s += gene + ", "
         output.append(s)
         output.append('')
-        output.append('Genes that do not have the "Most Called" start:')
+        output.append('Genes that do not have the "Most Annotated" start:')
         s = u'\u2022' + ""
-        for gene in stats["no_most_called"]:
+        for gene in stats["no_most_annotated"]:
             s += gene + ", "
         output.append(s + '')
         output.append('')
-        output.append("Other Starts Called:")
+        output.append("Starts Called:")
         for start, genes in stats["called_starts"].items():
             if len(genes) == 0:
                 continue
-            if start != most_called_start:
-                s = ''
-                for gene in genes:
-                    s += gene + ", "
-                output.append(u'\u2022' + str(start) + "\t" +s +'')
-                percent = float(len(genes)) / total_genes * 100
-                output.append("Percent with start called: %10.4f%% \n\t" % percent)
+
+            s = ''
+            for gene in genes:
+                s += gene + ", "
+            output.append(u'\u2022' + " Start number " + str(start) + ":\t" + s +'')
+            percent = float(len(genes)) / total_genes * 100
+            output.append("Percent with start %s called: %10.1f%% \n\t" % (str(start), percent))
         return output
 
 def add_pham_no_title(args, pham_no, first_graph_path, i=""):
@@ -328,6 +328,7 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
         start_stats = pham.stats["most_common"]
         start_stats["phamCount"] = phamCount
         start_stats["annotCount"] = annotCount
+        start_stats["draftCount"] = draftCount
         output = output_start_sites(start_stats) #this does items F through ??
         for line in output:
             if line == '':

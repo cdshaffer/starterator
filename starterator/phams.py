@@ -275,7 +275,6 @@ class Pham(object):
                     new_start = gene.alignment_index_to_coord(start) +1
                     possible_starts_coords.append((index, new_start))
                 gene.suggested_start["most_called"] = possible_starts_coords
-            print genes_start_most_annot
 
             if gene.gene_id in start_stats["possible"][most_annot_start_index]:
                 if gene.gene_id in genes_start_most_called:
