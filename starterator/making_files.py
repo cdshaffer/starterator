@@ -302,6 +302,15 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name="paragraph"))
     styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
+
+
+    # note is item C:
+    note = '<font size=12>Note: In the above figure, yellow indicates the location of called starts comprised solely of computational predictions, '
+    note += 'green indicates the location of called starts with at least 1 manual gene annotation.'
+
+    story.append(Paragraph(note, styles["Normal"]))
+    story.append(Spacer(1, 12))
+
     text = '<font size=14> Pham %s Report </font>' % pham_no  #item A
     story.append(Paragraph(text, styles['Center']))
     story.append(Spacer(1, 12))
@@ -379,12 +388,6 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
                 story.append(Paragraph("<font size = 12>"+ str(candidate_starts) + "</font>" , styles["Normal"]))
 
 
-    #note is item C:
-    note = '<font size=12>Note: In the above figure, yellow indicates the location of called starts comprised solely of computational predictions, '
-    note += 'green indicates the location of called starts with at least 1 manual gene annotation. In the text below, numbers found inside '
-    note += 'square brackets (i.e. []) are derived from biopython and are zero-based, add 1 to the coordinate to find the corresponding location in a 1-based coordinate system. </font>'
-
-    story.append(Paragraph(note, styles["Normal"]))
     doc.build(story)
 
 
