@@ -93,9 +93,9 @@ def output_start_sites(stats):
         annotated_with_most_predicted_called = \
             [g.gene_id for g in stats["draft_list"] if g.gene_id in stats["called_starts"][most_called_start] ]
 
-        output.append('Summary of Final Annotations (Info on gene starts based on numbers in diagram):)
+        output.append('Summary of Final Annotations (Info on gene starts based on numbers in diagram):')
 
-        output.append('The Start with the most Final Annotations is %s, it has been annotated in %s of the %s annotated genes in the pham.'
+        output.append('The start with the most final annotations is %s, it has been annotated in %s of the %s annotated genes in the pham.'
                       % (str(most_annotated_start), str(len(annotated_with_most_annotated_called)), str(annotatedCount)))
 
         # output.append('Called info: "Most Called" Start is %s, called in %s of all %s genes in the pham.'
