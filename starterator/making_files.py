@@ -93,13 +93,13 @@ def output_start_sites(stats):
         annotated_with_most_predicted_called = \
             [g.gene_id for g in stats["draft_list"] if g.gene_id in stats["called_starts"][most_called_start] ]
 
-        output.append("Info on gene starts based on numbers in diagram:")
+        output.append('Summary of Final Annotations (Info on gene starts based on numbers in diagram):)
 
-        output.append('Annotation info: "Most Annotated" Start is %s, annotated in %s of the %s annotated genes in the pham.'
+        output.append('The Start with the most Final Annotations is %s, it has been annotated in %s of the %s annotated genes in the pham.'
                       % (str(most_annotated_start), str(len(annotated_with_most_annotated_called)), str(annotatedCount)))
 
-        output.append('Called info: "Most Called" Start is %s, called in %s of all %s genes in the pham.'
-                      % (str(stats["most_called_start"]), str(calledCount), str(total_genes)))
+        # output.append('Called info: "Most Called" Start is %s, called in %s of all %s genes in the pham.'
+        #               % (str(stats["most_called_start"]), str(calledCount), str(total_genes)))
         # percent_with_most_annotated = (float(len(stats["most_called"]))
         #                             /total_genes *100 )
         #
@@ -123,7 +123,7 @@ def output_start_sites(stats):
             s += gene + ", "
         output.append(s + '')
         output.append('')
-        output.append("Starts Called:")
+        output.append("Summary by start number:")
         for start, genes in stats["called_starts"].items():
             if len(genes) == 0:
                 continue
@@ -305,7 +305,8 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
 
 
     # note is item C:
-    note = '<font size=12>Note: In the above figure, yellow indicates the location of called starts comprised solely of computational predictions, '
+    note = '<font size=12>Note: In the above figure, yellow indicates the location of called starts comprised solely of '
+    note += 'computational predictions (i.e. auto-annotations by Glimmer/GeneMark), '
     note += 'green indicates the location of called starts with at least 1 manual gene annotation.'
 
     story.append(Paragraph(note, styles["Normal"]))
