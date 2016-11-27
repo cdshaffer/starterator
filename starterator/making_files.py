@@ -131,7 +131,7 @@ def output_start_sites(stats):
             s = ''
             for gene in genes:
                 s += gene + ", "
-            output.append(u'\u2022' + " Start number " + str(start) + ":\t" + s +'')
+            output.append(u'\u2022' + " Start number " + str(start) + " is called in:\t" + s +'')
             percent = float(len(genes)) / total_genes * 100
             output.append("Percent with start %s called: %10.1f%% \n\t" % (str(start), percent))
         return output
