@@ -250,8 +250,8 @@ class Pham(object):
         genes_without_most_called = []
         print "phams.find_most_common_start: genes_start_most_called " + str(genes_start_most_called)
         for gene in self.genes.values():
-            if gene.gene_id in start_stats["possible"][most_annot_start_index]:
-                if gene.gene_id in genes_start_most_annot:
+            if gene.gene_id in start_stats["possible"][most_called_start_index]:  #i.e does the gene even have the most called start
+                if gene.gene_id in genes_start_most_called:
                     if gene.orientation == 'F':   #only +1 for forward genes
                     #genes where most called start is present and it is called as the start are "most_called"
                         gene.suggested_start["most_called"] =(most_called_start_index, gene.start+1)
@@ -276,7 +276,7 @@ class Pham(object):
                 gene.suggested_start["most_called"] = possible_starts_coords
 
             if gene.gene_id in start_stats["possible"][most_annot_start_index]:
-                if gene.gene_id in genes_start_most_called:
+                if gene.gene_id in genes_start_most_annot:
                     # code below used for deprecated "suggested starts" list
                     # if gene.orientation == 'F':  # only +1 for forward genes
                     #     # genes where most annotated start is present and it is called as the start are "most_annotated"
