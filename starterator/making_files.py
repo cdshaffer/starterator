@@ -105,7 +105,7 @@ def output_start_sites(stats):
         #
         # output.append('Percent of genes that begin at the "Most Annotated" start: %10.1f%%'
         #                 % percent_with_most_called )
-        output.append('Genes that call the "Most Annotated" start:')
+        output.append('Genes that call this "Most Annotated" start:')
         s = u'\u2022' + ' '
         for gene in stats["called_starts"][most_annotated_start]:
             s += gene+ ", "
