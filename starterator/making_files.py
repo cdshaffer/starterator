@@ -95,7 +95,7 @@ def output_start_sites(stats):
 
         output.append('Summary of Final Annotations (Info on gene starts based on numbers in diagram):')
 
-        output.append('The start with the most final annotations is %s, it has been annotated in %s of the %s annotated genes in the pham.'
+        output.append('The start number called the most often in the published annotations is start number %s, it was called in %s of the %s non-draft genes in the pham.'
                       % (str(most_annotated_start), str(len(annotated_with_most_annotated_called)), str(annotatedCount)))
 
         # output.append('Called info: "Most Called" Start is %s, called in %s of all %s genes in the pham.'
