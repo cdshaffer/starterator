@@ -109,8 +109,16 @@ def find_upstream_stop_site(start, stop, orientation, phage_sequence):
     while not stop_site_found:
         ahead_of_start += 99
         if orientation == 'R':
-            sequence = Seq(phage_sequence[stop-1:(start+ahead_of_start)],
-                    IUPAC.unambiguous_dna)
+            if start + ahead_of_start > len(phage_sequence):     #i.e. hit end of phage while looking for stop
+                ahead_of_start = len(phage_sequence) - start   # start is zero based counting
+                ahead_of_start = ahead_of_start - ahead_of_start % 3
+                sequence = Seq(phage_sequence[stop:(start+ahead_of_start)],
+                               IUPAC.unambiguous_dna)
+                sequence = sequence.reverse_complement()
+                return sequence, ahead_of_start
+
+            sequence = Seq(phage_sequence[stop:(start+ahead_of_start)],
+                           IUPAC.unambiguous_dna)
             sequence = sequence.reverse_complement()
             if stop < 400:
                 return sequence, ahead_of_start
@@ -156,8 +164,7 @@ def new_PhamGene(db_id, start, stop, orientation, phage_id, phage_sequence=None)
     if db_id == None:
         return UnPhamGene(db_id, start, stop, orientation, phage_id, phage_sequence)
     if pham_genes.get(db_id, True):
-        pham_genes[db_id] = PhamGene(db_id, start, stop,
-                                 orientation, phage_id)
+        pham_genes[db_id] = PhamGene(db_id, start, stop, orientation, phage_id)
     return pham_genes[db_id]
 
 def get_gene_number(gene_name):
@@ -198,9 +205,12 @@ class PhamGene(Gene):
         self.suggested_start = {}
 
 
+
     def make_gene(self):
         """
-           makes the gene 
+           makes the gene which is a SeqRecord from Biopython. In this case the "gene" should
+           include all the sequence upstream of the annotated start all the way to the first
+           in frame stop codon.
         """
         phage = new_phage(phage_id=self.phage_id)
         self.phage_name = phage.get_name()
@@ -208,6 +218,13 @@ class PhamGene(Gene):
         gene_no = gene_no.split(" ")[0]
         self.gene_id = self.phage_name + "_" + gene_no
         self.gene_id = self.gene_id.replace('-', "_")
+
+        checkDraft = re.compile('_draft', re.IGNORECASE)
+        if checkDraft.search(self.gene_id) is not None:
+            self.draftStatus = True
+        else:
+            self.draftStatus = False
+
         phage_sequence = phage.get_sequence()
         if self.orientation == 'R':
             temp_start = self.stop
@@ -321,8 +338,11 @@ class PhamGene(Gene):
             (amount of sequence before the previous stop site) is the same, if the candidate
             starts of the genes are the same, and if the alignment gaps or not are the same
             (This is essentially, they would look the same on the graph output)
+
+            TODO currenly only "is_equal" if the start coordinate is the identical base coordinate
+            would make sense to compare the annotated start index
         """
-        if self.start != other.start:
+        if self.alignment_start_site != other.alignment_start_site:
             return False
         if self.ahead_of_start != other.ahead_of_start:
             return False
@@ -334,6 +354,7 @@ class PhamGene(Gene):
         self.sequence.features.sort()
         other.sequence.features.sort()
         for feature1, feature2 in zip(self.sequence.features, other.sequence.features):
+            print "phamgene.is_equal comparing features"
             if feature1.location.start != feature2.location.start:
                 return False
             if feature1.location.end != feature2.location.end:

@@ -60,8 +60,8 @@ MENU_UI = """
 class StarteratorWindow:
     def __init__(self):
 
-        self.choices = ['Whole Phamerated Phage', 'Whole Unphamerated Phage', 
-                        'One Phamerated Gene', 'One Unphamerated Gene', 'Pham']
+        self.choices = [ 'Pham', 'Whole Phamerated Phage', 'Whole Unphamerated Phage',
+                        'One Phamerated Gene', 'One Unphamerated Gene']
   
         # self.set_border_width(10)
         self.config_info = utils.get_config()
