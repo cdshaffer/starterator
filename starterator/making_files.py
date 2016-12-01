@@ -304,7 +304,6 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
 
 
-    # note is item C:
     note = '<font size=12>Note: In the above figure, yellow indicates the location of called starts comprised solely of '
     note += 'computational predictions (i.e. auto-annotations by Glimmer/GeneMark), '
     note += 'green indicates the location of called starts with at least 1 manual gene annotation.'
