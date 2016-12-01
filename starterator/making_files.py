@@ -312,11 +312,11 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     story.append(Paragraph(note, styles["Normal"]))
     story.append(Spacer(1, 12))
 
-    text = '<font size=14> Pham %s Report </font>' % pham_no  #item A
+    text = '<font size=14> Pham %s Report </font>' % pham_no
     story.append(Paragraph(text, styles['Center']))
     story.append(Spacer(1, 12))
     currentDate = time.strftime("%x")
-    rundate = '<font size=12>This analysis was run %s. </font>' % currentDate  #item B
+    rundate = '<font size=12>This analysis was run %s. </font>' % currentDate
     story.append(Paragraph(rundate, styles["Normal"]))
     story.append(Spacer(1,12))
 
@@ -325,11 +325,11 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     annotCount = phamCount - draftCount
     summaryText = "<font size=12>Pham number %s has %s members, %s are drafts.</font>" % (
     pham_no, len(pham.genes), draftCount)
-    story.append(Paragraph(summaryText, styles["Normal"]))  # item E
+    story.append(Paragraph(summaryText, styles["Normal"]))
     story.append(Spacer(1,12))
 
 
-    story.append(Paragraph('<font size=12>Phages represented in each track:</font>', styles["Normal"])) #item D start
+    story.append(Paragraph('<font size=12>Phages represented in each track:</font>', styles["Normal"]))
 
     groups = pham.group_similar_genes()
     tracks_info = []
@@ -339,14 +339,14 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
         tracks_info.append("<font size=12> "+ u'\u2022'+" %s</font>" % text)
     for line in tracks_info:
         story.append(Paragraph(line, styles["Normal"]))
-    story.append(Spacer(1, 12))  #item D end
+    story.append(Spacer(1, 12))
     if only_pham:
 
         start_stats = pham.stats["most_common"]
         start_stats["phamCount"] = phamCount
         start_stats["annotCount"] = annotCount
         start_stats["draftCount"] = draftCount
-        output = output_start_sites(start_stats) #this does items F through ??
+        output = output_start_sites(start_stats)
         for line in output:
             if line == '':
                 story.append(Spacer(1, 12))
@@ -354,25 +354,7 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
             # if 'Genes' not in line or '':
             story.append(Paragraph(text, styles['Normal']))
             story.append(Spacer(1, 12))
-            # else:
-            #     story.append(Paragraph(text, styles['Normal']))
-        # story.append()
-        # story.append(Paragraph("<font size=14>Suggested Starts:</font>", styles["Normal"]))
-        # suggested_start = output_suggested_starts(pham, all_genes=True)
-        # story.append(Spacer(1, 12))
-
-        # for line in suggested_start:
-        #     text = '<font size=12>%s</font>' % line
-        #     story.append(Paragraph(text, styles["Normal"]))
     else:
-        # story.append(Paragraph("<font size=14>Suggested Starts: </font>", styles["Normal"]))
-        # starts = pham.stats["most_common"]
-        # suggested_start = output_suggested_starts(pham, args.phage)
-        # story.append(Spacer(1, 12))
-        #
-        # for line in suggested_start:
-        #     text = '<font size=12>%s</font>' % line
-        #     story.append(Paragraph(text, styles["Normal"]))
         story.append(Paragraph("",styles["Normal"]))
         story.append(Paragraph("<font size=12>Gene Information:</font>", styles["Normal"]))
         pham_possible_starts = pham.total_possible_starts
