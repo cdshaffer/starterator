@@ -122,7 +122,7 @@ def update_protein_db():
     #                 '-o', 'T',
     #                 "-t", "Proteins"]
     #     print blast_db_command
-    subprocess.check_call(blast_db_command)
+    subprocess.check_call(blast_db_command) #TODO add file clean-up here
 
 def check_protein_db(count):
     get_db().execute('SELECT count(*) from gene')
