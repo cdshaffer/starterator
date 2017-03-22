@@ -206,6 +206,7 @@ class PhamGene(Gene):
 
 
 
+
     def make_gene(self):
         """
            makes the gene which is a SeqRecord from Biopython. In this case the "gene" should
