@@ -134,13 +134,19 @@ def output_start_sites(stats):
         for start, genes in stats["called_starts"].items():
             if len(genes) == 0:
                 continue
+            output.append("Start %s:" % str(start))
+            presence = len(stats["possible"][start])
+            percent_present = float(presence) / stats['phamCount'] * 100
+            output.append(u'\u2022' + " Found in %s of %s (%10.1f%% ) of genes in pham\t" %
+                          (str(presence), str(stats['phamCount']), percent_present))
+
+            percent_called = float(len(genes)) / presence * 100
+            output.append(u'\u2022' + " Called %10.1f%% of time when present \n\t" %  (percent_called))
 
             s = ''
             for gene in genes:
                 s += gene + ", "
-            output.append(u'\u2022' + " Start number " + str(start) + " is called in:\t" + s +'')
-            percent = float(len(genes)) / total_genes * 100
-            output.append("Percent with start %s called: %10.1f%% \n\t" % (str(start), percent))
+            output.append(u'\u2022' + " Phage where called:\t" + s +'')
             output.append('')
 
         return output
@@ -157,7 +163,7 @@ def add_pham_no_title(args, pham_no, first_graph_path, i=""):
 
     packet.seek(0)
     new_pdf = PyPDF2.PdfFileReader(packet)
-    existing_pdf = PyPDF2.PdfFileReader(file(first_graph_path), 'rb')
+    existing_pdf = PyPDF2.PdfFileReader(file(first_graph_path), 'rb') #is the 'rb' supposed to be inside the file() function?
     output = PyPDF2.PdfFileWriter()
     print first_graph_path
     page = existing_pdf.getPage(0)
@@ -186,7 +192,9 @@ def make_gene_track(gd_diagram, pham, gene_group, num_on_diagram, total):
     gene = gene_group[0]
 
     #change trackname to name of fist gene in list
-    track_name = gene.gene_id
+    track_name = str(num_on_diagram+1)
+    track_name += ": "
+    track_name += gene.gene_id
     if len(gene_group) > 1:
         track_name += " + "
         track_name += str(len(gene_group)-1)
@@ -271,7 +279,7 @@ def graph_start_sites(args, pham, file_path):
 
         combine_graphs(args, args.phage, pham.pham_no, i)
     else:  
-        final_graph_path = os.path.join(file_path, "Pham%sGraph_.pdf" % (pham.pham_no)) if not args.phage else os.path.join(file_path, "%sPham%sGraph_.pdf" % (args.phage+args.one_or_all, pham.pham_no))        
+        final_graph_path = os.path.join(file_path, "Pham%sGraph_.pdf" % (pham.pham_no)) if not args.phage else os.path.join(file_path, "%sPham%sGraph_.pdf" % (args.phage+args.one_or_all, pham.pham_no))
         # graph_path_svg = "%sPham%sGraph.svg" % (file_path+args.phage+ args.one_or_all, pham.pham_no)
         graph_path = os.path.join(file_path, "Pham%sGraph_.pdf" % (pham.pham_no)) if not args.phage else  os.path.join(file_path,"%sPham%sGraph_.pdf" % (args.phage, pham.pham_no))
         print "making_files.graph_start_sites: path to graph is " + str(graph_path)
@@ -312,6 +320,8 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     styles.add(ParagraphStyle(name="paragraph"))
     styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
 
+    #increase leading a bit
+    styles["Normal"].leading = 14
 
     note = '<font size=12>Note: In the above figure, yellow indicates the location of called starts comprised solely of '
     note += 'computational predictions (i.e. auto-annotations by Glimmer/GeneMark), '
@@ -348,13 +358,15 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     for line in tracks_info:
         story.append(Paragraph(line, styles["Normal"]))
     story.append(Spacer(1, 12))
-    if only_pham:
 
-        start_stats = pham.stats["most_common"]
-        start_stats["phamCount"] = phamCount
-        start_stats["annotCount"] = annotCount
-        start_stats["draftCount"] = draftCount
-        output = output_start_sites(start_stats)
+    start_stats = pham.stats["most_common"]
+    start_stats["phamCount"] = phamCount
+    start_stats["annotCount"] = annotCount
+    start_stats["draftCount"] = draftCount
+    output = output_start_sites(start_stats)
+
+    if only_pham:  #Add this this text if working on single pham, no particular phage
+
         for line in output:
             if line == '':
                 story.append(Spacer(1, 12))
@@ -364,7 +376,9 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
             story.append(Spacer(1, 12))
 
         story.append(Paragraph("",styles["Normal"]))
-        story.append(Paragraph("<font size=12>Gene Information:</font>", styles["Normal"]))
+        story.append(Paragraph("<font size=12>Gene Information:</font>", styles["h4"]))
+        story.append(Paragraph("",styles["Normal"]))
+
         pham_possible_starts = pham.total_possible_starts
 
         genelist=pham.genes.values()
@@ -379,11 +393,54 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
                         (pham_possible_starts.index(start) + 1, gene.alignment_index_to_coord(start) + 1))
 
             if gene.orientation == "R":
-                story.append(Paragraph("<font size = 12> Gene: %s \n Start: %s, Stop: %s </font>" % (gene.gene_id, gene.start, gene.stop+1), styles["Normal"]))
+                story.append(Paragraph(" Gene: %s \n Start: %s, Stop: %s " % (gene.gene_id, gene.start, gene.stop+1), styles["Normal"]))
             else:
-                story.append(Paragraph("<font size = 12> Gene: %s \n Start: %s, Stop: %s </font>" % (gene.gene_id, gene.start+1, gene.stop), styles["Normal"]))
-            story.append(Paragraph("<font size = 12> Candidate Starts for %s: </font>" % (gene.gene_id), styles["Normal"]))
-            story.append(Paragraph("<font size = 12>     "+ str(candidate_starts) + "</font>" , styles["Normal"]))
+                story.append(Paragraph(" Gene: %s \n Start: %s, Stop: %s " % (gene.gene_id, gene.start+1, gene.stop), styles["Normal"]))
+            story.append(Paragraph(" Candidate Starts for %s: " % (gene.gene_id), styles["Normal"]))
+            story.append(Paragraph("     "+ str(candidate_starts), styles["Normal"]))
+            story.append(Spacer(1,12))
+    else:   #TODO: Edit code below for text if working on single pham, but include results from a particular phage
+        for line in output:
+            if line == '':
+                story.append(Spacer(1, 12))
+            text = '<font size=12> %s </font>' % line
+            # if 'Genes' not in line or '':
+            story.append(Paragraph(text, styles['Normal']))
+            story.append(Spacer(1, 12))
+
+        story.append(Paragraph("",styles["Normal"]))
+        story.append(Paragraph("<font size=12>Gene Information:</font>", styles["h4"]))
+        story.append(Paragraph("",styles["Normal"]))
+
+        pham_possible_starts = pham.total_possible_starts
+
+        genelist=pham.genes.values()
+        genelist.sort(key=lambda x: x.phage_name)
+        for gene in genelist:
+            if args.phage in gene.gene_id:
+                textStyle = styles["Normal"]
+                textStyle.fontName = 'Helvetica-BoldOblique'
+                textStyle.leading = 13
+            else:
+                textStyle = styles["Normal"]
+                textStyle.fontName = 'Helvetica'
+                textStyle.leading = 12
+
+            candidate_starts = []
+            for start in gene.alignment_candidate_starts:
+                if gene.orientation == 'F':
+                    candidate_starts.append((pham_possible_starts.index(start)+1, gene.alignment_index_to_coord(start)))
+                else:
+                    candidate_starts.append(
+                        (pham_possible_starts.index(start) + 1, gene.alignment_index_to_coord(start) + 1))
+
+            if gene.orientation == "R":
+                story.append(Paragraph(" Gene: %s \n Start: %s, Stop: %s " % (gene.gene_id, gene.start, gene.stop+1), textStyle))
+            else:
+                story.append(Paragraph(" Gene: %s \n Start: %s, Stop: %s " % (gene.gene_id, gene.start+1, gene.stop), textStyle))
+
+            story.append(Paragraph("Candidate Starts for %s: " % (gene.gene_id), textStyle))
+            story.append(Paragraph("     " + str(candidate_starts) , textStyle))
             story.append(Spacer(1,12))
 
     doc.build(story)
