@@ -9,7 +9,7 @@ import utils
 import subprocess
 import os
 from utils import StarteratorError
-
+from cashier import cache
 
 
 def get_pham_number(phage_name, gene_number):
@@ -19,12 +19,13 @@ def get_pham_number(phage_name, gene_number):
             FROM gene JOIN pham ON gene.GeneID = pham.Gene \n\
             JOIN phage ON gene.PhageID = phage.PhageID \n\
             WHERE phage.Name LIKE %s AND gene.Name LIKE %s \n\
-            ESCAPE '!'", (phage_name+"%", '%'+str(gene_number)))
+            ESCAPE '!'", (phage_name + "%", '%' + str(gene_number)))
         row = results[0]
         pham_no = row[0]
         return str(pham_no)
     except:
         raise StarteratorError("Gene %s of Phage %s not found in database!" % (gene_number, phage_name))
+
 
 def get_pham_colors():
     db = DB()
@@ -33,6 +34,7 @@ def get_pham_colors():
     for row in results:
         pham_colors[str(row[0])] = row[1]
     return pham_colors
+
 
 class Pham(object):
     def __init__(self, pham_no, genes=None):
@@ -47,16 +49,15 @@ class Pham(object):
             whole = "All" if len(genes) > 1 else "One"
             self.file = "%s%s" % (genes[0].phage_name, whole)
 
-
     def get_genes(self):
         """
             Get the genes of the Phamily
         """
         results = get_db().query("SELECT `gene`.`GeneID`, `gene`.`phageID`, " +
-               " `Length`, `Start`, `Stop`, `Orientation`" +
-               " FROM `gene`"
-                " JOIN `pham` ON `gene`.`GeneID` = `pham`.`GeneID`" + 
-               " WHERE `pham`.`name` =%s; ", self.pham_no)
+                                 " `Length`, `Start`, `Stop`, `Orientation`" +
+                                 " FROM `gene`"
+                                 " JOIN `pham` ON `gene`.`GeneID` = `pham`.`GeneID`" +
+                                 " WHERE `pham`.`name` =%s; ", self.pham_no)
         genes = {}
         for gene_info in results:
             gene_id = gene_info[0]
@@ -69,7 +70,7 @@ class Pham(object):
         if len(genes) < 1:
             raise StarteratorError("Pham Number %s not found!" % self.pham_no)
         return genes
-    
+
     def get_phage_genes():
         pass
 
@@ -93,7 +94,7 @@ class Pham(object):
     def add_alignment(self, alignment):
         """
             Using the alignment, add the alignment to the each gene in the pham
-        """ 
+        """
         for record in alignment:
             gene = self.genes[record.id]
             gene.alignment = record
@@ -101,10 +102,14 @@ class Pham(object):
             gene.add_alignment_candidate_starts()
             gene.add_gaps_as_features()
 
+    @cache(cache_file="clustal_cache.db", cache_length=30000, cache_time=850000)
     def call_clustal(self, fasta_file):
-        subprocess.check_call(['clustalw', 
-        '-infile=%s' % (fasta_file),
-        '-quicktree'])
+        subprocess.check_call(['clustalw',
+                               '-infile=%s' % (fasta_file),
+                               '-quicktree'])
+        aln_file = fasta_file.replace(".fasta", ".aln")
+        alignment = AlignIO.read(aln_file, "clustal")
+        return alignment
 
     def make_fasta(self, file_name=None):
         if file_name == None:
@@ -126,12 +131,12 @@ class Pham(object):
             alignment = [gene.sequence]
         else:
             try:
-                alignment = AlignIO.read(file_name+".aln", "clustal")
+                alignment = AlignIO.read(file_name + ".aln", "clustal")
             except:
                 # cline =  ClustalwCommandline("clustalw", infile=("%s.fasta" % file_name))
                 # cline()
-                self.call_clustal(file_name+".fasta")
-                alignment = AlignIO.read(file_name+".aln", "clustal")
+                alignment = self.call_clustal(file_name + ".fasta")
+                # alignment = AlignIO.read(file_name+".aln", "clustal")
         self.add_alignment(alignment)
 
     def add_total_possible_starts(self):
@@ -141,7 +146,7 @@ class Pham(object):
         for gene in self.genes.values():
             for site in gene.alignment_candidate_starts:
                 if site not in self.total_possible_starts:
-                    self.total_possible_starts.append(site) 
+                    self.total_possible_starts.append(site)
         self.total_possible_starts = sorted(self.total_possible_starts)
         return self.total_possible_starts
 
@@ -158,16 +163,16 @@ class Pham(object):
             if not grouped[i]:
                 # gene is not in a group yet
                 gene = genes[i]
-                j = i + 1 # genes before index i have been grouped
+                j = i + 1  # genes before index i have been grouped
                 group = []
                 group.append(gene)  # add gene to this group - first one
-                while j < len(self.genes): # see if other genes are similar 
-                    if not grouped[j]: # skip genes that have already been grouped 
+                while j < len(self.genes):  # see if other genes are similar
+                    if not grouped[j]:  # skip genes that have already been grouped
                         gene_2 = genes[j]
-                        if gene.is_equal(gene_2): # if similar, then add to the group
-                            grouped[i] = True 
+                        if gene.is_equal(gene_2):  # if similar, then add to the group
+                            grouped[i] = True
                             grouped[j] = True
-                            group.append(gene_2) 
+                            group.append(gene_2)
                     j += 1
                 groups.append(group)
             i += 1
@@ -191,7 +196,7 @@ class Pham(object):
             (useful when looking at the graphical output), and the coordinate is given.
         """
         # TODO:
-            # add functionality for ignoring DRAFT phages?
+        # add functionality for ignoring DRAFT phages?
         # use term Called_start for all genes irrespective of method to determine location of start codon
         # use term Annotated_start for genes in which manual annotation was used to determine start codon
         # use term predicted_start for gene in which computational prediction was used to determine start codon
@@ -204,7 +209,7 @@ class Pham(object):
         # creates two lists each containing a list of gene ids
         # for each candidate start of the pham:
         # start_stats["possible"] contains a list of genes with the candidate starts
-            # for the index of each start in the pham
+        # for the index of each start in the pham
         # start_stats["called_starts"] contains of list of the genes that have the site
         #   of the index called as their start
         start_stats["possible"] = {}
@@ -212,14 +217,14 @@ class Pham(object):
         # start_stats["most_called"] = {}
         self.add_total_possible_starts()
         for i, site in enumerate(self.total_possible_starts):
-            start_stats["possible"][i+1] = []
+            start_stats["possible"][i + 1] = []
             # start_stats["most_called"][i+1] = []
-            start_stats["called_starts"][i+1] = []
+            start_stats["called_starts"][i + 1] = []
             for gene in self.genes.values():
                 if site in gene.alignment_candidate_starts:
-                    start_stats["possible"][i+1].append(gene.gene_id)
+                    start_stats["possible"][i + 1].append(gene.gene_id)
                 if site == gene.alignment_start_site:
-                    start_stats["called_starts"][i+1].append(gene.gene_id)
+                    start_stats["called_starts"][i + 1].append(gene.gene_id)
 
         all_starts_count = Counter(all_start_sites)
         all_annot_count = Counter(all_annotated_start_sites)
@@ -229,9 +234,9 @@ class Pham(object):
         annot_starts_count = all_annot_count.most_common()
         predicted_starts_count = all_predicted_count.most_common()
 
-        most_called_start_index = self.total_possible_starts.index(called_starts_count[0][0])+1
-        if len(annot_starts_count) > 0: #i.e. at least 1 annotated gene
-            most_annot_start_index = self.total_possible_starts.index(annot_starts_count[0][0])+1
+        most_called_start_index = self.total_possible_starts.index(called_starts_count[0][0]) + 1
+        if len(annot_starts_count) > 0:  # i.e. at least 1 annotated gene
+            most_annot_start_index = self.total_possible_starts.index(annot_starts_count[0][0]) + 1
         else:
             most_annot_start_index = None
 
@@ -257,28 +262,30 @@ class Pham(object):
         genes_without_most_called = []
         print "phams.find_most_common_start: genes_start_most_called " + str(genes_start_most_called)
         for gene in self.genes.values():
-            if gene.gene_id in start_stats["possible"][most_called_start_index]:  #i.e does the gene even have the most called start
+            if gene.gene_id in start_stats["possible"][
+                most_called_start_index]:  # i.e does the gene even have the most called start
                 if gene.gene_id in genes_start_most_called:
-                    if gene.orientation == 'F':   #only +1 for forward genes
-                    #genes where most called start is present and it is called as the start are "most_called"
-                        gene.suggested_start["most_called"] =(most_called_start_index, gene.start+1)
+                    if gene.orientation == 'F':  # only +1 for forward genes
+                        # genes where most called start is present and it is called as the start are "most_called"
+                        gene.suggested_start["most_called"] = (most_called_start_index, gene.start + 1)
                     else:
-                        gene.suggested_start["most_called"] =(most_called_start_index, gene.start)
+                        gene.suggested_start["most_called"] = (most_called_start_index, gene.start)
                     start_stats["most_called"].append(gene.gene_id)
                 else:
-                    #genes where most called start is present but the start is not the called start are "most_not_called
+                    # genes where most called start is present but the start is not the called start are "most_not_called
                     start_stats["most_not_called"].append(gene.gene_id)
-                    most_called_alignment_index = self.total_possible_starts[most_called_start_index-1]
-                    suggested_start = gene.alignment_index_to_coord(most_called_alignment_index) #+1 issue dealt with in function
+                    most_called_alignment_index = self.total_possible_starts[most_called_start_index - 1]
+                    suggested_start = gene.alignment_index_to_coord(
+                        most_called_alignment_index)  # +1 issue dealt with in function
                     gene.suggested_start["most_called"] = (most_called_start_index, suggested_start)
 
             else:
-                #genes where the most called start is NOT even present are no_most_called
+                # genes where the most called start is NOT even present are no_most_called
                 start_stats["no_most_called"].append(gene.gene_id)
                 possible_starts_coords = []
                 for start in gene.alignment_candidate_starts:
                     index = self.total_possible_starts.index(start) + 1
-                    new_start = gene.alignment_index_to_coord(start) +1
+                    new_start = gene.alignment_index_to_coord(start) + 1
                     possible_starts_coords.append((index, new_start))
                 gene.suggested_start["most_called"] = possible_starts_coords
 
@@ -314,4 +321,3 @@ class Pham(object):
 
         self.stats["most_common"] = start_stats
         return start_stats
-
