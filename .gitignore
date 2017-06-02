@@ -1,2 +1,4 @@
 starterator/*.pyc
 .idea/
+starterator/*cache.db
+Proteins/Proteins.*
