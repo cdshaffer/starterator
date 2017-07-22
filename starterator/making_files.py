@@ -108,25 +108,33 @@ def output_start_sites(stats):
             #
             # output.append('Percent of genes that begin at the "Most Annotated" start: %10.1f%%'
             #                 % percent_with_most_called )
+
+            called_most_annotated = [gene for gene in stats["called_starts"][most_annotated_start] ]
+            called_most_annotated.sort()
             output.append('Genes that call this "Most Annotated" start:')
             s = u'\u2022' + ' '
-            for gene in stats["called_starts"][most_annotated_start]:
+            for gene in called_most_annotated:
                 s += gene+ ", "
             output.append(s)
-            output.append("")
+            output.append('')
+
+            have_most_annotated = [gene for gene in stats["most_not_annotated"] ]
+            have_most_annotated.sort()
             output.append('Genes that have the "Most Annotated" start but do not call it:')
             s = u'\u2022' + ' '
-            for gene in stats["most_not_annotated"]:
+            for gene in have_most_annotated:
                 s += gene + ", "
             output.append(s)
             output.append('')
+
+            has_not_most_annotated = [gene for gene in stats["no_most_annot"] ]
+            has_not_most_annotated.sort()
             output.append('Genes that do not have the "Most Annotated" start:')
             s = u'\u2022' + ""
-            for gene in stats["no_most_annot"]:
+            for gene in has_not_most_annotated:
                 s += gene + ", "
             output.append(s + '')
-            output.append('')
-        else:
+            output.append('')        else:
             output.append("This pham is comprised of all draft annotations. There are no annotations to summarize.")
 
         #start section summary of start sites by number
