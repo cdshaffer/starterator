@@ -134,7 +134,9 @@ def output_start_sites(stats):
             for gene in has_not_most_annotated:
                 s += gene + ", "
             output.append(s + '')
-            output.append('')        else:
+            output.append('')
+
+        else:
             output.append("This pham is comprised of all draft annotations. There are no annotations to summarize.")
 
         #start section summary of start sites by number
