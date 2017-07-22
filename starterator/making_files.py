@@ -153,6 +153,7 @@ def output_start_sites(stats):
             percent_called = float(len(genes)) / presence * 100
             output.append(u'\u2022' + " Called %10.1f%% of time when present \n\t" %  (percent_called))
 
+            genes.sort()
             s = ''
             for gene in genes:
                 s += gene + ", "
