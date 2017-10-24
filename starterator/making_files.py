@@ -9,14 +9,13 @@
 #
 # Marissa Pacey
 # April 4, 2014
-# Functions that create the PDF outputsst
+# Functions that create the PDF outputs
 
 import cPickle
 import argparse
 import time
 from Bio.Graphics import GenomeDiagram
 from Bio.SeqFeature import SeqFeature, FeatureLocation
-from reportlab.lib import colors
 import reportlab.lib.pagesizes
 from reportlab.pdfgen import canvas
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
@@ -32,27 +31,30 @@ import phams
 import phamgene
 import os
 # from phage import
-
+# from reportlab.lib import colors
 
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n', '--pham_no', default = -1)
-    parser.add_argument('-p' , '--phage', default=None)
+    parser.add_argument('-n', '--pham_no', default=-1)
+    parser.add_argument('-p', '--phage', default=None)
     parser.add_argument('-d', '--dir', default=None)
     parser.add_argument('-a', '--one_or_all', default='One')
     parser.add_argument('-f', '--pickle_file', default=None)
-    parser.add_argument("-l", "--phage_length", type=int, default=-1)
+    parser.add_argument('-l', '--phage_length', type=int, default=-1)
     parser.add_argument('-m', '--make', default=None)
 
     return parser.parse_args()
 
+
 def check_file(file_name):
     try: 
         f = open(file_name, "r")
+        f.close()
         return True
     except:
         return False
+
 
 def output_suggested_starts(pham, phage=None, all_genes=False):
     """
@@ -61,15 +63,15 @@ def output_suggested_starts(pham, phage=None, all_genes=False):
         Otherwise, finds only the suggested start site of the specific phage gene(s)
     """
     output = []
-    if all_genes == False:
+    if not all_genes:
         for gene in pham.genes.values():
             if phage in gene.gene_id:
                 coord_suggestion = gene.suggested_start["most_called"]
-                output.append(""+ gene.gene_id + ", " +str(coord_suggestion))
+                output.append("" + gene.gene_id + ", " + str(coord_suggestion))
     else:
         for gene in pham.genes.values():
             coord_suggestion = gene.suggested_start["most_called"]
-            output.append(gene.gene_id + ", " +str(coord_suggestion))
+            output.append(gene.gene_id + ", " + str(coord_suggestion))
     return output
 
 
@@ -79,105 +81,248 @@ def output_start_sites(stats):
             Returns a list of strings with information about
             start sites for this pham  
         """
-        most_called_start = stats["most_called_start"]
+        # most_called_start = stats["most_called_start"]
         most_annotated_start = stats["most_annotated_start"]
-        total_genes = stats["phamCount"]
-        annotatedCount = stats["annotCount"]
-        draftCount = stats["draftCount"]
-        calledCount = len(stats["called_starts"][most_called_start])
+        annotated_count = stats["annotCount"]
+        # noinspection PyListCreation
         output = []
         output.append("")
 
-        annotated_with_most_annotated_called = \
-            [g.gene_id for g in stats["annot_list"] if g.gene_id in stats["called_starts"][most_annotated_start] ]
-        annotated_with_most_predicted_called = \
-            [g.gene_id for g in stats["draft_list"] if g.gene_id in stats["called_starts"][most_called_start] ]
+        # start section on summary of annotations:
+        output.append('<b>Summary of Final Annotations (See graph section above for start numbers):</b>')
 
-        output.append('Summary of Final Annotations (Info on gene starts based on numbers in diagram):')
+        if annotated_count > 0:
+            annotated_with_most_annotated_called = \
+                [g.gene_id for g in stats["annot_list"] if g.gene_id in stats["called_starts"][most_annotated_start]]
+            # annotated_with_most_predicted_called = \
+            #    [g.gene_id for g in stats["draft_list"] if g.gene_id in stats["called_starts"][most_called_start]]
 
-        output.append('The start number called the most often in the published annotations is start number %s, it was called in %s of the %s non-draft genes in the pham.'
-                      % (str(most_annotated_start), str(len(annotated_with_most_annotated_called)), str(annotatedCount)))
+            s = 'The start number called the most often in the published annotations is %s,' % str(most_annotated_start)
+            s += ' it was called in %s of the %s non-draft genes in the pham.' % \
+                (str(len(annotated_with_most_annotated_called)), str(annotated_count))
+            output.append(s)
 
-        # output.append('Called info: "Most Called" Start is %s, called in %s of all %s genes in the pham.'
-        #               % (str(stats["most_called_start"]), str(calledCount), str(total_genes)))
-        # percent_with_most_annotated = (float(len(stats["most_called"]))
-        #                             /total_genes *100 )
-        #
-        # output.append('Percent of genes that begin at the "Most Annotated" start: %10.1f%%'
-        #                 % percent_with_most_called )
-        output.append('Genes that call this "Most Annotated" start:')
-        s = u'\u2022' + ' '
-        for gene in stats["called_starts"][most_annotated_start]:
-            s += gene+ ", "
-        output.append(s)
-        output.append("")
-        output.append('Genes that have the "Most Annotated" start but do not call it:')
-        s = u'\u2022' + ' '
-        for gene in stats["most_not_annotated"]:
-            s += gene + ", "
-        output.append(s)
+            output.append('')
+            # output.append('Called info: "Most Called" Start is %s, called in %s of all %s genes in the pham.'
+            #               % (str(stats["most_called_start"]), str(calledCount), str(total_genes)))
+            # percent_with_most_annotated = (float(len(stats["most_called"]))
+            #                             /total_genes *100 )
+            #
+            # output.append('Percent of genes that begin at the "Most Annotated" start: %10.1f%%'
+            #                 % percent_with_most_called )
+
+            called_most_annotated = [gene for gene in stats["called_starts"][most_annotated_start]]
+            called_most_annotated.sort()
+            output.append('Genes that call this "Most Annotated" start:')
+            s = u'\u2022' + ' '
+            for gene in called_most_annotated:
+                s += gene + ", "
+            output.append(s)
+            output.append('')
+
+            have_most_annotated = [gene for gene in stats["most_not_annotated"]]
+            have_most_annotated.sort()
+            output.append('Genes that have the "Most Annotated" start but do not call it:')
+            s = u'\u2022' + ' '
+            for gene in have_most_annotated:
+                s += gene + ", "
+            output.append(s)
+            output.append('')
+
+            has_not_most_annotated = [gene for gene in stats["no_most_annot"]]
+            has_not_most_annotated.sort()
+            output.append('Genes that do not have the "Most Annotated" start:')
+            s = u'\u2022' + ' '
+            for gene in has_not_most_annotated:
+                s += gene + ", "
+            output.append(s + '')
+            output.append('')
+        else:
+            output.append("This pham is comprised of all draft annotations. There are no annotations to summarize.")
+
+        # start section summary of start sites by number
+        output.append("<b>Summary by start number:</b>")
         output.append('')
-        output.append('Genes that do not have the "Most Annotated" start:')
-        s = u'\u2022' + ""
-        for gene in stats["no_most_annot"]:
-            s += gene + ", "
-        output.append(s + '')
-        output.append('')
-        output.append("Summary by start number:")
+
         for start, genes in stats["called_starts"].items():
             if len(genes) == 0:
                 continue
+            output.append("Start %s:" % str(start))
+            presence = len(stats["possible"][start])
+            percent_present = float(presence) / stats['phamCount'] * 100
+            output.append(u'\u2022' + " Found in %s of %s (%10.1f%% ) of genes in pham\t" %
+                          (str(presence), str(stats['phamCount']), percent_present))
 
+            percent_called = float(len(genes)) / presence * 100
+            output.append(u'\u2022' + " Called %10.1f%% of time when present \n\t" % percent_called)
+
+            genes.sort()
             s = ''
             for gene in genes:
                 s += gene + ", "
-            output.append(u'\u2022' + " Start number " + str(start) + " is called in:\t" + s +'')
-            percent = float(len(genes)) / total_genes * 100
-            output.append("Percent with start %s called: %10.1f%% \n\t" % (str(start), percent))
+            output.append(u'\u2022' + " Phage where called:\t" + s + '')
+            output.append('')
+
         return output
+
+
+# noinspection PyListCreation
+def output_start_sites_by_phage(stats, genelist):
+    """
+        Writes a report of the start sites statistics
+        Returns a list of strings with information about
+        start sites for this pham
+    """
+    # get phage name from the 1st entry in the gene list
+    # phage = genelist[0].phage_name
+
+    # Older variables which could be used:
+    # sort genelist on gene_id
+    # most_called_start = stats["most_called_start"]
+    # total_genes = stats["phamCount"]
+    # draftCount = stats["draftCount"]
+    # calledCount = len(stats["called_starts"][most_called_start])
+
+    genelist.sort(key=lambda x: x.start)
+    most_annotated_start = stats["most_annotated_start"]
+    annotated_count = stats["annotCount"]
+    output = []
+    output.append("")
+
+    # start section on summary of annotations:
+    output.append('Summary of Final Annotations (See graph section above for start numbers):')
+
+    if annotated_count > 0:
+        annotated_with_most_annotated_called = \
+            [g.gene_id for g in stats["annot_list"] if g.gene_id in stats["called_starts"][most_annotated_start]]
+        # annotated_with_most_predicted_called = \
+        #    [g.gene_id for g in stats["draft_list"] if g.gene_id in stats["called_starts"][most_called_start]]
+
+        s = 'The start number called the most often in the published annotations is %s,' % str(most_annotated_start)
+        s += ' it was called in %s of the %s non-draft genes in the pham.' % \
+             (str(len(annotated_with_most_annotated_called)), str(annotated_count))
+        output.append(s)
+        output.append('')
+
+        called_most_annotated = [gene for gene in stats["called_starts"][most_annotated_start]]
+        have_most_annotated = [gene for gene in stats["most_not_annotated"]]
+        has_not_most_annotated = [gene for gene in stats["no_most_annot"]]
+
+        for gene in genelist:
+            if gene.gene_id in called_most_annotated:
+                output.append('<b>%s did call</b> the "Most Annotated" start (%s).' %
+                              (gene.gene_id, str(gene.alignment_start_num_called)))
+            elif gene.gene_id in have_most_annotated:
+                output.append('<b>%s has but does not call</b> the "Most Annotated" start, calling start %s instead.' %
+                              (gene.gene_id, str(gene.alignment_start_num_called)))
+            elif gene.gene_id in has_not_most_annotated:
+                output.append('<b>%s does not have</b> the "Most Annotated" start, calling start %s instead. ' %
+                              (gene.gene_id, str(gene.alignment_start_num_called)))
+
+        output.append('')
+
+    else:
+        output.append("This pham is comprised of all draft annotations. There are no annotations to summarize.")
+        output.append('')
+
+    # start section summary of start sites by number
+    output.append("<b>Summary by start number:</b>")
+    for gene in genelist:
+        if len(gene.alignment_annot_start_nums) > 1:
+            output.append("%s has %d starts (numbers: %s; called: %s times) with manual annotations." %
+                          (gene.gene_id, len(gene.alignment_annot_start_nums),
+                           str(gene.alignment_annot_start_nums)[1:-1], str(gene.alignment_annot_start_counts)[1:-1]))
+        elif len(gene.alignment_annot_start_nums) == 1:
+            output.append("%s has 1 start (number %s; called: %s times) with manual annotations." %
+                          (gene.gene_id, str(gene.alignment_annot_start_nums)[1:-1], str(gene.alignment_annot_start_counts)[1:-1]))
+        else:
+            output.append("%s has no starts with manual annotations in other genes." % gene.gene_id)
+
+    output.append('')
+    if len(genelist) > 1:
+        all_annotated_starts = []
+        for gene in genelist:
+            all_annotated_starts += gene.alignment_annot_start_nums
+
+        all_annotated_starts = list(set(all_annotated_starts))
+    else:
+        all_annotated_starts = genelist[0].alignment_annot_start_nums
+
+    for start in all_annotated_starts:
+        output.append("Start %s:" % str(start))
+        presence = len(stats["possible"][start])
+        percent_present = float(presence) / stats['phamCount'] * 100
+        output.append(u'\u2022' + " Found in %s of %s (%10.1f%% ) of genes in pham\t" %
+                      (str(presence), str(stats['phamCount']), percent_present))
+
+        percent_called = float(len(stats['called_starts'][start])) / presence * 100
+        output.append(u'\u2022' + " Called %10.1f%% of time when present \n\t" % percent_called)
+
+        genes = stats["called_starts"][start]
+        genes.sort()
+        s = ''
+        for gene in genes:
+            s += gene + ", "
+        output.append(u'\u2022' + " Phage where called:\t" + s + '')
+        output.append('')
+
+    return output
+
 
 def add_pham_no_title(args, pham_no, first_graph_path, i=""):
     # print i, type(i)
     # print first_graph_path
     packet = StringIO.StringIO()
     can = canvas.Canvas(packet, pagesize=reportlab.lib.pagesizes.letter)
-    width, height = reportlab.lib.pagesizes.letter
+    # width, height = reportlab.lib.pagesizes.letter
     # print width, height
     can.drawString(280, 750, 'Pham ' + str(pham_no))
     can.save()
 
     packet.seek(0)
     new_pdf = PyPDF2.PdfFileReader(packet)
-    existing_pdf = PyPDF2.PdfFileReader(file(first_graph_path), 'rb')
+    existing_pdf = PyPDF2.PdfFileReader(file(first_graph_path, 'rb'))
     output = PyPDF2.PdfFileWriter()
     print first_graph_path
     page = existing_pdf.getPage(0)
     page.mergePage(new_pdf.getPage(0))
     output.addPage(page)
     print utils.INTERMEDIATE_DIR
-    print "old graph?", os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage+ args.one_or_all, pham_no, i))
-    outputStream = file(os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage+ args.one_or_all, pham_no, i)),'wb')
+    print "old graph?", os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage + args.one_or_all, pham_no, i))
+    output_strm = file(os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage + args.one_or_all, pham_no, i)), 'wb')
     # print outputStream
-    print outputStream
+    print output_strm
     os.remove(first_graph_path)
-    output.write(outputStream)
-    outputStream.close()
+    output.write(output_strm)
+    output_strm.close()
+
 
 def combine_graphs(args, phage, pham_no, num_pages):
     merger = PyPDF2.PdfFileMerger()
-    for i in xrange(0, num_pages+1):
-        print os.path.join(args.dir, "%sPham%sGraph%d.pdf"  % (phage + args.one_or_all, pham_no, i))
-        graph = open(os.path.join(args.dir, "%sPham%sGraph%d.pdf"  % (phage + args.one_or_all, pham_no, i)), "rb")
+    for j in xrange(0, num_pages + 1):
+        print os.path.join(args.dir, "%sPham%sGraph%d.pdf" % (phage + args.one_or_all, pham_no, j))
+        graph = open(os.path.join(args.dir, "%sPham%sGraph%d.pdf" % (phage + args.one_or_all, pham_no, j)), "rb")
         merger.append(fileobj=graph)
-    merger.write(open(os.path.join(args.dir, "%sPham%sGraph.pdf"  % (phage + args.one_or_all, pham_no)), "wb"))
+    merger.write(open(os.path.join(args.dir, "%sPham%sGraph.pdf" % (phage + args.one_or_all, pham_no)), "wb"))
+
 
 def make_gene_track(gd_diagram, pham, gene_group, num_on_diagram, total):
-    """"""
-    colors = ['purple', 'red', 'lightblue', 'orange', 'tan', 'brown']
+    """
+
+    :param gd_diagram:
+    :param pham:
+    :param gene_group:
+    :param num_on_diagram:
+    :param total:
+    :return:
+    """
+    start_bar_colors = ['purple', 'red', 'lightblue', 'orange', 'tan', 'brown']
     gene = gene_group[0]
 
-    #change trackname to name of fist gene in list
-    track_name = gene.gene_id
+    # change track_name to name of fist gene in list
+    track_name = str(num_on_diagram+1)
+    track_name += ": "
+    track_name += gene.gene_id
     if len(gene_group) > 1:
         track_name += " + "
         track_name += str(len(gene_group)-1)
@@ -187,32 +332,32 @@ def make_gene_track(gd_diagram, pham, gene_group, num_on_diagram, total):
     gd_feature_set = gd_gene_track.new_set()
 
     start_site = gene.alignment_start_site
-    start_site_feature = SeqFeature(FeatureLocation(start_site, start_site +1), 
-                            strand=None)
+    start_site_feature = SeqFeature(FeatureLocation(start_site, start_site + 1), strand=None)
     for feature in gene.alignment.features:
         if feature.type == 'seq':
             gd_seq_set.add_feature(feature, color='pink')
     for site in gene.alignment_candidate_starts:
-        site_color = pham.total_possible_starts.index(site) % len(colors) 
-        possible_site = SeqFeature(FeatureLocation(site, site ), strand=None)
-        gd_feature_set.add_feature(possible_site, color=colors[site_color], 
-            name=str(pham.total_possible_starts.index(site)+1), label=True)
+        site_color = pham.total_possible_starts.index(site) % len(start_bar_colors)
+        possible_site = SeqFeature(FeatureLocation(site, site), strand=None)
+        gd_feature_set.add_feature(possible_site, color=start_bar_colors[site_color],
+                                   name=str(pham.total_possible_starts.index(site) + 1), label=True)
     end_gene_feature = SeqFeature(FeatureLocation(len(gene.alignment), 
-                        len(gene.alignment)+1), strand=None)
+                                  len(gene.alignment)+1), strand=None)
 
     # draw blue called start only if non-draft gene in gene group, if all draft use yellow
 
-    allDraftStatus = True
+    all_draft_status = True
     for gene in gene_group:
-        allDraftStatus = allDraftStatus and gene.draftStatus
+        all_draft_status = all_draft_status and gene.draftStatus
 
-    if allDraftStatus:
-        startcolor="yellow"
+    if all_draft_status:
+        startcolor = "yellow"
     else:
         startcolor = "green"
-    gd_feature_set.add_feature(start_site_feature, color=startcolor, label=True)
 
+    gd_feature_set.add_feature(start_site_feature, color=startcolor, label=True)
     gd_feature_set.add_feature(end_gene_feature, color='purple', label=True)
+
 
 def graph_start_sites(args, pham, file_path):
     """
@@ -220,34 +365,41 @@ def graph_start_sites(args, pham, file_path):
     """
 
     # genes = sorted(pham.genes_in_pham.values())
-    genes = pham.group_similar_genes()
+    if args.phage is None:
+        args.phage = ""
+        order_by = None
+    else:
+        order_by = args.phage
+
+    genes = pham.group_similar_genes(order_by)
     # for group in genes:
     #     print group, group.id
-    if args.phage == None:
-        args.phage = ""
+
     seq_length = len(genes[0][0].sequence.seq)
-    if not args.phage:
-        graph_path = os.path.join(file_path,"OnePham%sGraph_%%s.pdf" % (pham.pham_no))
-    else:
-        graph_path = os.path.join(file_path, "%sPham%sGraph_%%s.pdf" % (args.phage+ args.one_or_all, pham.pham_no))
+
     if len(genes) > 100:
         for i in xrange(0, int(math.ceil(len(genes)/50.0))):
             gd_diagram = GenomeDiagram.Diagram(pham.pham_no)
-            final_graph_path = os.path.join(file_path,"OnePham%sGraph%d.pdf" % (pham.pham_no, i)) if not args.phage else  os.path.join(file_path, "%sPham%sGraph%d.pdf" % (args.phage+args.one_or_all, pham.pham_no, i))
-            graph_path = os.path.join(file_path, "OnePham%sGraph_%d.pdf" % ( pham.pham_no, i)) if not args.phage else os.path.join(file_path,"%sPham%sGraph_%d.pdf" % ( args.phage+args.one_or_all, pham.pham_no, i))
+            if not args.phage:
+                final_graph_path = os.path.join(file_path, "OnePham%sGraph%d.pdf" % (pham.pham_no, i))
+                graph_path = os.path.join(file_path, "OnePham%sGraph_%d.pdf" % (pham.pham_no, i))
+
+            else:
+                final_graph_path = os.path.join(file_path,
+                                                "%sPham%sGraph%d.pdf" % (args.phage + args.one_or_all, pham.pham_no, i))
+                graph_path = os.path.join(file_path,
+                                          "%sPham%sGraph_%d.pdf" % (args.phage + args.one_or_all, pham.pham_no, i))
+
             if check_file(final_graph_path):
                 continue
-            graph_path_svg = os.path.join(file_path, "%sPham%sGraph_%s.svg" % (args.phage+ args.one_or_all, pham.pham_no, i))
 
             for j in xrange(0, 50):
                 if i*50 + j >= len(genes):
                     print i * 50, + j, len(genes)
                     gd_gene_track = gd_diagram.new_track(50-j)
                     gd_feature_set = gd_gene_track.new_set()
-                    empty_feature = SeqFeature(FeatureLocation(0,1), 
-                            strand=None)
+                    empty_feature = SeqFeature(FeatureLocation(0, 1), strand=None)
                     gd_feature_set.add_feature(empty_feature, color="black", label=True)
-                    print 'blank track added'
                 else:
                     gene = genes[i*50 + j][0]
                     make_gene_track(gd_diagram, pham, genes[i*50 + j], j, 50)
@@ -256,13 +408,13 @@ def graph_start_sites(args, pham, file_path):
             gd_diagram.draw(format="linear", orientation="portrait", pagesize=reportlab.lib.pagesizes.letter,
                             fragments=1, start=0, end=seq_length)
             gd_diagram.write(graph_path, "PDF")
-            gd_diagram.write(graph_path_svg, "SVG")
+            # gd_diagram.write(graph_path_svg, "SVG")
 
             add_pham_no_title(args, args.pham_no, graph_path, str(i))
 
         combine_graphs(args, args.phage, pham.pham_no, i)
     else:  
-        final_graph_path = os.path.join(file_path, "Pham%sGraph_.pdf" % (pham.pham_no)) if not args.phage else os.path.join(file_path, "%sPham%sGraph_.pdf" % (args.phage+args.one_or_all, pham.pham_no))        
+        final_graph_path = os.path.join(file_path, "Pham%sGraph_.pdf" % (pham.pham_no)) if not args.phage else os.path.join(file_path, "%sPham%sGraph_.pdf" % (args.phage+args.one_or_all, pham.pham_no))
         # graph_path_svg = "%sPham%sGraph.svg" % (file_path+args.phage+ args.one_or_all, pham.pham_no)
         graph_path = os.path.join(file_path, "Pham%sGraph_.pdf" % (pham.pham_no)) if not args.phage else  os.path.join(file_path,"%sPham%sGraph_.pdf" % (args.phage, pham.pham_no))
         print "making_files.graph_start_sites: path to graph is " + str(graph_path)
@@ -285,16 +437,19 @@ def graph_start_sites(args, pham, file_path):
         # gd_diagram.write("%s.eps" % (file_path+pham.pham_no), "EPS")
         # gd_diagram.write("%s.png" % (file_path+pham.pham_no), "PNG")
 
+
 def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     """
         Creates a PDF Report for the specific pham.
-        From Start sites statisitics
+        From Start sites statistics
         phage specific
     """
     if not args.phage:
-        name = os.path.join(output_dir, "Pham%sText.pdf" % (pham_no))
+        order_by = None
+        name = os.path.join(output_dir, "Pham%sText.pdf" % pham_no)
     else:
-        name = os.path.join(output_dir,"%sPham%sText.pdf" % (args.phage + args.one_or_all, pham_no))
+        order_by = args.phage
+        name = os.path.join(output_dir, "%sPham%sText.pdf" % (args.phage + args.one_or_all, pham_no))
     if check_file(name):
         return
     doc = SimpleDocTemplate(name, pagesize=reportlab.lib.pagesizes.letter)
@@ -303,10 +458,12 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     styles.add(ParagraphStyle(name="paragraph"))
     styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
 
+    # increase leading a bit
+    styles["Normal"].leading = 14
 
-    note = '<font size=12>Note: In the above figure, yellow indicates the location of called starts comprised solely of '
-    note += 'computational predictions (i.e. auto-annotations by Glimmer/GeneMark), '
-    note += 'green indicates the location of called starts with at least 1 manual gene annotation.'
+    note = '<font size=12>Note: In the above figure, yellow indicates the location of called starts comprised solely of'
+    note += ' computational predictions (i.e. auto-annotations by Glimmer/GeneMark),'
+    note += ' green indicates the location of called starts with at least 1 manual gene annotation. </font>'
 
     story.append(Paragraph(note, styles["Normal"]))
     story.append(Spacer(1, 12))
@@ -314,67 +471,103 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     text = '<font size=14> Pham %s Report </font>' % pham_no
     story.append(Paragraph(text, styles['Center']))
     story.append(Spacer(1, 12))
-    currentDate = time.strftime("%x")
-    rundate = '<font size=12>This analysis was run %s. </font>' % currentDate
-    story.append(Paragraph(rundate, styles["Normal"]))
-    story.append(Spacer(1,12))
+    current_date = time.strftime("%x")
+    run_date = '<font size=12>This analysis was run %s. </font>' % current_date
+    story.append(Paragraph(run_date, styles["Normal"]))
+    story.append(Spacer(1, 12))
 
-    phamCount = len(pham.genes.values())
-    draftCount = sum(1 for g in pham.genes.values() if g.draftStatus)
-    annotCount = phamCount - draftCount
-    summaryText = "<font size=12>Pham number %s has %s members, %s are drafts.</font>" % (
-    pham_no, len(pham.genes), draftCount)
-    story.append(Paragraph(summaryText, styles["Normal"]))
-    story.append(Spacer(1,12))
-
+    pham_count = len(pham.genes.values())
+    draft_count = sum(1 for g in pham.genes.values() if g.draftStatus)
+    annot_count = pham_count - draft_count
+    summary_text = "<font size=12>Pham number %s has %s members, %s are drafts.</font>" % \
+                   (pham_no, len(pham.genes), draft_count)
+    story.append(Paragraph(summary_text, styles["Normal"]))
+    story.append(Spacer(1, 12))
 
     story.append(Paragraph('<font size=12>Phages represented in each track:</font>', styles["Normal"]))
 
-    groups = pham.group_similar_genes()
+    groups = pham.group_similar_genes(order_by)
     tracks_info = []
     for index in range(len(groups)):
-        text = "Track %s : " % (index+1)
+        text = "Track %s : " % (index + 1)
         text += ", ".join(gene.gene_id for gene in groups[index])
-        tracks_info.append("<font size=12> "+ u'\u2022'+" %s</font>" % text)
+        tracks_info.append("<font size=12> " + u'\u2022' + " %s</font>" % text)
     for line in tracks_info:
         story.append(Paragraph(line, styles["Normal"]))
     story.append(Spacer(1, 12))
+
+    start_stats = pham.stats["most_common"]
+    start_stats["phamCount"] = pham_count
+    start_stats["annotCount"] = annot_count
+    start_stats["draftCount"] = draft_count
+
     if only_pham:
-
-        start_stats = pham.stats["most_common"]
-        start_stats["phamCount"] = phamCount
-        start_stats["annotCount"] = annotCount
-        start_stats["draftCount"] = draftCount
         output = output_start_sites(start_stats)
-        for line in output:
-            if line == '':
-                story.append(Spacer(1, 12))
-            text = '<font size=12> %s </font>' % line
-            # if 'Genes' not in line or '':
-            story.append(Paragraph(text, styles['Normal']))
-            story.append(Spacer(1, 12))
     else:
-        story.append(Paragraph("",styles["Normal"]))
-        story.append(Paragraph("<font size=12>Gene Information:</font>", styles["Normal"]))
-        pham_possible_starts = pham.total_possible_starts
-        for gene in pham.genes.values():
-            if args.phage in gene.gene_id:
-                candidate_starts = []
-                for start in gene.alignment_candidate_starts:
-                    candidate_starts.append((pham_possible_starts.index(start)+1, gene.alignment_index_to_coord(start)+1))
-                if gene.orientation == "R":
-                    story.append(Paragraph("<font size = 12> Gene: %s \n Start: %s, Stop: %s </font>" % (gene.gene_id, gene.start, gene.stop+1), styles["Normal"]))
-                else:
-                    story.append(Paragraph("<font size = 12> Gene: %s \n Start: %s, Stop: %s </font>" % (gene.gene_id, gene.start+1, gene.stop), styles["Normal"]))
-                story.append(Paragraph("<font size = 12> Candidate Starts for %s: </font>" % (gene.gene_id), styles["Normal"]))
-                story.append(Paragraph("<font size = 12>"+ str(candidate_starts) + "</font>" , styles["Normal"]))
+        all_genes = pham.genes.values()
+        genes_in_phage = []
+        for gene in all_genes:
+            if args.phage == gene.phage_name:
+                genes_in_phage.append(gene)
 
+        output = output_start_sites_by_phage(start_stats, genes_in_phage)
 
+    for i, line in enumerate(output):
+        if line == '':
+            story.append(Spacer(1, 12))
+        elif i == 1:
+            section_title = '<font size=12>' + line + '</font>'
+            story.append(Paragraph(section_title, styles["h4"]))
+            story.append(Spacer(1, 12))
+        else:
+            text = '<font size=12> %s </font>' % line
+            story.append(Paragraph(text, styles['Normal']))
+
+    story.append(Spacer(1, 12))
+
+    story.append(Paragraph("", styles["Normal"]))
+    story.append(Paragraph("<font size=12>Gene Information:</font>", styles["h4"]))
+    story.append(Paragraph("", styles["Normal"]))
+
+    pham_possible_starts = pham.total_possible_starts
+
+    text_style = styles["Normal"]
+    text_style.fontName = 'Helvetica'
+    text_style.leading = 12
+
+    if only_pham:  # The text if working on single pham, no particular phage
+        gene_list = pham.genes.values()
+        gene_list.sort(key=lambda x: x.phage_name)
+        for gene in gene_list:
+            candidate_starts = []
+            for start in gene.alignment_candidate_starts:
+                candidate_starts.append((pham_possible_starts.index(start)+1, gene.alignment_index_to_coord(start)))
+
+            story.append(Paragraph(" Gene: %s \n Start: %s, Stop: %s, Start Num: %s " % (gene.gene_id,
+                                   gene.start_codon_location, gene.stop_codon_location,
+                                   gene.suggested_start["current_start_number"]), text_style))
+
+            story.append(Paragraph(" Candidate Starts for %s: " % gene.gene_id, text_style))
+            story.append(Paragraph("     " + str(candidate_starts)[1:-1], text_style))
+            story.append(Spacer(1, 12))
+    else:   # if working on a pham report for one particular phage then only list starts for that phage
+        for gene in genes_in_phage:
+            candidate_starts = []
+            for start in gene.alignment_candidate_starts:
+                candidate_starts.append((pham_possible_starts.index(start) + 1, gene.alignment_index_to_coord(start)))
+
+            story.append(Paragraph(" Gene: %s \n Start: %s, Stop: %s, Start Num: %s " % (gene.gene_id,
+                                   gene.start_codon_location, gene.stop_codon_location,
+                                   gene.suggested_start["current_start_number"]), text_style))
+
+            story.append(Paragraph(" Candidate Starts for %s: " % gene.gene_id, text_style))
+            story.append(Paragraph("     " + str(candidate_starts)[1:-1], text_style))
+            story.append(Spacer(1, 12))
     doc.build(story)
 
 
 def make_pham_genome(phage_genes, phage_name, length, file_path):
-    file_name = os.path.join(file_path,'%sPhamsGraph.pdf' % (phage_name))
+    file_name = os.path.join(file_path, '%sPhamsGraph.pdf' % phage_name)
     if check_file(file_name):
         return
     pham_colors = phams.get_pham_colors()
@@ -387,7 +580,7 @@ def make_pham_genome(phage_genes, phage_name, length, file_path):
         pham_no = phage_gene["pham_no"]
         gene = phage_gene["gene"]
         print pham_no, gene.gene_id
-        if pham_no == None:
+        if pham_no is None:
             pham_no = "None"
             pham_color = 'Black'
         else:
@@ -401,14 +594,15 @@ def make_pham_genome(phage_genes, phage_name, length, file_path):
         gene_feature = SeqFeature(gene_location, strand=strand)
         gene_number = phamgene.get_gene_number(gene.gene_id)
         # label the gene with the gene number
-        gd_pham_set.add_feature(gene_feature, name=str(gene_number), label=True, 
-            label_size=6, label_angle=75)
+        gd_pham_set.add_feature(gene_feature, name=str(gene_number), label=True, label_size=6, label_angle=75)
         # label gene with pham color and name
         gd_pham_set.add_feature(gene_feature, color=pham_color, name=str(pham_no), label=True, label_position='middle')
     
     print type(length), length
-    gd_diagram.draw(format='linear', orientation='portrait', pagesize=reportlab.lib.pagesizes.letter, fragments=8, start=0, end=length)
+    gd_diagram.draw(format='linear', orientation='portrait', pagesize=reportlab.lib.pagesizes.letter, fragments=8,
+                    start=0, end=length)
     gd_diagram.write(file_name, "PDF")
+
 
 def make_suggested_starts(phage_genes, phage_name, file_path):
     """
@@ -416,8 +610,8 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
         Genes are list in order
         {Gene Name} is a member of Pham {Number}: {Suggested Start Coordinates}
     """
-    file_name = os.path.join(file_path, "%sSuggestedStarts.pdf" % (phage_name))
-    text_file_name = os.path.join(file_path, "%sSuggestedStarts.txt" % (phage_name))
+    file_name = os.path.join(file_path, "%sSuggestedStarts.pdf" % phage_name)
+    text_file_name = os.path.join(file_path, "%sSuggestedStarts.txt" % phage_name)
     if check_file(file_name):
         return
     doc = SimpleDocTemplate(file_name, pagesize=reportlab.lib.pagesizes.letter)
@@ -436,9 +630,9 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
         pham = phage_gene["pham_no"]
         gene = phage_gene["gene"]
         suggested_start = phage_gene["suggested_start"]
-        if pham == None:
-            text = '<font size=12> %s is not a member of an existing Pham </font>' % (gene.gene_id)
-            simple_text = '%s is not a member of an existing Pham ' % (gene.gene_id)
+        if pham is None:
+            text = '<font size=12> %s is not a member of an existing Pham </font>' % gene.gene_id
+            simple_text = '%s is not a member of an existing Pham ' % gene.gene_id
         else:
             text = '<font size=12> %s is a member of Pham %s:  %s </font>' % (gene.gene_id, pham, suggested_start)
             simple_text = '%s is a member of Pham %s:  %s ' % (gene.gene_id, pham, suggested_start)
@@ -446,12 +640,13 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
         just_text.append(simple_text)
     doc.build(story)
     print "writing text file"
-    with open(text_file_name, 'w' ) as outfile:
+    with open(text_file_name, 'w') as outfile:
         outfile.write("\n".join(just_text))
 
 
 def make_fasta_file(genes, fasta_file):
     count = SeqIO.write(genes, fasta_file, 'fasta')
+    print "%s Fasta files written" % count
 
 
 def main():

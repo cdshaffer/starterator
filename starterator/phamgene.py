@@ -10,11 +10,10 @@
 # Class and functions for pham genes
 
 from phage import new_phage
-import copy
 from database import DB
 from Bio.Blast import NCBIXML
 from Bio.Blast.Applications import NcbiblastpCommandline as Blastp
-from Bio.Blast.Applications import BlastallCommandline
+# from Bio.Blast.Applications import BlastallCommandline
 from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
 from Bio.Seq import Seq
@@ -28,31 +27,32 @@ import subprocess
 import math
 import os
 
+
 def get_protein_sequences():
     proteins = []
     results = get_db().query('SELECT GeneID, translation from gene')
     for row in results:
         gene_id = row[0].replace("-", "_")
-        protein = SeqRecord(Seq(row[1].replace('-', ''), IUPAC.protein), id=gene_id+"_", name=row[0], description=gene_id)
+        protein = SeqRecord(Seq(row[1].replace('-', ''), IUPAC.protein),
+                            id=gene_id+"_", name=row[0], description=gene_id)
         proteins.append(protein)
     return proteins
+
 
 def update_protein_db():
     proteins = get_protein_sequences()
     try:
         fasta_file = os.path.join(utils.PROTEIN_DB, "Proteins.fasta")
-        count = SeqIO.write(proteins, fasta_file, 'fasta')
+        SeqIO.write(proteins, fasta_file, 'fasta')
     except:
         print "creating proteins folder in correct place"
         utils.create_folders()
         fasta_file = os.path.join(utils.PROTEIN_DB, "Proteins.fasta")
-        count = SeqIO.write(proteins, fasta_file, 'fasta')
-    if True:
-        blast_db_command = [utils.BLAST_DIR + 'makeblastdb',
-                    '-in',"\""+ fasta_file+ "\"",
-                    "-dbtype","prot", "-title", "Proteins",
-                     "-out", "%s"% fasta_file]
-        print blast_db_command
+        SeqIO.write(proteins, fasta_file, 'fasta')
+
+    blast_db_command = [utils.BLAST_DIR + 'makeblastdb', '-in',"\""+ fasta_file+ "\"",
+                            "-dbtype","prot", "-title", "Proteins", "-out", "%s" % fasta_file]
+    print blast_db_command
     # else:
     #     blast_db_command = [BLAST_DIR + 'formatdb',
     #                 '-i', "\""+ fasta_file+ "\"",
@@ -60,6 +60,7 @@ def update_protein_db():
     #                 "-t", "Proteins"]
     #     print blast_db_command
     subprocess.check_call(blast_db_command)
+
 
 def check_protein_db(count):
     results = get_db().query('SELECT count(*) from gene')
@@ -70,6 +71,7 @@ def check_protein_db(count):
         config = utils.get_config()
         config["count"] = new_count
         utils.write_to_config_file(config)
+
 
 def get_pham_no(phage_name, gene_number):
     """
@@ -87,7 +89,7 @@ def get_pham_no(phage_name, gene_number):
         results = db.query("SELECT pham.name \n\
             FROM gene JOIN pham ON gene.GeneID = pham.GeneID \n\
             JOIN phage ON gene.PhageID = phage.PhageID \n\
-            WHERE (phage.Name LIKE %s or phage.PhageID = %s) AND gene.Name RLIKE %s", 
+            WHERE (phage.Name LIKE %s or phage.PhageID = %s) AND gene.Name RLIKE %s",
             (phage_name+"%", phage_name, '^([[:alnum:]]*_)*([[:alpha:]])*%s$' % str(gene_number)))
         print results
         row = results[0]
@@ -100,7 +102,7 @@ def get_pham_no(phage_name, gene_number):
 def find_upstream_stop_site(start, stop, orientation, phage_sequence):
     """
         Given the coordinates of a gene, the sequence of the phage it is in, and 
-        the orientation of the gene, returns a seqeunce that contains the gene 
+        the orientation of the gene, returns a sequence that contains the gene
         and upstream sequence before a stop site.
     """
     ahead_of_start = 0
@@ -109,32 +111,28 @@ def find_upstream_stop_site(start, stop, orientation, phage_sequence):
     while not stop_site_found:
         ahead_of_start += 99
         if orientation == 'R':
-            if start + ahead_of_start > len(phage_sequence):     #i.e. hit end of phage while looking for stop
+            if start + ahead_of_start > len(phage_sequence):     # i.e. hit end of phage while looking for stop
                 ahead_of_start = len(phage_sequence) - start   # start is zero based counting
                 ahead_of_start = ahead_of_start - ahead_of_start % 3
-                sequence = Seq(phage_sequence[stop:(start+ahead_of_start)],
-                               IUPAC.unambiguous_dna)
+                sequence = Seq(phage_sequence[stop:(start+ahead_of_start)], IUPAC.unambiguous_dna)
                 sequence = sequence.reverse_complement()
                 return sequence, ahead_of_start
 
-            sequence = Seq(phage_sequence[stop:(start+ahead_of_start)],
-                           IUPAC.unambiguous_dna)
+            sequence = Seq(phage_sequence[stop:(start+ahead_of_start)], IUPAC.unambiguous_dna)
             sequence = sequence.reverse_complement()
             if stop < 400:
                 return sequence, ahead_of_start
         else:
             if start < ahead_of_start:
                 ahead_of_start = start - start % 3
-                sequence = Seq(phage_sequence[(start-ahead_of_start):stop],
-                     IUPAC.unambiguous_dna)
+                sequence = Seq(phage_sequence[(start-ahead_of_start):stop], IUPAC.unambiguous_dna)
                 return sequence, ahead_of_start
             if stop < start:
                 end_sequence = phage_sequence[(start-ahead_of_start):]
                 start_sequence = phage_sequence[:stop]
                 sequence = Seq(end_sequence+start_sequence, IUPAC.unambiguous_dna)
             else:
-                sequence = Seq(phage_sequence[(start-ahead_of_start):stop],
-                 IUPAC.unambiguous_dna)
+                sequence = Seq(phage_sequence[(start-ahead_of_start):stop], IUPAC.unambiguous_dna)
         sequence_ahead_of_start = sequence[:ahead_of_start]
         sequence_ahead_of_start = sequence_ahead_of_start[::-1]
         
@@ -155,22 +153,25 @@ class Gene(object):
         self.orientation = orientation
         self.db_id = db_id
    
-    def gene_no():
+    def gene_no(self):
         get_gene_number(self.name)
 
 
 pham_genes = {}
+
+
 def new_PhamGene(db_id, start, stop, orientation, phage_id, phage_sequence=None):
-    if db_id == None:
+    if db_id is None:
         return UnPhamGene(db_id, start, stop, orientation, phage_id, phage_sequence)
     if pham_genes.get(db_id, True):
         pham_genes[db_id] = PhamGene(db_id, start, stop, orientation, phage_id)
     return pham_genes[db_id]
 
+
 def get_gene_number(gene_name):
     """ Given a gene_name, returns the number of the gene
     """
-    # NAMING IN THIS DATBASE DRIVES ME CRAZY!!!
+    # NAMING IN THIS DATABASE DRIVES ME CRAZY!!!
     # GeneID in database: form of <PhageID>_(<PhageName>([_-]Draft*))*_(gene)*(gp)*<GeneNo>
     #   where PhageID can be a number or the name of the phage (with _Draft perhaps)
     
@@ -193,18 +194,30 @@ class PhamGene(Gene):
         self.phage_id = phage_id
         self.start = start
         self.stop = stop
+
+        if orientation == 'R':
+            self.start_codon_location = stop
+            self.stop_codon_location = start + 1
+        else:
+            self.start_codon_location = start + 1
+            self.stop_codon_location = stop
+
         self.orientation = orientation
         self.pham_no = pham_no
         # self.translation
-        # self.ahead_of_start
+        self.ahead_of_start = None
         self.sequence = self.make_gene()
         self.candidate_starts = self.add_candidate_starts()
         self.alignment = None
-        self.alignment_start = None
+        self.alignment_start_site = None
         self.alignment_candidate_starts = None
+        self.alignment_candidate_start_nums = None
+        self.alignment_annot_start_nums = None
+        self.alignment_annot_start_counts = None
+        self.alignment_start_num_called = None
+        self.calls_most_annotated = None
+        self.has_most_annotated = None
         self.suggested_start = {}
-
-
 
     def make_gene(self):
         """
@@ -232,11 +245,9 @@ class PhamGene(Gene):
             self.start = temp_start
         sequence, self.ahead_of_start = find_upstream_stop_site(
                                 self.start, self.stop, self.orientation, phage_sequence)
-        gene = SeqRecord(sequence, id=self.gene_id , name=self.gene_id,
-                 description="|%i-%i| %s" %(self.start, self.stop, self.orientation))
+        gene = SeqRecord(sequence, id=self.gene_id, name=self.gene_id,
+                         description="|%i-%i| %s" % (self.start, self.stop, self.orientation))
         return gene
-
-
 
     def add_candidate_starts(self):
         """
@@ -273,7 +284,7 @@ class PhamGene(Gene):
             Creates a list of candidate starts of the alignment based on the candidate starts
             of the gene
         """
-        count = -1 # starts at -1 because the count starts at 0
+        count = -1  # starts at -1 because the count starts at 0
         aligned_starts = []
         for index, char in enumerate(self.alignment.seq):
             if char != '-':
@@ -283,21 +294,57 @@ class PhamGene(Gene):
         self.alignment_candidate_starts = aligned_starts
         return aligned_starts
 
+    def add_alignment_start_stats(self, pham):
+        annotated = [gene.gene_id for gene in pham.stats['most_common']['annot_list']]
+        self.alignment_candidate_start_nums = []
+        self.alignment_annot_start_nums = []
+        self.alignment_annot_start_counts = []
+
+        for startnum, genelist in pham.stats['most_common']['possible'].iteritems():
+            if self.gene_id in genelist:
+                self.alignment_candidate_start_nums.append(startnum)
+
+        for num in self.alignment_candidate_start_nums:
+            annot_count = 0
+            for gene in pham.stats['most_common']['called_starts'][num]:
+                if gene in annotated:
+                    annot_count += 1
+
+            if annot_count > 0:
+                self.alignment_annot_start_nums.append(num)
+                self.alignment_annot_start_counts.append(annot_count)
+
+        for startnum, genelist in pham.stats['most_common']['called_starts'].iteritems():
+            if self.gene_id in genelist:
+                self.alignment_start_num_called = startnum
+
+        most_annotated_start_num = pham.stats['most_common']['most_called_start']
+        if self.alignment_start_num_called == most_annotated_start_num:
+            self.calls_most_annotated = True
+        else:
+            self.calls_most_annotated = False
+
+        if most_annotated_start_num in self.alignment_candidate_start_nums:
+            self.has_most_annotated = True
+        else:
+            self.has_most_annotated = False
+
+        return
+
     def alignment_index_to_coord(self, index):
         """
                 Given an index of the alignment
                 finds the coordinates of the index on the phage sequence.
+                The coordinate is 1 based count, not zero based
         """
         new_start_index = 0
         for i in xrange(0, index):
             if self.alignment.seq[i] != '-':
                 new_start_index += 1
         if self.orientation == 'R':
-            new_start_coords = (self.start + 
-                self.ahead_of_start - new_start_index)
+            new_start_coords = (self.start + self.ahead_of_start - new_start_index)
         else:
-            new_start_coords = (self.start - 
-                self.ahead_of_start + new_start_index + 1)
+            new_start_coords = (self.start - self.ahead_of_start + new_start_index + 1)
         return new_start_coords
 
     def add_gaps_as_features(self):
@@ -305,30 +352,26 @@ class PhamGene(Gene):
             gap_count = 0
             seq_count = 0
             for index, char in enumerate(self.alignment.seq):
-                if char == '-' and gap == False:
+                if char == '-' and gap is False:
                     gap = True
                     gap_count = 0
                     if seq_count > 0:
-                        seq_feature = SeqFeature(FeatureLocation(index-seq_count, index-1),
-                            type='seq', strand=None)
+                        seq_feature = SeqFeature(FeatureLocation(index-seq_count, index-1), type='seq', strand=None)
                         self.alignment.features.append(seq_feature)
-                elif char == '-' and gap == True:
+                elif char == '-' and gap is True:
                     gap_count += 1
-                elif char != '-' and gap == True:
+                elif char != '-' and gap is True:
                     gap = False
                     seq_count = 0
-                    gap_feature = SeqFeature(FeatureLocation(index-gap_count-1, index-1),
-                            type='gap', strand=None)
+                    gap_feature = SeqFeature(FeatureLocation(index-gap_count-1, index-1), type='gap', strand=None)
                     self.alignment.features.append(gap_feature)
-                else: #gap = False and char != '-'
-                    seq_count +=1
-            if gap == True:
-                gap_feature = SeqFeature(FeatureLocation(index-gap_count-1, index), 
-                            type='gap', strand=None) 
+                else:  # gap = False and char != '-'
+                    seq_count += 1
+            if gap is True:
+                gap_feature = SeqFeature(FeatureLocation(index-gap_count-1, index), type='gap', strand=None)
                 self.alignment.features.append(gap_feature)
             else:
-                seq_feature = SeqFeature(FeatureLocation(index-seq_count, index), 
-                            type='seq', strand=None)
+                seq_feature = SeqFeature(FeatureLocation(index-seq_count, index), type='seq', strand=None)
                 self.alignment.features.append(seq_feature)
 
     def is_equal(self, other):
@@ -339,8 +382,6 @@ class PhamGene(Gene):
             starts of the genes are the same, and if the alignment gaps or not are the same
             (This is essentially, they would look the same on the graph output)
 
-            TODO currenly only "is_equal" if the start coordinate is the identical base coordinate
-            would make sense to compare the annotated start index
         """
         if self.alignment_start_site != other.alignment_start_site:
             return False
@@ -363,6 +404,9 @@ class PhamGene(Gene):
                 return False
         return True
 
+    def __repr__(self):
+        return 'Phamgene for %s' % self.gene_id
+
 
 class UnPhamGene(PhamGene):
     def __init__(self, number, start, stop, orientation, phage_name, phage_sequence):
@@ -379,7 +423,6 @@ class UnPhamGene(PhamGene):
         self.alignment_candidate_starts = None
         self.suggested_start = {}
 
-
     def make_gene(self, phage_sequence):
         if self.orientation == 'R':
             temp_start = self.stop
@@ -395,7 +438,7 @@ class UnPhamGene(PhamGene):
         # but I wanted to keep the Genes out of file making...
 
         try:
-            result_handle =  open("%s/%s.xml" % (utils.INTERMEDIATE_DIR, self.gene_id))
+            result_handle = open("%s/%s.xml" % (utils.INTERMEDIATE_DIR, self.gene_id))
             result_handle.close()
         except:
             protein = SeqRecord(self.sequence.seq.translate(), id=self.gene_id)
@@ -407,7 +450,7 @@ class UnPhamGene(PhamGene):
                             db="\"%s/\"" % (os.path.abspath(utils.PROTEIN_DB)), evalue=e_value, outfmt=5,
                             out="%s.xml" % (os.path.join(utils.INTERMEDIATE_DIR, self.gene_id)))
             # print self.gene_id, "\"%sProteins\"" % (utils.PROTEIN_DB)
-            blast_args = ["%sblastp"  % utils.BLAST_DIR, 
+            blast_args = ["%sblastp" % utils.BLAST_DIR,
                 "-out", '%s/%s.xml' % (utils.INTERMEDIATE_DIR, self.gene_id),
                 "-outfmt", "5",
                 "-query", '%s/%s.fasta' % (utils.INTERMEDIATE_DIR, self.gene_id),

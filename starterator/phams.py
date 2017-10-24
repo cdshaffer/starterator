@@ -1,7 +1,5 @@
-import MySQLdb
 from database import DB, get_db
 from phamgene import new_PhamGene
-from Bio.Align.Applications import ClustalwCommandline
 from Bio import AlignIO
 from Bio import SeqIO
 from collections import Counter
@@ -9,7 +7,6 @@ import utils
 import subprocess
 import os
 from utils import StarteratorError
-
 
 
 def get_pham_number(phage_name, gene_number):
@@ -26,13 +23,15 @@ def get_pham_number(phage_name, gene_number):
     except:
         raise StarteratorError("Gene %s of Phage %s not found in database!" % (gene_number, phage_name))
 
+
 def get_pham_colors():
     db = DB()
-    results = db.query("SELECT `name`, `color` from `pham_color`");
+    results = db.query("SELECT `name`, `color` from `pham_color`;")
     pham_colors = {}
     for row in results:
         pham_colors[str(row[0])] = row[1]
     return pham_colors
+
 
 class Pham(object):
     def __init__(self, pham_no, genes=None):
@@ -46,7 +45,6 @@ class Pham(object):
                 self.add(gene)
             whole = "All" if len(genes) > 1 else "One"
             self.file = "%s%s" % (genes[0].phage_name, whole)
-
 
     def get_genes(self):
         """
@@ -70,7 +68,7 @@ class Pham(object):
             raise StarteratorError("Pham Number %s not found!" % self.pham_no)
         return genes
     
-    def get_phage_genes():
+    def get_phage_genes(self):
         pass
 
     def add(self, gene):
@@ -145,14 +143,21 @@ class Pham(object):
         self.total_possible_starts = sorted(self.total_possible_starts)
         return self.total_possible_starts
 
-    def group_similar_genes(self):
+    def add_alignment_stats_to_phamgenes(self):
+        for gene in self.genes.values():
+            gene.add_alignment_start_stats(self)
+        return
+
+    def group_similar_genes(self, start_with=None):
         """
             Groups genes that have the same called start site, the same candidate starts
             and the same alignment (gaps are the same) together
+        start_with: phage to be first item of first list
         """
         groups = []
         i = 0
         genes = self.genes.values()
+
         grouped = [False for gene in genes]
         while i < len(self.genes):
             if not grouped[i]:
@@ -161,16 +166,29 @@ class Pham(object):
                 j = i + 1 # genes before index i have been grouped
                 group = []
                 group.append(gene)  # add gene to this group - first one
-                while j < len(self.genes): # see if other genes are similar 
-                    if not grouped[j]: # skip genes that have already been grouped 
+                while j < len(self.genes):  # see if other genes are similar
+                    if not grouped[j]:   # skip genes that have already been grouped
                         gene_2 = genes[j]
-                        if gene.is_equal(gene_2): # if similar, then add to the group
+                        if gene.is_equal(gene_2):  # if similar, then add to the group
                             grouped[i] = True 
                             grouped[j] = True
                             group.append(gene_2) 
                     j += 1
                 groups.append(group)
             i += 1
+
+        if start_with:
+            for i, gene_list in enumerate(groups):
+                if len(gene_list) == 1:
+                    if start_with == gene_list[0].phage_name:
+                        split_gene_lists_on = i
+                else:
+                    for j, gene in enumerate(gene_list):
+                        if start_with == gene.phage_name:
+                            split_gene_lists_on = i
+                            groups[i] = groups[i][j:] + groups[i][:j]
+            groups = groups[split_gene_lists_on:] + groups[:split_gene_lists_on]
+
         return groups
 
     def find_most_common_start(self, ignore_draft=False):
@@ -191,7 +209,7 @@ class Pham(object):
             (useful when looking at the graphical output), and the coordinate is given.
         """
         # TODO:
-            # add functionality for ignoring DRAFT phages?
+        # add functionality for ignoring DRAFT phages?
         # use term Called_start for all genes irrespective of method to determine location of start codon
         # use term Annotated_start for genes in which manual annotation was used to determine start codon
         # use term predicted_start for gene in which computational prediction was used to determine start codon
@@ -204,7 +222,7 @@ class Pham(object):
         # creates two lists each containing a list of gene ids
         # for each candidate start of the pham:
         # start_stats["possible"] contains a list of genes with the candidate starts
-            # for the index of each start in the pham
+        # for the index of each start in the pham
         # start_stats["called_starts"] contains of list of the genes that have the site
         #   of the index called as their start
         start_stats["possible"] = {}
@@ -230,13 +248,20 @@ class Pham(object):
         predicted_starts_count = all_predicted_count.most_common()
 
         most_called_start_index = self.total_possible_starts.index(called_starts_count[0][0])+1
-        most_annot_start_index = self.total_possible_starts.index(annot_starts_count[0][0])+1
+        if len(annot_starts_count) > 0:  # i.e. at least 1 annotated gene
+            most_annot_start_index = self.total_possible_starts.index(annot_starts_count[0][0])+1
+        else:
+            most_annot_start_index = None
 
         genes_start_most_called = start_stats["called_starts"][most_called_start_index]
-        genes_start_most_annot = start_stats["called_starts"][most_annot_start_index]
-
         start_stats["most_called_start"] = most_called_start_index
         start_stats["most_annotated_start"] = most_annot_start_index
+
+        if most_annot_start_index is not None:
+            genes_start_most_annot = start_stats["called_starts"][most_annot_start_index]
+        else:
+            genes_start_most_annot = None
+
         # start_stats["most_called"] = start_stats["called_starts"][most_called_start_index]
         start_stats["most_called"] = []
         start_stats["most_not_called"] = []
@@ -250,59 +275,93 @@ class Pham(object):
         genes_without_most_called = []
         print "phams.find_most_common_start: genes_start_most_called " + str(genes_start_most_called)
         for gene in self.genes.values():
-            if gene.gene_id in start_stats["possible"][most_called_start_index]:  #i.e does the gene even have the most called start
+            # check if the gene even has the most called start
+            if gene.gene_id in start_stats["possible"][most_called_start_index]:
                 if gene.gene_id in genes_start_most_called:
-                    if gene.orientation == 'F':   #only +1 for forward genes
-                    #genes where most called start is present and it is called as the start are "most_called"
-                        gene.suggested_start["most_called"] =(most_called_start_index, gene.start+1)
+                    if gene.orientation == 'F':   # only +1 for forward genes
+                        # genes where most called start is present and it is called as the start are "most_called"
+                        gene.suggested_start["most_called"] = (most_called_start_index, gene.start+1)
                     else:
-                        gene.suggested_start["most_called"] =(most_called_start_index, gene.start)
+                        gene.suggested_start["most_called"] = (most_called_start_index, gene.start)
                     start_stats["most_called"].append(gene.gene_id)
                 else:
-                    #genes where most called start is present but the start is not the called start are "most_not_called
+                    # genes where most called start is present but it's not the called start are "most_not_called
                     start_stats["most_not_called"].append(gene.gene_id)
                     most_called_alignment_index = self.total_possible_starts[most_called_start_index-1]
-                    suggested_start = gene.alignment_index_to_coord(most_called_alignment_index) #+1 issue dealt with in function
+                    suggested_start = gene.alignment_index_to_coord(most_called_alignment_index)
                     gene.suggested_start["most_called"] = (most_called_start_index, suggested_start)
 
             else:
-                #genes where the most called start is NOT even present are no_most_called
+                # genes where the most called start is NOT even present are no_most_called
                 start_stats["no_most_called"].append(gene.gene_id)
                 possible_starts_coords = []
                 for start in gene.alignment_candidate_starts:
                     index = self.total_possible_starts.index(start) + 1
-                    new_start = gene.alignment_index_to_coord(start) +1
+                    new_start = gene.alignment_index_to_coord(start) + 1
                     possible_starts_coords.append((index, new_start))
                 gene.suggested_start["most_called"] = possible_starts_coords
 
-            if gene.gene_id in start_stats["possible"][most_annot_start_index]:
-                if gene.gene_id in genes_start_most_annot:
-                    # code below used for deprecated "suggested starts" list
-                    # if gene.orientation == 'F':  # only +1 for forward genes
-                    #     # genes where most annotated start is present and it is called as the start are "most_annotated"
-                    #     gene.suggested_start["most_annotated"] = (most_annot_start_index, gene.start + 1)
-                    # else:
-                    #     gene.suggested_start["most_annotated"] = (most_annot_start_index, gene.start)
-                    start_stats["most_annotated"].append(gene.gene_id)
+            if most_annot_start_index is not None:
+                if gene.gene_id in start_stats["possible"][most_annot_start_index]:
+                    if gene.gene_id in genes_start_most_annot:
+                        # code below used for deprecated "suggested starts" list
+                        # if gene.orientation == 'F':  # only +1 for forward genes
+                        #     # genes where most annotated start is present and it is called as the start are "most_annotated"
+                        #     gene.suggested_start["most_annotated"] = (most_annot_start_index, gene.start + 1)
+                        # else:
+                        #     gene.suggested_start["most_annotated"] = (most_annot_start_index, gene.start)
+                        start_stats["most_annotated"].append(gene.gene_id)
+                    else:
+                        # genes where most annotated start is present but it's not the called start are "most_not_annotated"
+                        start_stats["most_not_annotated"].append(gene.gene_id)
+                        # code below used for deprecated "suggested starts" list
+                        most_annot_alignment_index = self.total_possible_starts[most_annot_start_index - 1]
+                        suggested_start = gene.alignment_index_to_coord(
+                            most_annot_alignment_index)  # +1 issue dealt with in function
+                        gene.suggested_start["most_called"] = (most_annot_start_index, suggested_start)
+
                 else:
-                    # genes where most annotated start is present but the start is not the called start are "most_not_annotated
-                    start_stats["most_not_annotated"].append(gene.gene_id)
-                    # code below used for deprecated "suggested starts" list
-                    most_annot_alignment_index = self.total_possible_starts[most_annot_start_index - 1]
-                    suggested_start = gene.alignment_index_to_coord(
-                        most_annot_alignment_index)  # +1 issue dealt with in function
-                    gene.suggested_start["most_called"] = (most_annot_start_index, suggested_start)
+                    # genes where the most annotated start is NOT even present are no_most_annot
+                    start_stats["no_most_annot"].append(gene.gene_id)
+                    # Code below used for deprecated "suggested starts" list
+                    # possible_starts_coords = []
+                    # for start in gene.alignment_candidate_starts:
+                    #     index = self.total_possible_starts.index(start) + 1
+                    #     new_start = gene.alignment_index_to_coord(start) + 1
+                    #     possible_starts_coords.append((index, new_start))
+                    # gene.suggested_start["most_called"] = possible_starts_coords
 
-            else:
-                # genes where the most annotated start is NOT even present are no_most_annot
-                start_stats["no_most_annot"].append(gene.gene_id)
-                # Code below used for deprecated "suggested starts" list
-                # possible_starts_coords = []
-                # for start in gene.alignment_candidate_starts:
-                #     index = self.total_possible_starts.index(start) + 1
-                #     new_start = gene.alignment_index_to_coord(start) + 1
-                #     possible_starts_coords.append((index, new_start))
-                # gene.suggested_start["most_called"] = possible_starts_coords
+            # section to add summary of annotations based only on set of starts found in the gene
+            # start by looking through all possible starts in this particular gene and see if
+            # there are any annotations that call that start
+
+            alignment_start_coord_with_annotations = []
+            for start in gene.alignment_candidate_starts:
+                if start in all_annotated_start_sites:
+                    alignment_start_coord_with_annotations.append(start)
+
+            gene.suggested_start["alignment_start_coord_with_annotations"] = alignment_start_coord_with_annotations
+
+            alignment_start_indices_with_annotations = []
+            for start in alignment_start_coord_with_annotations:
+                alignment_start_indices_with_annotations.append(self.total_possible_starts.index(start) + 1)
+
+            gene.suggested_start["alignment_start_indices_with_annotations"] = alignment_start_indices_with_annotations
+
+            alignment_start_counts_with_annotations = []
+            for annotated_start in alignment_start_coord_with_annotations:
+                for start, count in annot_starts_count:
+                    if start == annotated_start:
+                        alignment_start_counts_with_annotations.append(count)
+
+            gene.suggested_start["alignment_start_counts_with_annotations"] = alignment_start_counts_with_annotations
+            try:  # this happens when annotated start of gene is not one of the three typical start codons (ATG,GTG,TTG)
+                gene.suggested_start["current_start_number"] = self.total_possible_starts.index(gene.alignment_start_site) + 1
+            except:
+                gene.suggested_start["current_start_number"] = None
+
         self.stats["most_common"] = start_stats
-        return start_stats
 
+        # now update genes based on start analysis
+        self.add_alignment_stats_to_phamgenes()
+        return start_stats

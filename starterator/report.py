@@ -77,8 +77,9 @@ class PhageReport(Report):
         for pham_no in self._phams.keys():
             if pham_no is not None:
                 pham_counter += 1
-                self.update_gui("Aligning and Graphing Pham %s \n Pham %d of %d"
-                    % (pham_no, pham_counter, total_no), (float(pham_counter)/total_no))
+                gene_name = self._phams[pham_no][0].gene_id
+                self.update_gui("Aligning and Graphing %s \nPham %s (%d of %d)"
+                    % (gene_name, pham_no, pham_counter, total_no), (float(pham_counter)/total_no))
                 gene_report = GeneReport(self.base_name, self.phage_)
                 pham_no = gene_report.get_pham(pham_no)
                 pham = gene_report.make_report(whole=True)
@@ -282,11 +283,8 @@ class GeneReport(Report):
         self.pham.align()
         self.pham.find_most_common_start()
         pickle_file = os.path.join(self.output_dir, "%s%s.pickle" % (self.pham.file, self.pham.pham_no))#TODO: Figure out base name things
-        print pickle_file, self.output_dir
         f = open(pickle_file, "wb")
         cPickle.dump(self.pham, f)
-        print pickle_file
-        sleep(2)
         f.close()
 
         args = ["-p", self.phage_name, "-n", str(self.pham.pham_no),  "-f", pickle_file, "-m", "text"]
