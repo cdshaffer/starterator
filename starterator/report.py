@@ -74,7 +74,10 @@ class PhageReport(Report):
         self.phage_genes = {}
         pham_counter = 0
         total_no = len(self._phams.keys())
-        for pham_no in self._phams.keys():
+        pham_items = self._phams.items()
+        pham_items.sort(key=lambda item: (item[1][0].start_codon_location, item[0]))
+        sorted_keys = [item[0] for item in pham_items]
+        for pham_no in sorted_keys:
             if pham_no is not None:
                 pham_counter += 1
                 gene_name = self._phams[pham_no][0].gene_id
@@ -90,7 +93,7 @@ class PhageReport(Report):
                     phage_gene = pham.genes[gene.gene_id]
                     gene_no = phamgene.get_gene_number(gene.gene_id)
                     self.phage_genes[gene_no] = {'suggested_start': phage_gene.suggested_start["most_called"],
-                                            'gene': gene,
+                                            'gene': pham.genes[gene.gene_id],
                                             'pham_no': pham_no}
 
     

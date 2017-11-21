@@ -22,7 +22,7 @@ from Bio.SeqFeature import SeqFeature, FeatureLocation
 import re
 from database import get_db
 import utils
-from utils import StarteratorError
+from utils import StarteratorError, clean_up_files
 import subprocess
 import math
 import os
@@ -40,6 +40,7 @@ def get_protein_sequences():
 
 
 def update_protein_db():
+    clean_up_files(utils.INTERMEDIATE_DIR)
     proteins = get_protein_sequences()
     try:
         fasta_file = os.path.join(utils.PROTEIN_DB, "Proteins.fasta")
@@ -204,6 +205,7 @@ class PhamGene(Gene):
 
         self.orientation = orientation
         self.pham_no = pham_no
+        self.pham_size = None
         # self.translation
         self.ahead_of_start = None
         self.sequence = self.make_gene()
@@ -212,9 +214,12 @@ class PhamGene(Gene):
         self.alignment_start_site = None
         self.alignment_candidate_starts = None
         self.alignment_candidate_start_nums = None
+        self.alignment_candidate_start_counts = None
         self.alignment_annot_start_nums = None
         self.alignment_annot_start_counts = None
+        self.alignment_annot_start_fraction = None
         self.alignment_start_num_called = None
+        self.alignment_start_conservation = None
         self.calls_most_annotated = None
         self.has_most_annotated = None
         self.suggested_start = {}
@@ -297,14 +302,29 @@ class PhamGene(Gene):
     def add_alignment_start_stats(self, pham):
         annotated = [gene.gene_id for gene in pham.stats['most_common']['annot_list']]
         self.alignment_candidate_start_nums = []
+        self.alignment_candidate_start_counts = []
         self.alignment_annot_start_nums = []
         self.alignment_annot_start_counts = []
+        self.alignment_start_conservation = []
+
+        if self.pham_no is None:
+            self.pham_no = pham.pham_no
+
+        self.pham_size = len(pham.genes)
+
+        num_gene_in_pham = len(pham.genes)
 
         for startnum, genelist in pham.stats['most_common']['possible'].iteritems():
             if self.gene_id in genelist:
                 self.alignment_candidate_start_nums.append(startnum)
 
         for num in self.alignment_candidate_start_nums:
+            conservation_count = len(pham.stats['most_common']['possible'][num])
+            self.alignment_candidate_start_counts.append(conservation_count)
+
+            conserved_fraction = float(conservation_count) / float(num_gene_in_pham)
+            self.alignment_start_conservation.append(conserved_fraction)
+
             annot_count = 0
             for gene in pham.stats['most_common']['called_starts'][num]:
                 if gene in annotated:
@@ -318,18 +338,33 @@ class PhamGene(Gene):
             if self.gene_id in genelist:
                 self.alignment_start_num_called = startnum
 
-        most_annotated_start_num = pham.stats['most_common']['most_called_start']
-        if self.alignment_start_num_called == most_annotated_start_num:
-            self.calls_most_annotated = True
+        if len(self.alignment_annot_start_counts) > 0:
+            most_annot_count = max(self.alignment_annot_start_counts)
+            most_annot_index = self.alignment_annot_start_counts.index(most_annot_count)
+            most_annotated_start_num = self.alignment_annot_start_nums[most_annot_index]
         else:
-            self.calls_most_annotated = False
+            most_annotated_start_num = None
 
-        if most_annotated_start_num in self.alignment_candidate_start_nums:
-            self.has_most_annotated = True
+        if most_annotated_start_num is None:
+            self.calls_most_annotated = None
+            self.has_most_annotated = None
         else:
-            self.has_most_annotated = False
+            if self.alignment_start_num_called == most_annotated_start_num:
+                self.calls_most_annotated = True
+            else:
+                self.calls_most_annotated = False
+
+            if most_annotated_start_num in self.alignment_candidate_start_nums:
+                self.has_most_annotated = True
+            else:
+                self.has_most_annotated = False
+
+        total_annots = sum(self.alignment_annot_start_counts)
+        self.alignment_annot_start_fraction = [float(count)/float(total_annots) for count in self.alignment_annot_start_counts]
 
         return
+
+
 
     def alignment_index_to_coord(self, index):
         """
@@ -416,12 +451,29 @@ class UnPhamGene(PhamGene):
         self.start = start-1
         self.stop = stop
         self.orientation = orientation
+        self.pham_size = None
+        self.pham_no = None
+
+        if orientation == 'R':
+            self.start_codon_location = stop
+            self.stop_codon_location = start
+        else:
+            self.start_codon_location = start
+            self.stop_codon_location = stop
+
         self.sequence = self.make_gene(phage_sequence)
         self.candidate_starts = self.add_candidate_starts()
         self.alignment = None
         self.alignment_start = None
         self.alignment_candidate_starts = None
+        self.alignment_candidate_start_nums = None
+        self.alignment_annot_start_nums = None
+        self.alignment_annot_start_counts = None
+        self.alignment_start_num_called = None
+        self.calls_most_annotated = None
+        self.has_most_annotated = None
         self.suggested_start = {}
+        self.draftStatus = True
 
     def make_gene(self, phage_sequence):
         if self.orientation == 'R':
@@ -436,14 +488,14 @@ class UnPhamGene(PhamGene):
     def blast(self):
         # not sure where to put this... this makes more sense, 
         # but I wanted to keep the Genes out of file making...
-
+        print "Running BLASTp"
         try:
             result_handle = open("%s/%s.xml" % (utils.INTERMEDIATE_DIR, self.gene_id))
             result_handle.close()
         except:
-            protein = SeqRecord(self.sequence.seq.translate(), id=self.gene_id)
+            protein = SeqRecord(self.sequence[self.candidate_starts[0]:].seq.translate(), id=self.gene_id)
             print protein, self.sequence
-            e_value = math.pow(10, -30)
+            e_value = math.pow(10, -20)
             SeqIO.write(protein, '%s/%s.fasta' % (utils.INTERMEDIATE_DIR, self.gene_id), 'fasta')
             blast_command = Blastp(
                             query='%s%s.fasta' % (utils.INTERMEDIATE_DIR, self.gene_id),
@@ -480,7 +532,10 @@ class UnPhamGene(PhamGene):
         if len(blast_record.descriptions) > 0:
             first_result = blast_record.descriptions[0].title.split(',')[0].split(' ')[-1]
             print first_result
-            phage_name = first_result.split("_")[0]
+            first_result_items = first_result.split("_")
+            phage_name = first_result.split("_")[-2]
+            if phage_name.lower() == "draft":
+                phage_name = first_result.split("_")[-3]
             gene_number = first_result.split("_")[-1]
             print phage_name, gene_number
             pham_no = get_pham_no(phage_name, gene_number)

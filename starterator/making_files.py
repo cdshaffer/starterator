@@ -18,7 +18,7 @@ from Bio.Graphics import GenomeDiagram
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 import reportlab.lib.pagesizes
 from reportlab.pdfgen import canvas
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
@@ -229,11 +229,11 @@ def output_start_sites_by_phage(stats, genelist):
     output.append("<b>Summary by start number:</b>")
     for gene in genelist:
         if len(gene.alignment_annot_start_nums) > 1:
-            output.append("%s has %d starts (numbers: %s; called: %s times) with manual annotations." %
+            output.append("%s has %d starts with manual annotations (numbers: %s; called: %s times)." %
                           (gene.gene_id, len(gene.alignment_annot_start_nums),
                            str(gene.alignment_annot_start_nums)[1:-1], str(gene.alignment_annot_start_counts)[1:-1]))
         elif len(gene.alignment_annot_start_nums) == 1:
-            output.append("%s has 1 start (number %s; called: %s times) with manual annotations." %
+            output.append("%s has 1 start with manual annotations (number %s; called: %s times)." %
                           (gene.gene_id, str(gene.alignment_annot_start_nums)[1:-1], str(gene.alignment_annot_start_counts)[1:-1]))
         else:
             output.append("%s has no starts with manual annotations in other genes." % gene.gene_id)
@@ -625,6 +625,13 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
     just_text.append(' Suggested Start Coordinates')
     story.append(Paragraph(text, styles['Center']))
     story.append(Spacer(1, 12))
+
+    #items to build table
+    summary_data = list()
+
+    headers = ["Gene", "Start\nNum","Start\nCoord","Pham\nsize","Manual\nAnnots","Agreeing\nAnnots", "Start Num\nCons", "Annot\nScore"]
+    summary_data.append(headers)
+
     for gene_id in sorted(phage_genes.iterkeys()):
         phage_gene = phage_genes[gene_id]
         pham = phage_gene["pham_no"]
@@ -638,6 +645,108 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
             simple_text = '%s is a member of Pham %s:  %s ' % (gene.gene_id, pham, suggested_start)
         story.append(Paragraph(text, styles['Normal']))
         just_text.append(simple_text)
+
+        # building summary table colm 1 geneID
+        gene = phage_genes[gene_id]['gene']
+        if gene.pham_no is None:
+            continue
+        gene_summary = list()
+        gene_summary.append(gene.gene_id)
+
+        gene_summary.append(gene.alignment_start_num_called)
+
+        # Colm 2 start number
+        start = gene.start_codon_location
+        gene_summary.append(start)
+
+        # Colm 3 Number of genes in pham
+        gene_summary.append(gene.pham_size)
+
+
+        # Colm 4 Number of informative Manual annots
+        num_informative = sum(gene.alignment_annot_start_counts)
+        gene_summary.append(str(num_informative))
+
+        # Colm 5 Number of agreeing Manual annots
+        if gene.alignment_start_num_called in gene.alignment_annot_start_nums:
+            called_index = gene.alignment_annot_start_nums.index(gene.alignment_start_num_called)
+            num_agree = gene.alignment_annot_start_counts[called_index]
+            percent_match = gene.alignment_annot_start_fraction[called_index] * 100
+        else:
+            called_index = None
+            num_agree = 0
+            percent_match = 0
+        gene_summary.append(num_agree)
+
+        # Colm 6 Start num level of Conservation
+        if called_index is not None:
+            start_count = gene.alignment_candidate_start_counts[called_index]
+        else:
+            start_count = 0
+        conservation_level = float(start_count) * 100 / float(gene.pham_size)
+        conservation_text = str(int(conservation_level))
+        gene_summary.append(conservation_text + "%")
+
+        if percent_match == 100:
+            text_score =  u"\u221E"
+        elif percent_match == 0:
+            text_score = u"\u2212\u221E"
+        else:
+            not_annot_fractions = gene.alignment_annot_start_fraction[:called_index] + gene.alignment_annot_start_fraction[called_index+1:]
+            max_not_annot = max(not_annot_fractions)
+            score = math.log((gene.alignment_annot_start_fraction[called_index]/max_not_annot), 2)
+            if math.fabs(score) >= 100:
+                text_score = '%.3s' % ('%.4f' % score)
+            elif math.fabs(score) >= 10:
+                text_score = '%.2s' % ('%.4f' % score)
+            elif math.fabs(score) >=1:
+                text_score = '%.4s' % ('%.4f' % score)
+            else:
+                text_score = '%.4s' % ('%.4f' % score)
+
+        gene_summary.append(text_score)
+
+        summary_data.append(gene_summary)
+
+    story.append(Spacer(1, 12))
+
+
+    table = Table(summary_data)
+
+    full_grid_style = [('INNERGRID', (0,0), (-1,-1), 0.5, colors.black), ('BOX', (0,0), (-1,-1), 0.5, colors.black)]
+    align_styles = [('ALIGN',(0,0),(-1,-1), 'CENTER')]
+    color_styles = list()
+
+    #colorize table
+    for row, gene_data in enumerate(summary_data):
+        annot_size_column = 4
+        agree_column = 5
+        score_column = 7
+
+        annot_count = gene_data[annot_size_column]
+        agree_count = gene_data[agree_column]
+        gene_score = gene_data[score_column]
+        if gene_data[0] == "Gene":  #skip header row
+            continue
+        elif int(annot_count) < 3:
+            continue
+        elif gene_score == u"\u221E":
+            color_styles.append(('BACKGROUND', (score_column, row), (score_column, row), colors.green))
+        elif gene_score == u"\u2212\u221E":
+            color_styles.append(('BACKGROUND', (score_column, row), (score_column, row), colors.red))
+        elif float(gene_score) >= 1.5:
+            color_styles.append(('BACKGROUND', (score_column, row), (score_column, row), colors.green))
+        elif float(gene_score) <= -1.5:
+            color_styles.append(('BACKGROUND', (score_column, row), (score_column, row), colors.red))
+        else:
+            color_styles.append(('BACKGROUND', (score_column, row), (score_column, row), colors.yellow))
+
+
+    table.setStyle(TableStyle(full_grid_style))
+    table.setStyle(TableStyle(align_styles))
+    table.setStyle(TableStyle(color_styles))
+    story.append(table)
+
     doc.build(story)
     print "writing text file"
     with open(text_file_name, 'w') as outfile:
