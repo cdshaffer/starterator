@@ -92,6 +92,13 @@ def get_pham_no(phage_name, gene_number):
             JOIN phage ON gene.PhageID = phage.PhageID \n\
             WHERE (phage.Name LIKE %s or phage.PhageID = %s) AND gene.Name RLIKE %s",
             (phage_name+"%", phage_name, '^([[:alnum:]]*_)*([[:alpha:]])*%s$' % str(gene_number)))
+        if len(results) < 1:
+            results = db.query("SELECT pham.name \n\
+                FROM gene JOIN pham ON gene.GeneID = pham.GeneID \n\
+                JOIN phage ON gene.PhageID = phage.PhageID \n\
+                WHERE (phage.Name LIKE %s or phage.PhageID = %s) AND gene.geneID RLIKE %s",
+                (phage_name + "%", phage_name, '^([[:alnum:]]*_)*([[:alpha:]])*%s$' % str(gene_number)))
+
         print results
         row = results[0]
         pham_no = row[0]
