@@ -100,9 +100,12 @@ class Pham(object):
             gene.add_gaps_as_features()
 
     def call_clustal(self, fasta_file):
-        subprocess.check_call(['clustalw', 
-        '-infile=%s' % (fasta_file),
-        '-quicktree'])
+        subprocess.check_call(['clustalw',
+                               '-infile=%s' % (fasta_file),
+                               '-quicktree'])
+        aln_file = fasta_file.replace(".fasta", ".aln")
+        alignment = AlignIO.read(aln_file, "clustal")
+        return alignment
 
     def make_fasta(self, file_name=None):
         if file_name == None:
@@ -124,12 +127,12 @@ class Pham(object):
             alignment = [gene.sequence]
         else:
             try:
-                alignment = AlignIO.read(file_name+".aln", "clustal")
+                alignment = AlignIO.read(file_name + ".aln", "clustal")
             except:
                 # cline =  ClustalwCommandline("clustalw", infile=("%s.fasta" % file_name))
                 # cline()
-                self.call_clustal(file_name+".fasta")
-                alignment = AlignIO.read(file_name+".aln", "clustal")
+                alignment = self.call_clustal(file_name + ".fasta")
+                # alignment = AlignIO.read(file_name+".aln", "clustal")
         self.add_alignment(alignment)
 
     def add_total_possible_starts(self):
