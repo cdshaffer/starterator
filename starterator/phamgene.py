@@ -244,11 +244,12 @@ class PhamGene(Gene):
         self.gene_id = self.phage_name + "_" + gene_no
         self.gene_id = self.gene_id.replace('-', "_")
 
-        checkDraft = re.compile('_draft', re.IGNORECASE)
-        if checkDraft.search(self.gene_id) is not None:
-            self.draftStatus = True
-        else:
+
+        status = phage.get_status()
+        if status == 'final':
             self.draftStatus = False
+        else:
+            self.draftStatus = True
 
         phage_sequence = phage.get_sequence()
         if self.orientation == 'R':

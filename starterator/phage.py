@@ -21,6 +21,7 @@ class Phage(object):
         self.genes = None
         self.phams = None
         self.genes = None
+        self.status = None
 
     def get_name(self):
         if not self.name:
@@ -105,6 +106,14 @@ class Phage(object):
                 gene = phamgene.PhamGene(row[0], row[3], row[4], row[5], self.phage_id)
                 self.phams[row[1]].append(gene)
         return self.phams  #this links genes in phage to pham number
+
+    def get_status(self):
+        if not self.status:
+            row = get_db().get(
+                "SELECT Status from phage where PhageID = %s", self.phage_id)
+            self.status = row[0]
+        return self.status
+
 
 class UnPhamPhage(Phage):
     def __init__(name, fasta_file, profile_file):
