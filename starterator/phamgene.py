@@ -246,7 +246,7 @@ class PhamGene(Gene):
 
 
         status = phage.get_status()
-        if status == 'final':
+        if status == 'final': # values of 'draft' or 'gbk' considered draft quality by starterator
             self.draftStatus = False
         else:
             self.draftStatus = True
