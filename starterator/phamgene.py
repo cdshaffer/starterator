@@ -225,6 +225,7 @@ class PhamGene(Gene):
         self.alignment_annot_start_nums = None
         self.alignment_annot_start_counts = None
         self.alignment_annot_start_fraction = None
+        self.alignment_annot_counts_by_start = {}
         self.alignment_start_num_called = None
         self.alignment_start_conservation = None
         self.calls_most_annotated = None
@@ -369,6 +370,8 @@ class PhamGene(Gene):
 
         total_annots = sum(self.alignment_annot_start_counts)
         self.alignment_annot_start_fraction = [float(count)/float(total_annots) for count in self.alignment_annot_start_counts]
+
+        self.alignment_annot_counts_by_start = dict(zip(self.alignment_annot_start_nums, self.alignment_annot_start_counts))
 
         return
 
