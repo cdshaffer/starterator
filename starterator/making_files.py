@@ -687,6 +687,23 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
         conservation_text = str(int(conservation_level))
         gene_summary.append(conservation_text + "%")
 
+        # Colm 7 supporting annots vs best alternative
+
+        if gene.alignment_start_num_called not in gene.alignment_annot_start_nums:
+            support_num=0
+            alternative = max(gene.alignment_annot_start_counts)
+        else:
+            support_num=gene.alignment_annot_counts_by_start[gene.alignment_start_num_called]
+            alternative=0
+
+            for start_num, count in gene.alignment_annot_counts_by_start.items():
+                if start_num = gene.alignment_start_num_called:
+                    continue
+                else:
+                    alternative = (count, alternative)
+
+
+
         if percent_match == 100:
             text_score =  u"\u221E"
         elif percent_match == 0:
