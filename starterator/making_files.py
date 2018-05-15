@@ -629,7 +629,7 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
     #items to build table
     summary_data = list()
 
-    headers = ["Gene", "Pham\nNum", "Pham\nsize", "Start\nNum","Start\nCoord", "Inform\nAnnots", "Start Num\nCons", "Agree vs.\ntop Alt"]
+    headers = ["Gene", "Pham\nNum", "Pham\nsize", "Start\nNum","Start\nCoord", "Inform\nAnnots", "Agree vs.\ntop Alt"]
     summary_data.append(headers)
 
     for gene_id in sorted(phage_genes.iterkeys()):
@@ -670,16 +670,14 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
         num_informative = sum(gene.alignment_annot_start_counts)
         gene_summary.append(str(num_informative))
 
-        # Colm 7 Start num level of Conservation
-        conservation_level = float(start_count) * 100 / float(gene.pham_size)
-        conservation_text = str(int(conservation_level))
-        gene_summary.append(conservation_text + "%")
-
-        # Colm 8 supporting annots vs best alternative
+        # Colm 7 supporting annots vs best alternative
 
         if gene.alignment_start_num_called not in gene.alignment_annot_start_nums:
             support_num=0
-            alternative = max(gene.alignment_annot_start_counts)
+            if len(gene.alignment_annot_start_counts) > 0:
+                alternative = max(gene.alignment_annot_start_counts)
+            else:
+                alternative = 0
         else:
             support_num=gene.alignment_annot_counts_by_start[gene.alignment_start_num_called]
 
