@@ -183,11 +183,11 @@ class Pham(object):
         if start_with:
             for i, gene_list in enumerate(groups):
                 if len(gene_list) == 1:
-                    if start_with == gene_list[0].phage_name:
+                    if start_with.lower() == gene_list[0].phage_name.lower():
                         split_gene_lists_on = i
                 else:
                     for j, gene in enumerate(gene_list):
-                        if start_with == gene.phage_name:
+                        if start_with.lower() == gene.phage_name.lower():
                             split_gene_lists_on = i
                             groups[i] = groups[i][j:] + groups[i][:j]
             groups = groups[split_gene_lists_on:] + groups[:split_gene_lists_on]
