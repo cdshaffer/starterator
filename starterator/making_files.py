@@ -694,34 +694,14 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
             alternative = max(gene.alignment_annot_start_counts)
         else:
             support_num=gene.alignment_annot_counts_by_start[gene.alignment_start_num_called]
-            alternative=0
 
+            alternative=0
             for start_num, count in gene.alignment_annot_counts_by_start.items():
                 if start_num = gene.alignment_start_num_called:
                     continue
                 else:
-                    alternative = (count, alternative)
-
-
-
-        if percent_match == 100:
-            text_score =  u"\u221E"
-        elif percent_match == 0:
-            text_score = u"\u2212\u221E"
-        else:
-            not_annot_fractions = gene.alignment_annot_start_fraction[:called_index] + gene.alignment_annot_start_fraction[called_index+1:]
-            max_not_annot = max(not_annot_fractions)
-            score = math.log((gene.alignment_annot_start_fraction[called_index]/max_not_annot), 2)
-            if math.fabs(score) >= 100:
-                text_score = '%.3s' % ('%.4f' % score)
-            elif math.fabs(score) >= 10:
-                text_score = '%.2s' % ('%.4f' % score)
-            elif math.fabs(score) >=1:
-                text_score = '%.4s' % ('%.4f' % score)
-            else:
-                text_score = '%.4s' % ('%.4f' % score)
-
-        gene_summary.append(text_score)
+                    alternative = max(count, alternative)
+        gene_summary.append(str(support_num) + ':' + str(alternative))
 
         summary_data.append(gene_summary)
 
