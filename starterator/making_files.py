@@ -629,7 +629,7 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
     #items to build table
     summary_data = list()
 
-    headers = ["Gene", "Start\nNum","Start\nCoord","Pham\nsize","Manual\nAnnots","Agreeing\nAnnots", "Start Num\nCons", "Annot\nScore"]
+    headers = ["Gene", "Pham\nNum", "Pham\nsize", "Start\nNum","Start\nCoord", "Inform\nAnnots", "Start Num\nCons", "Agree vs.\ntop Alt"]
     summary_data.append(headers)
 
     for gene_id in sorted(phage_genes.iterkeys()):
@@ -653,41 +653,29 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
         gene_summary = list()
         gene_summary.append(gene.gene_id)
 
+        # Colm 2 Pham num
+        gene_summary.append(gene.pham_no)
+
+        # Colm 3 Pham size
+        gene_summary.append(gene.pham_size)
+
+        # Colm 4 start number
         gene_summary.append(gene.alignment_start_num_called)
 
-        # Colm 2 start number
+        # Colm 5 start coordinate
         start = gene.start_codon_location
         gene_summary.append(start)
 
-        # Colm 3 Number of genes in pham
-        gene_summary.append(gene.pham_size)
-
-
-        # Colm 4 Number of informative Manual annots
+        # Colm 6 Number of informative Manual annots
         num_informative = sum(gene.alignment_annot_start_counts)
         gene_summary.append(str(num_informative))
 
-        # Colm 5 Number of agreeing Manual annots
-        if gene.alignment_start_num_called in gene.alignment_annot_start_nums:
-            called_index = gene.alignment_annot_start_nums.index(gene.alignment_start_num_called)
-            num_agree = gene.alignment_annot_start_counts[called_index]
-            percent_match = gene.alignment_annot_start_fraction[called_index] * 100
-        else:
-            called_index = None
-            num_agree = 0
-            percent_match = 0
-        gene_summary.append(num_agree)
-
-        # Colm 6 Start num level of Conservation
-        if called_index is not None:
-            start_count = gene.alignment_candidate_start_counts[called_index]
-        else:
-            start_count = 0
+        # Colm 7 Start num level of Conservation
         conservation_level = float(start_count) * 100 / float(gene.pham_size)
         conservation_text = str(int(conservation_level))
         gene_summary.append(conservation_text + "%")
 
-        # Colm 7 supporting annots vs best alternative
+        # Colm 8 supporting annots vs best alternative
 
         if gene.alignment_start_num_called not in gene.alignment_annot_start_nums:
             support_num=0
@@ -697,7 +685,7 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
 
             alternative=0
             for start_num, count in gene.alignment_annot_counts_by_start.items():
-                if start_num = gene.alignment_start_num_called:
+                if start_num == gene.alignment_start_num_called:
                     continue
                 else:
                     alternative = max(count, alternative)
@@ -714,7 +702,7 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
     align_styles = [('ALIGN',(0,0),(-1,-1), 'CENTER')]
     color_styles = list()
 
-    #colorize table
+    ''''#colorize table
     for row, gene_data in enumerate(summary_data):
         annot_size_column = 4
         agree_column = 5
@@ -737,6 +725,7 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
             color_styles.append(('BACKGROUND', (score_column, row), (score_column, row), colors.red))
         else:
             color_styles.append(('BACKGROUND', (score_column, row), (score_column, row), colors.yellow))
+            '''
 
 
     table.setStyle(TableStyle(full_grid_style))
