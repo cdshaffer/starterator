@@ -507,7 +507,7 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
         all_genes = pham.genes.values()
         genes_in_phage = []
         for gene in all_genes:
-            if args.phage == gene.phage_name:
+            if args.phage.lower() == gene.phage_name.lower():
                 genes_in_phage.append(gene)
 
         output = output_start_sites_by_phage(start_stats, genes_in_phage)
