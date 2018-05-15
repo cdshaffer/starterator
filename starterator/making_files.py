@@ -701,7 +701,7 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
     color_styles = list()
 
 
-    #colorize table
+    #colorize table for now just use absolute difference
     for row, gene_data in enumerate(summary_data[1:]):
         row += 1
         score_column = 6
