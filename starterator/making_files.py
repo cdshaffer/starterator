@@ -700,9 +700,27 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
     align_styles = [('ALIGN',(0,0),(-1,-1), 'CENTER')]
     color_styles = list()
 
-    ''''#colorize table
-    for row, gene_data in enumerate(summary_data):
-        annot_size_column = 4
+
+    #colorize table
+    for row, gene_data in enumerate(summary_data[1:]):
+        row += 1
+        score_column = 6
+        call_ratios = gene_data[score_column]
+
+        counts = call_ratios.split(':')
+        agree_count = int(counts[0])
+        alter_count = int(counts[1])
+
+
+        if alter_count - agree_count > 3:
+            color_styles.append(('BACKGROUND', (score_column, row), (score_column, row), colors.red))
+        elif agree_count - alter_count > 3:
+            color_styles.append(('BACKGROUND', (score_column, row), (score_column, row), colors.green))
+        else:
+            color_styles.append(('BACKGROUND', (score_column, row), (score_column, row), colors.yellow))
+
+
+    ''' annot_size_column = 4
         agree_column = 5
         score_column = 7
 
