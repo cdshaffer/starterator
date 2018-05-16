@@ -413,11 +413,18 @@ def graph_start_sites(args, pham, file_path):
             add_pham_no_title(args, args.pham_no, graph_path, str(i))
 
         combine_graphs(args, args.phage, pham.pham_no, i)
-    else:  
-        final_graph_path = os.path.join(file_path, "Pham%sGraph_.pdf" % (pham.pham_no)) if not args.phage else os.path.join(file_path, "%sPham%sGraph_.pdf" % (args.phage+args.one_or_all, pham.pham_no))
+    else:
+        if not args.phage:
+            final_graph_path = os.path.join(file_path, "Pham%sGraph_.pdf" % pham.pham_no)
+        else:
+            final_graph_path = os.path.join(file_path, "%sPham%sGraph_.pdf" % (args.phage+args.one_or_all, pham.pham_no))
         # graph_path_svg = "%sPham%sGraph.svg" % (file_path+args.phage+ args.one_or_all, pham.pham_no)
-        graph_path = os.path.join(file_path, "Pham%sGraph_.pdf" % (pham.pham_no)) if not args.phage else  os.path.join(file_path,"%sPham%sGraph_.pdf" % (args.phage, pham.pham_no))
+        if not args.phage:
+            graph_path = os.path.join(file_path, "Pham%sGraph_.pdf" % pham.pham_no)
+        else:
+            graph_path = os.path.join(file_path, "%sPham%sGraph_.pdf" % (args.phage, pham.pham_no))
         print "making_files.graph_start_sites: path to graph is " + str(graph_path)
+
         if check_file(final_graph_path):
             pass
         else:
@@ -632,7 +639,7 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
     story.append(Paragraph(info, styles['paragraph']))
     story.append(Spacer(1, 12))
 
-    #items to build table
+    # items to build table
     summary_data = list()
 
     headers = ["Gene", "Pham\nNum", "Pham\nsize", "Start\nNum","Start\nCoord", "Inform\nAnnots", "Agree vs.\ntop Alt"]
@@ -712,24 +719,21 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
     story.append(Paragraph(text, styles['paragraph']))
     story.append(Spacer(1, 12))
 
-
     table = Table(summary_data)
 
-    full_grid_style = [('INNERGRID', (0,0), (-1,-1), 0.5, colors.black), ('BOX', (0,0), (-1,-1), 0.5, colors.black)]
-    align_styles = [('ALIGN',(0,0),(-1,-1), 'CENTER')]
+    full_grid_style = [('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black), ('BOX', (0, 0), (-1, -1), 0.5, colors.black)]
+    align_styles = [('ALIGN', (0, 0), (-1, -1), 'CENTER')]
     color_styles = list()
 
-
-    #colorize table for now just use absolute difference
+    # colorize table for now just use absolute difference
     for row, gene_data in enumerate(summary_data[1:]):
-        row += 1 #need to add 1 since skipping 1st row
+        row += 1      # need to add 1 since skipping 1st row in for loop
         score_column = 6
         call_ratios = gene_data[score_column]
 
         counts = call_ratios.split(':')
         agree_count = int(counts[0])
         alter_count = int(counts[1])
-
 
         if alter_count - agree_count > 3:
             color_styles.append(('BACKGROUND', (score_column, row), (score_column, row), colors.red))
@@ -788,6 +792,7 @@ def main():
         # pickle_file = args.file
         # genes = cPickle.load(open(args.pickle_file.strip('"'), 'rb'))
         # make_fasta_file(genes, (args.dir + '.fasta'))
+
 
 if __name__ == "__main__":
     main()
