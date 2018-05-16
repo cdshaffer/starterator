@@ -626,6 +626,12 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
     story.append(Paragraph(text, styles['Center']))
     story.append(Spacer(1, 12))
 
+    info = 'The suggested starts list below uses the original algorithm that considers both manual and computational ' \
+           'annotations. This algorithm may or may not produce a suggested start. If there is insufficient ' \
+           'consensus to suggest a start, all starts in the gene are listed by start number and position. '
+    story.append(Paragraph(info, styles['paragraph']))
+    story.append(Spacer(1, 12))
+
     #items to build table
     summary_data = list()
 
@@ -646,31 +652,31 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
         story.append(Paragraph(text, styles['Normal']))
         just_text.append(simple_text)
 
-        # building summary table colm 1 geneID
+        # building summary table colm 0 geneID
         gene = phage_genes[gene_id]['gene']
         if gene.pham_no is None:
             continue
         gene_summary = list()
         gene_summary.append(gene.gene_id)
 
-        # Colm 2 Pham num
+        # Colm 1 Pham num
         gene_summary.append(gene.pham_no)
 
-        # Colm 3 Pham size
+        # Colm 2 Pham size
         gene_summary.append(gene.pham_size)
 
-        # Colm 4 start number
+        # Colm 3 start number
         gene_summary.append(gene.alignment_start_num_called)
 
-        # Colm 5 start coordinate
+        # Colm 4 start coordinate
         start = gene.start_codon_location
         gene_summary.append(start)
 
-        # Colm 6 Number of informative Manual annots
+        # Colm 5 Number of informative Manual annots
         num_informative = sum(gene.alignment_annot_start_counts)
         gene_summary.append(str(num_informative))
 
-        # Colm 7 supporting annots vs best alternative
+        # Colm 6 supporting annots vs best alternative
 
         if gene.alignment_start_num_called not in gene.alignment_annot_start_nums:
             support_num=0
@@ -693,6 +699,19 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
 
     story.append(Spacer(1, 12))
 
+    text = 'The following table summarizes annotation results with a focus on only those manual ' \
+           'annotations which match a start codon available in the listed gene. The total number of this type of ' \
+           '"informative" annotation is given in the "Inform Annots" column. ' \
+           'The "Agree vs. top Alt" column gives ' \
+           'the total number of manual annotations that agree with the ' \
+           'currently annotated start (as shown in the "Start Num" column) versus the number of manual annotations ' \
+           'for the most manually annotated alternative start found in the listed gene. ' \
+           'Background color is based on the difference in the two numbers ' \
+           '(green if greater than +3, red if less than -3, and yellow if between +3 and -3).'
+
+    story.append(Paragraph(text, styles['paragraph']))
+    story.append(Spacer(1, 12))
+
 
     table = Table(summary_data)
 
@@ -703,7 +722,7 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
 
     #colorize table for now just use absolute difference
     for row, gene_data in enumerate(summary_data[1:]):
-        row += 1
+        row += 1 #need to add 1 since skipping 1st row
         score_column = 6
         call_ratios = gene_data[score_column]
 
@@ -718,31 +737,6 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
             color_styles.append(('BACKGROUND', (score_column, row), (score_column, row), colors.green))
         else:
             color_styles.append(('BACKGROUND', (score_column, row), (score_column, row), colors.yellow))
-
-
-    ''' annot_size_column = 4
-        agree_column = 5
-        score_column = 7
-
-        annot_count = gene_data[annot_size_column]
-        agree_count = gene_data[agree_column]
-        gene_score = gene_data[score_column]
-        if gene_data[0] == "Gene":  #skip header row
-            continue
-        elif int(annot_count) < 3:
-            continue
-        elif gene_score == u"\u221E":
-            color_styles.append(('BACKGROUND', (score_column, row), (score_column, row), colors.green))
-        elif gene_score == u"\u2212\u221E":
-            color_styles.append(('BACKGROUND', (score_column, row), (score_column, row), colors.red))
-        elif float(gene_score) >= 1.5:
-            color_styles.append(('BACKGROUND', (score_column, row), (score_column, row), colors.green))
-        elif float(gene_score) <= -1.5:
-            color_styles.append(('BACKGROUND', (score_column, row), (score_column, row), colors.red))
-        else:
-            color_styles.append(('BACKGROUND', (score_column, row), (score_column, row), colors.yellow))
-            '''
-
 
     table.setStyle(TableStyle(full_grid_style))
     table.setStyle(TableStyle(align_styles))
