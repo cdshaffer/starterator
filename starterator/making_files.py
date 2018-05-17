@@ -364,7 +364,12 @@ def graph_start_sites(args, pham, file_path):
         graphs the alignment, creates a PDF file called {Phage Name}{One or All}Pham{Pham Number}.pdf
     """
     # check for especially long upstream sequences, and define genome diagram left boundary if found
-    # use aligment_candidate_starts, check for smallest number, use slightly less than that for diagram.draw() coord
+    left_trim = min(pham.total_possible_starts)
+    right_trim = max(pham.total_possible_starts)
+    if left_trim < 100:
+        draw_boundary = 0
+    else:
+        draw_boundary = left_trim - 10
 
     # genes = sorted(pham.genes_in_pham.values())
     if args.phage is None:
@@ -408,7 +413,7 @@ def graph_start_sites(args, pham, file_path):
             print seq_length, i
 
             gd_diagram.draw(format="linear", orientation="portrait", pagesize=reportlab.lib.pagesizes.letter,
-                            fragments=1, start=0, end=seq_length)
+                            fragments=1, start=draw_boundary, end=seq_length)
             gd_diagram.write(graph_path, "PDF")
             # gd_diagram.write(graph_path_svg, "SVG")
 
@@ -437,7 +442,7 @@ def graph_start_sites(args, pham, file_path):
                 make_gene_track(gd_diagram, pham, gene_group, i, len(genes))
                 i += 1
             gd_diagram.draw(format="linear", orientation="portrait", pagesize=reportlab.lib.pagesizes.letter,
-                            fragments=1, start=0, end=len(gene_group[0].alignment))
+                            fragments=1, start=draw_boundary, end=len(gene_group[0].alignment))
             gd_diagram.write(graph_path, "PDF")
         # gd_diagram.write(graph_path_svg, "SVG")
             add_pham_no_title(args, pham.pham_no, graph_path)
