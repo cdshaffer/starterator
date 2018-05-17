@@ -386,15 +386,8 @@ def graph_start_sites(args, pham, file_path):
     min_annot_coord = pham.total_possible_starts[min_annot_num-1]
     max_annot_coord = pham.total_possible_starts[max_annot_num-1]
 
-    if min_start_coord < 100:
-        left_draw_boundary = 0
-    else:
-        left_draw_boundary = min_start_coord - 10
-
-    if len(genes[0][0].alignment) - 10 < max_start_coord:
-        right_draw_boundary = len(genes[0][0].alignment)
-    else:
-        right_draw_boundary = max_start_coord
+    left_draw_boundary = max([0, min_start_coord - 30])
+    right_draw_boundary = min([len(genes[0][0].alignment), max_start_coord + 30])
 
     if len(genes) > 100:
         for i in xrange(0, int(math.ceil(len(genes)/50.0))):
