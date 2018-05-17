@@ -363,6 +363,16 @@ def graph_start_sites(args, pham, file_path):
     """
         graphs the alignment, creates a PDF file called {Phage Name}{One or All}Pham{Pham Number}.pdf
     """
+
+    # genes = sorted(pham.genes_in_pham.values())
+    if args.phage is None:
+        args.phage = ""
+        order_by = None
+    else:
+        order_by = args.phage
+
+    genes = pham.group_similar_genes(order_by)
+
     # check for especially long upstream sequences, and define genome diagram left boundary if found
     left_trim = min(pham.total_possible_starts)
     right_trim = max(pham.total_possible_starts)
@@ -375,15 +385,6 @@ def graph_start_sites(args, pham, file_path):
         right_draw_boundary = len(genes[0][0].alignment)
     else:
         right_draw_boundary = right_trim
-
-    # genes = sorted(pham.genes_in_pham.values())
-    if args.phage is None:
-        args.phage = ""
-        order_by = None
-    else:
-        order_by = args.phage
-
-    genes = pham.group_similar_genes(order_by)
 
     if len(genes) > 100:
         for i in xrange(0, int(math.ceil(len(genes)/50.0))):
