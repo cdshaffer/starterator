@@ -269,14 +269,18 @@ def output_start_sites_by_phage(stats, genelist):
     return output
 
 
-def add_pham_no_title(args, pham_no, first_graph_path, i=""):
+def add_pham_no_title(args, pham_no, first_graph_path, i="", zoom=False):
     # print i, type(i)
     # print first_graph_path
     packet = StringIO.StringIO()
     can = canvas.Canvas(packet, pagesize=reportlab.lib.pagesizes.letter)
     # width, height = reportlab.lib.pagesizes.letter
     # print width, height
-    can.drawString(280, 750, 'Pham ' + str(pham_no))
+    if zoom:
+        can.drawString(250, 750, 'Zoomed Pham ' + str(pham_no))
+    else:
+        can.drawString(280, 750, 'Pham ' + str(pham_no))
+
     can.save()
 
     packet.seek(0)
@@ -431,7 +435,7 @@ def graph_start_sites(args, pham, file_path):
             gd_diagram.write(graph_path, "PDF")
             # gd_diagram.write(graph_path_svg, "SVG")
 
-            add_pham_no_title(args, args.pham_no, graph_path, str(i))
+            add_pham_no_title(args, args.pham_no, graph_path, str(i), should_zoom)
 
         combine_graphs(args, args.phage, pham.pham_no, i)
     else:
@@ -459,7 +463,7 @@ def graph_start_sites(args, pham, file_path):
                             fragments=1, start=left_draw_boundary, end=right_draw_boundary)
             gd_diagram.write(graph_path, "PDF")
         # gd_diagram.write(graph_path_svg, "SVG")
-            add_pham_no_title(args, pham.pham_no, graph_path)
+            add_pham_no_title(args, pham.pham_no, graph_path, zoom=should_zoom)
 
         # gd_diagram.write("%s.svg" % (file_path+pham.pham_no), "SVG")
         # gd_diagram.write("%s.eps" % (file_path+pham.pham_no), "EPS")
