@@ -506,7 +506,13 @@ class UnPhamGene(PhamGene):
         except:
             protein = SeqRecord(self.sequence[self.candidate_starts[0]:].seq.translate(), id=self.gene_id)
             print protein, self.sequence
-            e_value = math.pow(10, -20)
+            # short proteins need lower e_value
+            query_len = (self.stop - self.start) / 3
+            if query_len < 50:
+                e_value = math.pow(10, -10)
+            else:
+                e_value = math.pow(10, -20)
+
             SeqIO.write(protein, '%s/%s.fasta' % (utils.INTERMEDIATE_DIR, self.gene_id), 'fasta')
             blast_command = Blastp(
                             query='%s%s.fasta' % (utils.INTERMEDIATE_DIR, self.gene_id),
