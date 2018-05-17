@@ -367,9 +367,14 @@ def graph_start_sites(args, pham, file_path):
     left_trim = min(pham.total_possible_starts)
     right_trim = max(pham.total_possible_starts)
     if left_trim < 100:
-        draw_boundary = 0
+        left_draw_boundary = 0
     else:
-        draw_boundary = left_trim - 10
+        left_draw_boundary = left_trim - 10
+
+    if len(genes[0][0].alignment) - 10 < right_trim:
+        right_draw_boundary = len(genes[0][0].alignment)
+    else:
+        right_draw_boundary = right_trim
 
     # genes = sorted(pham.genes_in_pham.values())
     if args.phage is None:
@@ -379,10 +384,6 @@ def graph_start_sites(args, pham, file_path):
         order_by = args.phage
 
     genes = pham.group_similar_genes(order_by)
-    # for group in genes:
-    #     print group, group.id
-
-    seq_length = len(genes[0][0].sequence.seq)
 
     if len(genes) > 100:
         for i in xrange(0, int(math.ceil(len(genes)/50.0))):
@@ -410,10 +411,9 @@ def graph_start_sites(args, pham, file_path):
                 else:
                     gene = genes[i*50 + j][0]
                     make_gene_track(gd_diagram, pham, genes[i*50 + j], j, 50)
-            print seq_length, i
 
             gd_diagram.draw(format="linear", orientation="portrait", pagesize=reportlab.lib.pagesizes.letter,
-                            fragments=1, start=draw_boundary, end=seq_length)
+                            fragments=1, start=left_draw_boundary, end=right_draw_boundary)
             gd_diagram.write(graph_path, "PDF")
             # gd_diagram.write(graph_path_svg, "SVG")
 
@@ -442,7 +442,7 @@ def graph_start_sites(args, pham, file_path):
                 make_gene_track(gd_diagram, pham, gene_group, i, len(genes))
                 i += 1
             gd_diagram.draw(format="linear", orientation="portrait", pagesize=reportlab.lib.pagesizes.letter,
-                            fragments=1, start=draw_boundary, end=len(gene_group[0].alignment))
+                            fragments=1, start=left_draw_boundary, end=right_draw_boundary)
             gd_diagram.write(graph_path, "PDF")
         # gd_diagram.write(graph_path_svg, "SVG")
             add_pham_no_title(args, pham.pham_no, graph_path)
