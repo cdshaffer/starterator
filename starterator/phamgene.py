@@ -21,6 +21,7 @@ from Bio import SeqIO
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 import re
 from database import get_db
+from itertools import groupby
 import utils
 from utils import StarteratorError, clean_up_files
 import subprocess
@@ -397,6 +398,12 @@ class PhamGene(Gene):
             gap = False
             gap_count = 0
             seq_count = 0
+
+            # start by counting blocks of either bases or gap
+            is_seq_block = [k for k,g in groupby(self.alignment.seq, lambda x: x in ['A', 'C', 'G', 'T'])]
+            block_lengths = [len(list(g)) for k,g in groupby(self.alignment.seq, lambda x: x in ['A', 'C', 'G', 'T'])]
+
+
             for index, char in enumerate(self.alignment.seq):
                 if char == '-' and gap is False:
                     gap = True
