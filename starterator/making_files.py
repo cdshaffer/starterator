@@ -374,8 +374,8 @@ def graph_start_sites(args, pham, file_path):
     genes = pham.group_similar_genes(order_by)
 
     # check for especially long upstream sequences, and define genome diagram left boundary if found
-    left_trim = min(pham.total_possible_starts)
-    right_trim = max(pham.total_possible_starts)
+    min_start_coord = min(pham.total_possible_starts)
+    max_start_coord = max(pham.total_possible_starts)
 
     annotated_start_nums = set()
     for gene_list in genes:
@@ -386,15 +386,15 @@ def graph_start_sites(args, pham, file_path):
     min_annot_coord = pham.total_possible_starts[min_annot_num-1]
     max_annot_coord = pham.total_possible_starts[max_annot_num-1]
 
-    if left_trim < 100:
+    if min_start_coord < 100:
         left_draw_boundary = 0
     else:
-        left_draw_boundary = left_trim - 10
+        left_draw_boundary = min_start_coord - 10
 
-    if len(genes[0][0].alignment) - 10 < right_trim:
+    if len(genes[0][0].alignment) - 10 < max_start_coord:
         right_draw_boundary = len(genes[0][0].alignment)
     else:
-        right_draw_boundary = right_trim
+        right_draw_boundary = max_start_coord
 
     if len(genes) > 100:
         for i in xrange(0, int(math.ceil(len(genes)/50.0))):
