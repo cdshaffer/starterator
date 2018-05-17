@@ -386,8 +386,18 @@ def graph_start_sites(args, pham, file_path):
     min_annot_coord = pham.total_possible_starts[min_annot_num-1]
     max_annot_coord = pham.total_possible_starts[max_annot_num-1]
 
+    # default track boundies are +/- 30 bases surounding all possible starts
     left_draw_boundary = max([0, min_start_coord - 30])
     right_draw_boundary = min([len(genes[0][0].alignment), max_start_coord + 30])
+
+    # zoom in if there are a large number of different starts in a small fraction of the track
+    fraction_of_track_with_annots = float(max_annot_coord-min_annot_coord)/(right_draw_boundary - left_draw_boundary)
+    annots_in_annotation_range = max_annot_num - min_annot_num+1
+    should_zoom = annots_in_annotation_range > fraction_of_track_with_annots*100
+
+    if should_zoom:
+        left_draw_boundary = max([0, min_annot_coord - 100])
+        right_draw_boundary = min([len(genes[0][0].alignment), max_annot_coord + 100])
 
     if len(genes) > 100:
         for i in xrange(0, int(math.ceil(len(genes)/50.0))):
