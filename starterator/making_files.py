@@ -363,6 +363,8 @@ def graph_start_sites(args, pham, file_path):
     """
         graphs the alignment, creates a PDF file called {Phage Name}{One or All}Pham{Pham Number}.pdf
     """
+    # check for especially long upstream sequences, and define genome diagram left boundary if found
+    # use aligment_candidate_starts, check for smallest number, use slightly less than that for diagram.draw() coord
 
     # genes = sorted(pham.genes_in_pham.values())
     if args.phage is None:
