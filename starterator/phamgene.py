@@ -52,8 +52,8 @@ def update_protein_db():
         fasta_file = os.path.join(utils.PROTEIN_DB, "Proteins.fasta")
         SeqIO.write(proteins, fasta_file, 'fasta')
 
-    blast_db_command = [utils.BLAST_DIR + 'makeblastdb', '-in',"\""+ fasta_file+ "\"",
-                            "-dbtype","prot", "-title", "Proteins", "-out", "%s" % fasta_file]
+    blast_db_command = [utils.BLAST_DIR + 'makeblastdb', '-in', "\"" + fasta_file + "\"",
+                        "-dbtype", "prot", "-title", "Proteins", "-out", "%s" % fasta_file]
     print blast_db_command
     # else:
     #     blast_db_command = [BLAST_DIR + 'formatdb',
@@ -85,14 +85,14 @@ def get_pham_no(phage_name, gene_number):
             FROM gene JOIN pham ON gene.GeneID = pham.GeneID \n\
             JOIN phage ON gene.PhageID = phage.PhageID \n\
             WHERE (phage.Name LIKE %s or phage.PhageID = %s) AND gene.Name RLIKE %s \n\
-            "% (phage_name+ "%", phage_name, '^[:alpha:]*(_)*%s$' % str(gene_number))
+            "% (phage_name + "%", phage_name, '^[:alpha:]*(_)*%s$' % str(gene_number))
     print query
     try:
         results = db.query("SELECT pham.name \n\
             FROM gene JOIN pham ON gene.GeneID = pham.GeneID \n\
             JOIN phage ON gene.PhageID = phage.PhageID \n\
             WHERE (phage.Name LIKE %s or phage.PhageID = %s) AND gene.Name RLIKE %s",
-            (phage_name+"%", phage_name, '^([[:alnum:]]*_)*([[:alpha:]])*%s$' % str(gene_number)))
+            (phage_name + "%", phage_name, '^([[:alnum:]]*_)*([[:alpha:]])*%s$' % str(gene_number)))
         if len(results) < 1:
             results = db.query("SELECT pham.name \n\
                 FROM gene JOIN pham ON gene.GeneID = pham.GeneID \n\
@@ -246,9 +246,8 @@ class PhamGene(Gene):
         self.gene_id = self.phage_name + "_" + gene_no
         self.gene_id = self.gene_id.replace('-', "_")
 
-
         status = phage.get_status()
-        if status == 'final': # values of 'draft' or 'gbk' considered draft quality by starterator
+        if status == 'final':        # values of 'draft' or 'gbk' considered draft quality by starterator
             self.draftStatus = False
         else:
             self.draftStatus = True
@@ -376,8 +375,6 @@ class PhamGene(Gene):
 
         return
 
-
-
     def alignment_index_to_coord(self, index):
         """
                 Given an index of the alignment
@@ -395,13 +392,12 @@ class PhamGene(Gene):
         return new_start_coords
 
     def add_gaps_as_features(self):
-        gap = False
-        gap_count = 0
-        seq_count = 0
-        test_features = []
         # start by counting blocks of either bases or gap
+        # use groupby() to give list of sizes of blocks of gap or sequence characters in block_length
+        # and labels of type of block in block_type
+
         block_type = [k for k,g in groupby(self.alignment.seq, lambda x: 'seq' if x in ['A', 'C', 'G', 'T'] else 'gap')]
-        block_length = [len(list(g)) for k,g in groupby(self.alignment.seq, lambda x: x in ['A', 'C', 'G', 'T'])]
+        block_length = [len(list(g)) for k, g in groupby(self.alignment.seq, lambda x: x in ['A', 'C', 'G', 'T'])]
         breakpoints = []
         found_start = False
         for i, length in enumerate(block_length):
@@ -418,7 +414,7 @@ class PhamGene(Gene):
                     breakpoints.append(self.alignment_start_site)
                     breakpoints.append(breakpoints[-2] + length)
                 else:
-                    breakpoints.append( breakpoints[-1] + length)
+                    breakpoints.append(breakpoints[-1] + length)
 
         for type_of_block, end_point in zip(block_type, breakpoints):
             end_point_index = breakpoints.index(end_point)
@@ -530,12 +526,12 @@ class UnPhamGene(PhamGene):
                             out="%s.xml" % (os.path.join(utils.INTERMEDIATE_DIR, self.gene_id)))
             # print self.gene_id, "\"%sProteins\"" % (utils.PROTEIN_DB)
             blast_args = ["%sblastp" % utils.BLAST_DIR,
-                "-out", '%s/%s.xml' % (utils.INTERMEDIATE_DIR, self.gene_id),
-                "-outfmt", "5",
-                "-query", '%s/%s.fasta' % (utils.INTERMEDIATE_DIR, self.gene_id),
-                "-db", "\"%s/Proteins.fasta\"" % (utils.PROTEIN_DB),
-                "-evalue", str(e_value)
-                ]
+                          "-out", '%s/%s.xml' % (utils.INTERMEDIATE_DIR, self.gene_id),
+                          "-outfmt", "5",
+                          "-query", '%s/%s.fasta' % (utils.INTERMEDIATE_DIR, self.gene_id),
+                          "-db", "\"%s/Proteins.fasta\"" % (utils.PROTEIN_DB),
+                          "-evalue", str(e_value)
+                          ]
             print " ".join(blast_args)
             try:
                 subprocess.check_call(blast_args)
