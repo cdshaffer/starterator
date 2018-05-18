@@ -100,9 +100,12 @@ class Pham(object):
             gene.add_gaps_as_features()
 
     def call_clustal(self, fasta_file):
-        subprocess.check_call(['clustalw',
-                               '-infile=%s' % (fasta_file),
-                               '-quicktree'])
+
+        outfile = fasta_file.replace(".fasta", ".aln")
+        subprocess.check_call(['clustalo', '--infile=%s' % (fasta_file), '--outfile=%s' % (outfile), '--outfmt=clu'])
+
+        # subprocess.check_call(['clustalw', '-infile=%s' % (fasta_file), '-quicktree'])
+
         aln_file = fasta_file.replace(".fasta", ".aln")
         alignment = AlignIO.read(aln_file, "clustal")
         return alignment
