@@ -397,7 +397,13 @@ def graph_start_sites(args, pham, file_path):
     # zoom in if there are a large number of different starts in a small fraction of the track
     fraction_of_track_with_annots = float(max_annot_coord - min_annot_coord)/(right_draw_boundary - left_draw_boundary)
     annots_in_annotation_range = max_annot_num - min_annot_num+1
-    should_zoom = annots_in_annotation_range > fraction_of_track_with_annots*100
+    if annots_in_annotation_range < fraction_of_track_with_annots*100:
+        should_zoom = False
+    else:
+        max_possible_in_annotation_range = 0
+        for gene in genes:
+            gene
+
 
     if should_zoom:
         left_draw_boundary = max([0, min_annot_coord - 100])
