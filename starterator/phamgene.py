@@ -398,7 +398,7 @@ class PhamGene(Gene):
         gap = False
         gap_count = 0
         seq_count = 0
-
+        test_features = []
         # start by counting blocks of either bases or gap
         block_type = [k for k,g in groupby(self.alignment.seq, lambda x: 'seq' if x in ['A', 'C', 'G', 'T'] else 'gap')]
         block_length = [len(list(g)) for k,g in groupby(self.alignment.seq, lambda x: x in ['A', 'C', 'G', 'T'])]
@@ -416,35 +416,18 @@ class PhamGene(Gene):
                     found_start = True
                     block_type.insert(i, 'seq')
                     breakpoints.append(self.alignment_start_site)
-                    breakpoints.append(breakpoints[-1] + length)
+                    breakpoints.append(breakpoints[-2] + length)
                 else:
                     breakpoints.append( breakpoints[-1] + length)
 
+        for type_of_block, end_point in zip(block_type, breakpoints):
+            end_point_index = breakpoints.index(end_point)
+            if end_point_index == 0:
+                start_point = 0
+            else:
+                start_point = breakpoints[end_point_index - 1]
 
-
-
-
-        for index, char in enumerate(self.alignment.seq):
-            if char == '-' and gap is False:
-                gap = True
-                gap_count = 0
-                if seq_count > 0:
-                    seq_feature = SeqFeature(FeatureLocation(index-seq_count, index-1), type='seq', strand=None)
-                    self.alignment.features.append(seq_feature)
-            elif char == '-' and gap is True:
-                gap_count += 1
-            elif char != '-' and gap is True:
-                gap = False
-                seq_count = 0
-                gap_feature = SeqFeature(FeatureLocation(index-gap_count-1, index-1), type='gap', strand=None)
-                self.alignment.features.append(gap_feature)
-            else:  # gap = False and char != '-'
-                seq_count += 1
-        if gap is True:
-            gap_feature = SeqFeature(FeatureLocation(index-gap_count-1, index), type='gap', strand=None)
-            self.alignment.features.append(gap_feature)
-        else:
-            seq_feature = SeqFeature(FeatureLocation(index-seq_count, index), type='seq', strand=None)
+            seq_feature = SeqFeature(FeatureLocation(start_point, end_point), type=type_of_block, strand=None)
             self.alignment.features.append(seq_feature)
 
     def is_equal(self, other):
