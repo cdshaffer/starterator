@@ -274,6 +274,10 @@ class Pham(object):
         start_stats["no_most_annot"] = []
         start_stats["annot_list"] = [g for g in self.genes.values() if not g.draftStatus]
         start_stats["draft_list"] = [g for g in self.genes.values() if g.draftStatus]
+        start_stats['called_counts'] = {}
+        for k, l in start_stats['called_starts'].items():
+            if len(l) > 0:
+                start_stats['called_counts'][k] = len(l)
 
         genes_without_most_called = []
         print "phams.find_most_common_start: genes_start_most_called " + str(genes_start_most_called)
