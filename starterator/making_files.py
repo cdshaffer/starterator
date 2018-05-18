@@ -387,27 +387,32 @@ def graph_start_sites(args, pham, file_path):
 
     min_annot_num = min(annotated_start_nums)
     max_annot_num = max(annotated_start_nums)
-    min_annot_coord = pham.total_possible_starts[min_annot_num-1]
-    max_annot_coord = pham.total_possible_starts[max_annot_num-1]
+    min_annot_coord = pham.total_possible_starts[min_annot_num - 1]
+    max_annot_coord = pham.total_possible_starts[max_annot_num - 1]
 
-    # default track boundies are +/- 30 bases surounding all possible starts
-    left_draw_boundary = max([0, min_start_coord - 30])
-    right_draw_boundary = min([len(genes[0][0].alignment), max_start_coord + 30])
+    # test if zoom in needed (i.e. if there are a large number of different starts in a small fraction of a track)
+    all_starts_range = (min([len(genes[0][0].alignment), max_start_coord + 30])) - (max([0, min_start_coord - 30]))
+    fraction_of_track_with_annots = float(max_annot_coord - min_annot_coord)/all_starts_range
+    annots_in_annotation_range = max_annot_num - min_annot_num + 1
 
-    # zoom in if there are a large number of different starts in a small fraction of the track
-    fraction_of_track_with_annots = float(max_annot_coord - min_annot_coord)/(right_draw_boundary - left_draw_boundary)
-    annots_in_annotation_range = max_annot_num - min_annot_num+1
-    if annots_in_annotation_range < fraction_of_track_with_annots*100:
-        should_zoom = False
-    else:
-        max_possible_in_annotation_range = 0
-        for gene in genes:
-            gene
+    max_possible_in_annotation_range = 0
+    starts_in_annot_range = set(range(min_annot_num, max_annot_num + 1))
+    for gene_list in genes:
+        gene = gene_list[0]
+        count = len(set(gene.alignment_candidate_start_nums) & starts_in_annot_range)
+        if count > max_possible_in_annotation_range:
+            max_possible_in_annotation_range = count
 
-
-    if should_zoom:
+    if max_possible_in_annotation_range > fraction_of_track_with_annots * 100:
+        # too many starts too close together, better zoom in on track
+        should_zoom = True
         left_draw_boundary = max([0, min_annot_coord - 100])
         right_draw_boundary = min([len(genes[0][0].alignment), max_annot_coord + 100])
+    else:
+        # use default track boundies are +/- 30 bases surounding all possible starts
+        should_zoom = False
+        left_draw_boundary = max([0, min_start_coord - 30])
+        right_draw_boundary = min([len(genes[0][0].alignment), max_start_coord + 30])
 
     if len(genes) > 100:
         for i in xrange(0, int(math.ceil(len(genes)/50.0))):
