@@ -389,11 +389,12 @@ def graph_start_sites(args, pham, file_path):
     max_annot_num = max(annotated_start_nums)
     min_annot_coord = pham.total_possible_starts[min_annot_num - 1]
     max_annot_coord = pham.total_possible_starts[max_annot_num - 1]
+    all_annot_range = max_annot_coord - min_annot_coord
+    alignment_length = len(genes[0][0].alignment)
 
     # test if zoom in needed (i.e. if there are a large number of different starts in a small fraction of a track)
-    all_starts_range = (min([len(genes[0][0].alignment), max_start_coord + 30])) - (max([0, min_start_coord - 30]))
+    all_starts_range = (min([alignment_length, max_start_coord + 30])) - (max([0, min_start_coord - 30]))
     fraction_of_track_with_annots = float(max_annot_coord - min_annot_coord)/all_starts_range
-    annots_in_annotation_range = max_annot_num - min_annot_num + 1
 
     max_possible_in_annotation_range = 0
     starts_in_annot_range = set(range(min_annot_num, max_annot_num + 1))
@@ -403,11 +404,27 @@ def graph_start_sites(args, pham, file_path):
         if count > max_possible_in_annotation_range:
             max_possible_in_annotation_range = count
 
-    if max_possible_in_annotation_range > fraction_of_track_with_annots * 100:
-        # too many starts too close together, better zoom in on track
+    # if possible set zoom so that there is about 1 start per <scale>% of track
+    scale = 2
+    if max_possible_in_annotation_range > (100 / scale) - 2:
         should_zoom = True
+        right_draw_boundary =  min([alignment_length, max_annot_coord + 100])
         left_draw_boundary = max([0, min_annot_coord - 100])
-        right_draw_boundary = min([len(genes[0][0].alignment), max_annot_coord + 100])
+    elif max_possible_in_annotation_range > fraction_of_track_with_annots * 100:
+        # too many starts too close together, better zoom in on track
+        # set zoom so that there is about 1 start per <scale>% of track
+        should_zoom = True
+        flank = all_annot_range * (100 / (scale * max_possible_in_annotation_range)) - all_annot_range
+        if int(flank / 2) + max_annot_coord > alignment_length:
+            right_draw_boundary = alignment_length
+            left_draw_boundary = max([0, min_annot_coord - (flank - (alignment_length - max_annot_coord))])
+        elif min_annot_coord - int(flank / 2) < 1:
+            left_draw_boundary = 0
+            right_draw_boundary = min([alignment_length, max_annot_coord + (flank - min_annot_coord) ])
+        else:
+            right_draw_boundary = min([alignment_length, max_annot_coord + int(flank / 2)])
+            left_draw_boundary = max([0, min_annot_coord - int(flank / 2)])
+
     else:
         # use default track boundies are +/- 30 bases surounding all possible starts
         should_zoom = False
