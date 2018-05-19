@@ -395,21 +395,19 @@ def graph_start_sites(args, pham, file_path):
     else:
         min_roi_num = min_annot_num - 1
 
-    if max_annot_num == len(pham.total_possible_start):
-        max_roi_num = len(pham.total_possible_start)
+    if max_annot_num == len(pham.total_possible_starts):
+        max_roi_num = len(pham.total_possible_starts)
     else:
         max_roi_num = max_annot_num + 1
 
-    roi_size = pham.total_possible_starts[max_roi_num] - pham.total_possible_starts[min_roi_num]
+    roi_size = pham.total_possible_starts[max_roi_num - 1] - pham.total_possible_starts[min_roi_num - 1]
     if roi_size < 3:
         roi_size = 3
     annots_in_roi = range(min_roi_num, max_roi_num + 1)
-
-    range_of_interst = max_annot_coord - min_annot_coord
-    alignment_length = len(genes[0][0].alignment)
+    max_right_boundary = len(genes[0][0].alignment)
 
     # test if zoom in needed (i.e. if there are a large number of different starts in a small fraction of a track)
-    all_starts_range = (min([alignment_length, max_start_coord + 30])) - (max([0, min_start_coord - 30]))
+    all_starts_range = (min([max_right_boundary, max_start_coord + 30])) - (max([0, min_start_coord - 30]))
     default_fraction_of_track_with_annots = float(roi_size)/all_starts_range
 
     max_possible_in_annotation_range = 0
@@ -420,28 +418,33 @@ def graph_start_sites(args, pham, file_path):
         if count > max_possible_in_annotation_range:
             max_possible_in_annotation_range = count
 
-    start_density = float(roi)
     # if possible set zoom so that there is about 1 start per <scale>% of track
-    scale = 2
+    scale = 1.1
+
+    # test is there are a large number of annots, if so just zoom in to region around them
     if max_possible_in_annotation_range > (100 / scale) - 2:
         should_zoom = True
-        right_draw_boundary =  min([alignment_length, max_annot_coord + 100])
+        right_draw_boundary =  min([max_right_boundary, max_annot_coord + 100])
         left_draw_boundary = max([0, min_annot_coord - 100])
+
+        # threshold for deciding 'too packed' is more than an average of 1 start per 1%
     elif max_possible_in_annotation_range > default_fraction_of_track_with_annots * 100:
-        # threshold for deciding too packed is more than an average of 1 start per 1%
-        # too many starts too close together, better zoom in on track
-        # set zoom so that there is about 1 start per <scale>% of track
         should_zoom = True
-        # we want max_possible_in_annotation_range
-        flank = range_of_interst * (100 / (scale * max_possible_in_annotation_range)) - range_of_interst
-        if int(flank / 2) + max_annot_coord > alignment_length:
-            right_draw_boundary = alignment_length
-            left_draw_boundary = max([0, min_annot_coord - (flank - (alignment_length - max_annot_coord))])
+
+        # we have len(annots_in_roi) number of annotations of intest [aoi] that span roi_size number of bases
+        # we want this number of bases to take up <len(annots_in_roi) * scale>% of the track
+        fraction_with_aoi = float(max_possible_in_annotation_range * scale) / 100
+        # so the total should span this number of bases
+        total_width = int(roi_size / fraction_with_aoi)
+        flank = total_width - roi_size
+        if int(flank / 2) + max_annot_coord > max_right_boundary:
+            right_draw_boundary = max_right_boundary
+            left_draw_boundary = max([0, min_annot_coord - (flank - (max_right_boundary - max_annot_coord))])
         elif min_annot_coord - int(flank / 2) < 1:
             left_draw_boundary = 0
-            right_draw_boundary = min([alignment_length, max_annot_coord + (flank - min_annot_coord) ])
+            right_draw_boundary = min([max_right_boundary, max_annot_coord + (flank - min_annot_coord) ])
         else:
-            right_draw_boundary = min([alignment_length, max_annot_coord + int(flank / 2)])
+            right_draw_boundary = min([max_right_boundary, max_annot_coord + int(flank / 2)])
             left_draw_boundary = max([0, min_annot_coord - int(flank / 2)])
 
     else:
