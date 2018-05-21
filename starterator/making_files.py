@@ -543,9 +543,13 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     # increase leading a bit
     styles["Normal"].leading = 14
 
-    note = '<font size=12>Note: In the above figure, yellow indicates the location of called starts comprised solely of'
-    note += ' computational predictions (i.e. auto-annotations by Glimmer/GeneMark),'
-    note += ' green indicates the location of called starts with at least 1 manual gene annotation. </font>'
+    note = '<font size=12>Note: Tracks are now scaled by default so that the region displayed covers the region 30 ' \
+           'bp upstream of start 1 to 30 bp downstream of the last possible start. If this default region is judged ' \
+           'to be packed too tightly with annotated starts the track will be zoomed in to only show a partial region ' \
+           'of the ORF. This action will be indicated by adding "Zoomed" to the title. ' \
+           'Yellow indicates the location of called starts comprised solely of ' \
+           'computational predictions (i.e. auto-annotations by Glimmer/GeneMark), ' \
+           'green indicates the location of called starts with at least 1 manual gene annotation. </font>'
 
     story.append(Paragraph(note, styles["Normal"]))
     story.append(Spacer(1, 12))
