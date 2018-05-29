@@ -562,6 +562,12 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     story.append(Paragraph(run_date, styles["Normal"]))
     story.append(Spacer(1, 12))
 
+    if pham.count != len(pham.genes):
+        warning_text = '<font size=12>WARNING: one or more genes in this pham have failed validation and have been ' \
+                       'removed from the report.'
+        story.append(Paragraph(warning_text, styles["Normal"]))
+        story.append(Spacer(1, 12))
+
     pham_count = len(pham.genes.values())
     draft_count = sum(1 for g in pham.genes.values() if g.draftStatus)
     annot_count = pham_count - draft_count
