@@ -426,6 +426,9 @@ class PhamGene(Gene):
             seq_feature = SeqFeature(FeatureLocation(start_point, end_point), type=type_of_block, strand=None)
             self.alignment.features.append(seq_feature)
 
+    def has_valid_start(self):
+        return self.ahead_of_start in self.candidate_starts
+
     def is_equal(self, other):
         """
             Checks if another PhamGene is equal to this one

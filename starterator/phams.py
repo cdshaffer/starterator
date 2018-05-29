@@ -63,11 +63,12 @@ class Pham(object):
             stop = gene_info[4]
             orientation = gene_info[5]
             gene = new_PhamGene(gene_id, start, stop, orientation, phage_id)
-            genes[gene.gene_id] = gene
+            if gene.has_valid_start():
+                genes[gene.gene_id] = gene
         if len(genes) < 1:
-            raise StarteratorError("Pham Number %s not found!" % self.pham_no)
+            raise StarteratorError("Pham Number %s not found or all genes fail validation!" % self.pham_no)
         return genes
-    
+
     def get_phage_genes(self):
         pass
 
