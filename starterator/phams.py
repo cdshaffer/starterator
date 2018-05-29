@@ -36,10 +36,11 @@ def get_pham_colors():
 class Pham(object):
     def __init__(self, pham_no, genes=None):
         self.pham_no = pham_no
-        self.genes = self.get_genes()
-        self.color = self.get_color()
         self.stats = {}
         self.file = ""
+        self.count = 0
+        self.genes = self.get_genes()
+        self.color = self.get_color()
         if genes:
             for gene in genes:
                 self.add(gene)
@@ -56,6 +57,7 @@ class Pham(object):
                 " JOIN `pham` ON `gene`.`GeneID` = `pham`.`GeneID`" + 
                " WHERE `pham`.`name` =%s; ", self.pham_no)
         genes = {}
+        self.count = len(results)
         for gene_info in results:
             gene_id = gene_info[0]
             phage_id = gene_info[1]
