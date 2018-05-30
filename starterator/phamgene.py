@@ -558,7 +558,9 @@ class UnPhamGene(PhamGene):
         if len(blast_record.descriptions) > 0:
             first_result = blast_record.descriptions[0].title.split(',')[0].split(' ')[-1]
             print first_result
-            first_result_items = first_result.split("_")
+            if "_" not in first_result:
+                first_result = blast_record.descriptions[1].title.split(',')[0].split(' ')[-1]
+
             phage_name = first_result.split("_")[-2]
             if phage_name.lower() == "draft":
                 phage_name = first_result.split("_")[-3]
