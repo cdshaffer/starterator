@@ -190,7 +190,7 @@ class UnPhamPhageReport(PhageReport):
                         print line
                         csv_reader.next()
                         for row in csv_reader:
-                            print line
+                            print row
                             feature_type = row[7].strip()
                             print feature_type
                             if feature_type == "ORF":
@@ -199,8 +199,7 @@ class UnPhamPhageReport(PhageReport):
                                 start = int(row[4])
                                 stop = int(row[5])
                                 print number, start, stop, orientation, self.name
-                                gene = phamgene.UnPhamGene(number, start, stop, orientation, self.name, 
-                                    sequence)
+                                gene = phamgene.UnPhamGene(number, start, stop, orientation, self.name, sequence)
                                 genes.append(gene)
 
                                 pham_no = gene.blast()
