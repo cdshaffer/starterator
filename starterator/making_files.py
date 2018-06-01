@@ -153,6 +153,12 @@ def output_start_sites(stats):
             output.append(u'\u2022' + " Found in %s of %s (%10.1f%% ) of genes in pham\t" %
                           (str(presence), str(stats['phamCount']), percent_present))
 
+            if start in stats['annot_counts'].keys():
+                output.append(u'\u2022' + " Manual Annotations of this start: %s of %s" %
+                              (str(stats['annot_counts'][start]), str(annotated_count)))
+            else:
+                output.append(u'\u2022' + " No Manual Annotations of this start. " )
+
             percent_called = float(len(genes)) / presence * 100
             output.append(u'\u2022' + " Called %10.1f%% of time when present \n\t" % percent_called)
 
@@ -632,29 +638,41 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
         gene_list = pham.genes.values()
         gene_list.sort(key=lambda x: x.phage_name)
         for gene in gene_list:
-            candidate_starts = []
-            for start in gene.alignment_candidate_starts:
-                candidate_starts.append((pham_possible_starts.index(start)+1, gene.alignment_index_to_coord(start)))
+            candidate_starts = ""
+            for start_num, start in zip(gene.alignment_candidate_start_nums, gene.alignment_candidate_starts):
+                if start_num in gene.alignment_annot_start_nums:
+                    count = gene.alignment_annot_counts_by_start[start_num]
+                    message = 'MA: <b>' + str(count) + '</b>'
+                    candidate_starts += '(Start: ' + str(start_num) + ' @' + str(gene.alignment_index_to_coord(start)) + \
+                                        ' has ' + str(count) + " MA's), "
+                else:
+                    candidate_starts += '(' + str(start_num) + ', ' + str(gene.alignment_index_to_coord(start)) + '), '
 
             story.append(Paragraph(" Gene: %s \n Start: %s, Stop: %s, Start Num: %s " % (gene.gene_id,
                                    gene.start_codon_location, gene.stop_codon_location,
                                    gene.suggested_start["current_start_number"]), text_style))
 
             story.append(Paragraph(" Candidate Starts for %s: " % gene.gene_id, text_style))
-            story.append(Paragraph("     " + str(candidate_starts)[1:-1], text_style))
+            story.append(Paragraph("     " + candidate_starts, text_style))
             story.append(Spacer(1, 12))
     else:   # if working on a pham report for one particular phage then only list starts for that phage
         for gene in genes_in_phage:
-            candidate_starts = []
-            for start in gene.alignment_candidate_starts:
-                candidate_starts.append((pham_possible_starts.index(start) + 1, gene.alignment_index_to_coord(start)))
+            candidate_starts = ""
+            for start_num, start in zip(gene.alignment_candidate_start_nums, gene.alignment_candidate_starts):
+                if start_num in gene.alignment_annot_start_nums:
+                    count = gene.alignment_annot_counts_by_start[start_num]
+                    message = 'MA: <b>' + str(count) + '</b>'
+                    candidate_starts += '(Start: ' + str(start_num) + ' @' + str(gene.alignment_index_to_coord(start)) + \
+                                        ' has ' + str(count) + " MA's), "
+                else:
+                    candidate_starts += '(' + str(start_num) + ', ' + str(gene.alignment_index_to_coord(start)) + '), '
 
             story.append(Paragraph(" Gene: %s \n Start: %s, Stop: %s, Start Num: %s " % (gene.gene_id,
                                    gene.start_codon_location, gene.stop_codon_location,
                                    gene.suggested_start["current_start_number"]), text_style))
 
             story.append(Paragraph(" Candidate Starts for %s: " % gene.gene_id, text_style))
-            story.append(Paragraph("     " + str(candidate_starts)[1:-1], text_style))
+            story.append(Paragraph("     " + candidate_starts, text_style))
             story.append(Spacer(1, 12))
     doc.build(story)
 
