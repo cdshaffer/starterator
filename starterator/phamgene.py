@@ -518,7 +518,7 @@ class UnPhamGene(PhamGene):
             # short proteins need lower e_value
             query_len = (self.stop - self.start) / 3
             if query_len < 50:
-                e_value = math.pow(10, -10)
+                e_value = math.pow(10, -5)
             else:
                 e_value = math.pow(10, -20)
 
