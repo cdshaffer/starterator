@@ -203,6 +203,8 @@ class PhamGene(Gene):
         self.phage_id = phage_id
         self.start = start
         self.stop = stop
+        self.cluster = None
+        self.cluster_hash = None
 
         if orientation == 'R':
             self.start_codon_location = stop
@@ -245,6 +247,8 @@ class PhamGene(Gene):
         gene_no = gene_no.split(" ")[0]
         self.gene_id = self.phage_name + "_" + gene_no
         self.gene_id = self.gene_id.replace('-', "_")
+        self.cluster = phage.cluster
+        self.cluster_hash = sum([ord(elem) for elem in self.cluster])
 
         status = phage.get_status()
         if status == 'final':        # values of 'draft' or 'gbk' considered draft quality by starterator
