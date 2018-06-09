@@ -203,7 +203,7 @@ class Pham(object):
             if len(groups) > 1:
                 remaining = groups[1:]
                 remaining.sort(key=lambda x: x[0].cluster_hash-sort_from)
-                groups = groups[0] + remaining
+                groups[1:] = remaining
         else:
             groups.sort(key=lambda x: x[0].cluster)
 
