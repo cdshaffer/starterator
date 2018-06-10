@@ -250,7 +250,7 @@ class PhamGene(Gene):
         self.cluster = phage.cluster
         if self.cluster == None:
             self.cluster = "singleton"
-        self.cluster_hash = sum([ord(elem) for elem in self.cluster])
+        self.cluster_hash = sum([pow(ord(elem, i+1)) for i, elem in enumerate(self.cluster)])
 
         status = phage.get_status()
         if status == 'final':        # values of 'draft' or 'gbk' considered draft quality by starterator
