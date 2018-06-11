@@ -198,12 +198,20 @@ class Pham(object):
                             groups[i] = groups[i][j:] + groups[i][:j]
             groups = groups[split_gene_lists_on:] + groups[:split_gene_lists_on]
 
+            if groups[0][0].cluster_hash is not None:
+                sort_from = groups[0][0].cluster_hash
+                if len(groups) > 1:
+                    remaining = groups[1:]
+                    remaining.sort(key=lambda x: abs(x[0].cluster_hash-sort_from))
+                    groups[1:] = remaining
+            else:
+                sort_from = 1
+                if len(groups) > 1:
+                    remaining = groups[1:]
+                    remaining.sort(key=lambda x: abs(x[0].cluster_hash-sort_from))
+                    groups[1:] = remaining
 
-            sort_from = groups[0][0].cluster_hash
-            if len(groups) > 1:
-                remaining = groups[1:]
-                remaining.sort(key=lambda x: abs(x[0].cluster_hash-sort_from))
-                groups[1:] = remaining
+
         else:
             groups.sort(key=lambda x: x[0].cluster)
 
