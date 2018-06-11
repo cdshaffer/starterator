@@ -93,12 +93,21 @@ def get_pham_no(phage_name, gene_number):
             JOIN phage ON gene.PhageID = phage.PhageID \n\
             WHERE (phage.Name LIKE %s or phage.PhageID = %s) AND gene.Name RLIKE %s",
             (phage_name + "%", phage_name, '^([[:alnum:]]*_)*([[:alpha:]])*%s$' % str(gene_number)))
+        print "DB query 1"
         if len(results) < 1:
             results = db.query("SELECT pham.name \n\
                 FROM gene JOIN pham ON gene.GeneID = pham.GeneID \n\
                 JOIN phage ON gene.PhageID = phage.PhageID \n\
                 WHERE (phage.Name LIKE %s or phage.PhageID = %s) AND gene.geneID RLIKE %s",
                 (phage_name + "%", phage_name, '^([[:alnum:]]*_)*([[:alpha:]])*%s$' % str(gene_number)))
+        if len(results) < 1:
+            #try to determine root of gene names since they are
+            print "db query 3"
+            results = db.query("SELECT pham.name \n\
+                FROM gene JOIN pham ON gene.GeneID = pham.GeneID \n\
+                JOIN phage ON gene.PhageID = phage.PhageID \n\
+                WHERE gene.geneid LIKE %s AND gene.geneID RLIKE %s",
+                   (phage_name + "%", '^([[:alnum:]]*_)*([[:alpha:]])*%s$' % str(gene_number)))
 
         print results
         row = results[0]
@@ -250,7 +259,7 @@ class PhamGene(Gene):
         self.cluster = phage.cluster
         if self.cluster == None:
             self.cluster = "singleton"
-        self.cluster_hash = sum([pow(ord(elem, i+1)) for i, elem in enumerate(self.cluster)])
+        self.cluster_hash = sum([pow(ord(elem), i+1) for i, elem in enumerate(self.cluster)])
 
         status = phage.get_status()
         if status == 'final':        # values of 'draft' or 'gbk' considered draft quality by starterator
