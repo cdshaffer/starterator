@@ -269,6 +269,9 @@ class StarteratorEnterInformation(Gtk.Dialog):
         if len(results) < 1:
             self.info['phamerated'] = False
             return None
+        elif self.info['profile'] is not None:
+            self.info['phamerated'] = False
+            return results[0][0]
         else:
             self.info['phamerated'] = True
             return results[0][0]
