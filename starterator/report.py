@@ -356,11 +356,14 @@ class PhamReport(Report):
         Report.__init__(self)
         self.pham_no = pham_no
     
-    def final_report(self):
-        self.make_report()
+    def final_report(self, save_json=False):
+        if save_json:
+            self.make_report(save_json=True)
+        else:
+            self.make_report()
         return self.merge_report()
 
-    def make_report(self):
+    def make_report(self, save_json=False):
         self.pham = phams.Pham(self.pham_no)
         self.pham.align()
         self.pham.find_most_common_start()
@@ -368,6 +371,10 @@ class PhamReport(Report):
         f = open(pickle_file, "wb")
         cPickle.dump(self.pham, f)
         f.close()
+        if save_json:
+            json_file= pickle_file.replace(".pickle", ".json")
+            with open(json_file, "w") as outfile:
+                outfile.write("json data here")
         args = ["-n", self.pham_no, "-f", pickle_file, '-m', "text"]
         self.make_file(args)
 

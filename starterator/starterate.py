@@ -95,6 +95,7 @@ def get_arguments():
          help='The number of a gene. For case when want report of one gene of an unphameratored phage.')
     parser.add_argument('-d', '--profile', help='Path to a DNAMaster profile. For case when want whole report of an unphameratored phage')
     parser.add_argument('-f', '--fasta', help='Path to Fasta File')
+    parser.add_argument('-j', '--save_json', type=bool, default=False, help='Boolean, use to save json file describing pham genes and annots')
     return parser.parse_args()
 
 
@@ -168,7 +169,11 @@ def main():
         final_file, short_final = phage.final_report()
     elif args.phage == None:
         pham = report.PhamReport(args.pham_no)
-        final_file, short_final = pham.final_report()
+        if args.save_json is True:
+            final_file, short_final = pham.final_report(save_json=True)
+        else:
+            final_file, short_final = pham.final_report()
+
     # clean_up_files()
     # email_final_report(args.email, short_final)
 
