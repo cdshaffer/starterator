@@ -32,6 +32,11 @@ def get_pham_colors():
         pham_colors[str(row[0])] = row[1]
     return pham_colors
 
+def get_version():
+    db = DB()
+    results = db.query("SELECT version from version;")
+    return int(results[0][0])
+
 
 class Pham(object):
     def __init__(self, pham_no, genes=None):
@@ -409,11 +414,11 @@ class Pham(object):
     def annot_summary(self):
 
         summary_dict = {}
-        temp=1
         summary_dict['Name'] = self.pham_no
         summary_dict['MemberCount'] = self.count
         summary_dict['AnnotCount'] = len(self.stats['most_common']['annot_list'])
         summary_dict['TotalStarts'] = len(self.total_possible_starts)
+        summary_dict['DbVersion'] = get_version()
 
         genelist = []
         for gene in self.genes.values():
