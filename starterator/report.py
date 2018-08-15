@@ -25,6 +25,7 @@ import os
 from utils import StarteratorError
 import csv
 import annotate
+import json
 
 class Report(object):
     def __init__(self, name=None):
@@ -351,6 +352,7 @@ class UnPhamGeneReport(GeneReport):
         pham.add(gene)
         return pham_no
 
+
 class PhamReport(Report):
     def __init__(self, pham_no):
         Report.__init__(self)
@@ -375,7 +377,7 @@ class PhamReport(Report):
             blob = self.pham.annot_summary()
             json_file= pickle_file.replace(".pickle", ".json")
             with open(json_file, "w") as outfile:
-                outfile.write(blob)
+                json.dump(blob, outfile, indent=4, ensure_ascii=False )
         args = ["-n", self.pham_no, "-f", pickle_file, '-m', "text"]
         self.make_file(args)
 

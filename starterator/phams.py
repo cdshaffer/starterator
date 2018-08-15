@@ -407,4 +407,29 @@ class Pham(object):
         return start_stats
 
     def annot_summary(self):
-        return "this is the text"
+
+        summary_dict = {}
+        temp=1
+        summary_dict['Name'] = self.pham_no
+        summary_dict['MemberCount'] = self.count
+        summary_dict['AnnotCount'] = len(self.stats['most_common']['annot_list'])
+        summary_dict['TotalStarts'] = len(self.total_possible_starts)
+
+        genelist = []
+        for gene in self.genes.values():
+            gene_dict = {}
+            gene_dict['GeneID'] = gene.gene_id
+            gene_dict['Start'] = gene.start
+            gene_dict['Stop'] = gene.stop
+            gene_dict['Orientation'] = gene.orientation
+            gene_dict['AvailableStarts'] = gene.alignment_candidate_start_nums
+            genelist.append(gene_dict)
+
+
+        summary_dict['Genes'] = genelist
+        annotlist = {}
+        annotlist['Starts'] = self.stats['most_common']['annot_counts'].keys()
+        annotlist['Counts'] = self.stats['most_common']['annot_counts'].values()
+        summary_dict['Annots'] = annotlist
+
+        return summary_dict
