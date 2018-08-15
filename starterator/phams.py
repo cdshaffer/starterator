@@ -405,3 +405,6 @@ class Pham(object):
         # now update genes based on start analysis
         self.add_alignment_stats_to_phamgenes()
         return start_stats
+
+    def annot_summary(self):
+        return "this is the text"

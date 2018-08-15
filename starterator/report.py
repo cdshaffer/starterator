@@ -372,9 +372,10 @@ class PhamReport(Report):
         cPickle.dump(self.pham, f)
         f.close()
         if save_json:
+            blob = self.pham.annot_summary()
             json_file= pickle_file.replace(".pickle", ".json")
             with open(json_file, "w") as outfile:
-                outfile.write("json data here")
+                outfile.write(blob)
         args = ["-n", self.pham_no, "-f", pickle_file, '-m', "text"]
         self.make_file(args)
 
