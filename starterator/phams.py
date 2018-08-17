@@ -428,6 +428,7 @@ class Pham(object):
             gene_dict['Stop'] = gene.stop
             gene_dict['Orientation'] = gene.orientation
             gene_dict['AvailableStarts'] = gene.alignment_candidate_start_nums
+            gene_dict['AvailableCoord'] = [gene.alignment_index_to_coord(s) for s in gene.alignment_candidate_starts]
             genelist.append(gene_dict)
 
 

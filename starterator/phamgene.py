@@ -274,6 +274,7 @@ class PhamGene(Gene):
             self.start = temp_start
         sequence, self.ahead_of_start = find_upstream_stop_site(
                                 self.start, self.stop, self.orientation, phage_sequence)
+        self.ahead_of_start_coord = self.start - self.ahead_of_start
         gene = SeqRecord(sequence, id=self.gene_id, name=self.gene_id,
                          description="|%i-%i| %s" % (self.start, self.stop, self.orientation))
         return gene
