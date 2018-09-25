@@ -109,10 +109,10 @@ class Pham(object):
 
     def call_clustal(self, fasta_file):
 
-        # outfile = fasta_file.replace(".fasta", ".aln")
-        # subprocess.check_call(['clustalo', '--infile=%s' % (fasta_file), '--outfile=%s' % (outfile), '--outfmt=clu'])
+        outfile = fasta_file.replace(".fasta", ".aln")
+        subprocess.check_call(['clustalo', '--infile=%s' % (fasta_file), '--outfile=%s' % (outfile), '--outfmt=clu'])
 
-        subprocess.check_call(['clustalw', '-infile=%s' % (fasta_file), '-quicktree'])
+        # subprocess.check_call(['clustalw', '-infile=%s' % (fasta_file), '-quicktree'])
 
         aln_file = fasta_file.replace(".fasta", ".aln")
         alignment = AlignIO.read(aln_file, "clustal")

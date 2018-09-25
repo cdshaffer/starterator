@@ -316,7 +316,7 @@ def combine_graphs(args, phage, pham_no, num_pages):
     merger.write(open(os.path.join(args.dir, "%sPham%sGraph.pdf" % (phage + args.one_or_all, pham_no)), "wb"))
 
 
-def make_gene_track(gd_diagram, pham, gene_group, num_on_diagram, total):
+def make_gene_track(gd_diagram, pham, gene_group, num_on_diagram, total, seqColor):
     """
 
     :param gd_diagram:
@@ -326,6 +326,7 @@ def make_gene_track(gd_diagram, pham, gene_group, num_on_diagram, total):
     :param total:
     :return:
     """
+
     start_bar_colors = ['purple', 'red', 'lightblue', 'orange', 'tan', 'brown']
     gene = gene_group[0]
 
@@ -345,7 +346,11 @@ def make_gene_track(gd_diagram, pham, gene_group, num_on_diagram, total):
     start_site_feature = SeqFeature(FeatureLocation(start_site, start_site + 1), strand=None)
     for feature in gene.alignment.features:
         if feature.type == 'seq':
-            gd_seq_set.add_feature(feature, color='pink')
+            if seqColor % 2 == 0:
+                trackColor = (253, 191, 203)
+            else:
+                trackColor = (237, 205, 223)
+            gd_seq_set.add_feature(feature, color=trackColor)
     for site in gene.alignment_candidate_starts:
         site_color = pham.total_possible_starts.index(site) % len(start_bar_colors)
         possible_site = SeqFeature(FeatureLocation(site, site), strand=None)
@@ -511,9 +516,14 @@ def graph_start_sites(args, pham, file_path):
         else:
             gd_diagram = GenomeDiagram.Diagram(pham.pham_no)
             i = 0
+            seqColor = 0
+
             for gene_group in genes:
+                if i > 0:
+                    if genes[i][0].cluster != genes[i-1][0].cluster:
+                        seqColor += 1
                 print 'making_files.graph_start_sites: adding group ' + str(i)
-                make_gene_track(gd_diagram, pham, gene_group, i, len(genes))
+                make_gene_track(gd_diagram, pham, gene_group, i, len(genes), seqColor)
                 i += 1
             gd_diagram.draw(format="linear", orientation="portrait", pagesize=reportlab.lib.pagesizes.letter,
                             fragments=1, start=left_draw_boundary, end=right_draw_boundary)
