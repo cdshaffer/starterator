@@ -42,20 +42,19 @@ class Report(object):
         subprocess.check_call(args)
 
 
-
 class PhageReport(Report):
     def __init__(self, name, gui=None, event=None):
         Report.__init__(self, name)
         self.name = name
         self.gui = gui
         self.event = event
-    
+
     def final_report(self):
         self.get_phams()
         for phm in self._phams.keys():
             if self._phams[phm][0].orientation == 'R' and self._phams[phm][0].start == self.seq_length:
                 print 'found probable broken gene, deleting ' + self._phams[phm][0].gene_id + ' from list to starterate'
-                pass #change this to delete the entry from self._phams
+                pass  # change this to delete the entry from self._phams
 
         self.make_reports()
         self.make_phage_pages()
@@ -83,7 +82,7 @@ class PhageReport(Report):
                 pham_counter += 1
                 gene_name = self._phams[pham_no][0].gene_id
                 self.update_gui("Aligning and Graphing %s \nPham %s (%d of %d)"
-                    % (gene_name, pham_no, pham_counter, total_no), (float(pham_counter)/total_no))
+                                % (gene_name, pham_no, pham_counter, total_no), (float(pham_counter)/total_no))
                 gene_report = GeneReport(self.base_name, self.phage_)
                 pham_no = gene_report.get_pham(pham_no)
                 pham = gene_report.make_report(whole=True)
@@ -94,12 +93,11 @@ class PhageReport(Report):
                     phage_gene = pham.genes[gene.gene_id]
                     gene_no = phamgene.get_gene_number(gene.gene_id)
                     self.phage_genes[gene_no] = {'suggested_start': phage_gene.suggested_start["most_called"],
-                                            'gene': pham.genes[gene.gene_id],
-                                            'pham_no': pham_no}
+                                                 'gene': pham.genes[gene.gene_id],
+                                                 'pham_no': pham_no}
 
-    
     def make_phage_pages(self):
-        pickle_file = os.path.join(self.output_dir, "%s.pickle" % (self.name))
+        pickle_file = os.path.join(self.output_dir, "%s.pickle" % self.name)
         cPickle.dump(self.phage_genes, open(pickle_file, "wb"))
         args = ["-p", self.name, "-f", pickle_file, "-l", str(self.seq_length), "-m", "genome"]
         self.make_file(args, True)
@@ -110,21 +108,21 @@ class PhageReport(Report):
 
     def merge_reports(self):
         merger = PyPDF2.PdfFileMerger()
-        phage_starts = open(os.path.join(self.output_dir, "%sSuggestedStarts.pdf" % (self.name)))
-        phage_genome = open("%s/%sPhamsGraph.pdf" %(self.output_dir, self.name))
+        phage_starts = open(os.path.join(self.output_dir, "%sSuggestedStarts.pdf" % self.name))
+        phage_genome = open("%s/%sPhamsGraph.pdf" % (self.output_dir, self.name))
         merger.append(fileobj=phage_genome)
         merger.append(fileobj=phage_starts)
         phams_added = []
         for gene_no in sorted(self.phage_genes.iterkeys()):
             phage_gene = self.phage_genes[gene_no]
             pham = phage_gene["pham_no"]
-            if pham not in phams_added and pham != None:
-                graph = open(os.path.join(self.output_dir,"%sAllPham%sGraph.pdf" %(self.name, pham)))
-                text = open("%s/%sAllPham%sText.pdf" %(self.output_dir, self.name, pham))              
+            if pham not in phams_added and pham is not None:
+                graph = open(os.path.join(self.output_dir, "%sAllPham%sGraph.pdf" % (self.name, pham)))
+                text = open("%s/%sAllPham%sText.pdf" % (self.output_dir, self.name, pham))
                 merger.append(fileobj=graph)
                 merger.append(fileobj=text)
                 phams_added.append(pham)
-        merger.write(open(os.path.join(self.final_dir, "%sReport.pdf" %(self.name)), 'wb'))
+        merger.write(open(os.path.join(self.final_dir, "%sReport.pdf" % self.name), 'wb'))
         return (os.path.join(self.final_dir,"%sReport.pdf" % (self.name)), "%sReport.pdf" % self.name)
 
     def check_stop(self):
@@ -173,7 +171,7 @@ class UnPhamPhageReport(PhageReport):
             sequence = self.get_sequence()
             genes = []
             # try:
-            if self.profile == None:
+            if self.profile is None:
                 gene_predictions = annotate.auto_annotate(self.fasta)
                 for gene in gene_predictions.genes:
                     gene = phamgene.UnPhamGene(gene.id, gene.start, gene.stop, gene.orientation, self.name, sequence)
@@ -219,7 +217,7 @@ class UnPhamPhageReport(PhageReport):
             genes = self._phams[pham_no]
             if pham_no is not None:
                 self.update_gui("Aligning and Graphing Pham %s \n Pham %d of %d"
-                    % (pham_no, pham_counter, total_no), float(pham_counter)/total_no)
+                                % (pham_no, pham_counter, total_no), float(pham_counter)/total_no)
                 gene_report = GeneReport(self.base_name, self.name, whole_phage=True)
                 pham_no = gene_report.get_pham(pham_no, genes)
                 pham = gene_report.make_report(True)
@@ -227,15 +225,12 @@ class UnPhamPhageReport(PhageReport):
                     phage_gene = pham.genes[gene.gene_id]
                     gene_no = phamgene.get_gene_number(gene.gene_id)
                     self.phage_genes[gene_no] = {'suggested_start': phage_gene.suggested_start["most_called"],
-                                            'gene': gene,
-                                            'pham_no': pham_no}
+                                                 'gene': gene,
+                                                 'pham_no': pham_no}
             else:
                 for gene in genes:
-                    self.phage_genes[gene.gene_id] = {'pham_no': None,
-                     "gene": gene,
-                     "suggested_start": None}
+                    self.phage_genes[gene.gene_id] = {'pham_no': None, "gene": gene, "suggested_start": None}
             pham_counter += 1
-
 
 
 class GeneReport(Report):
@@ -253,7 +248,6 @@ class GeneReport(Report):
         self.all = whole_phage
         self.fasta = fasta_file
 
-
     def get_pham(self, pham_no=None, genes=None):
         if pham_no and genes:
             self.pham = phams.Pham(pham_no, genes)
@@ -264,7 +258,7 @@ class GeneReport(Report):
             pham_no = phamgene.get_pham_no(self.phage_name, self.number)
             self.pham = phams.Pham(pham_no)
         return pham_no
-    
+
     def get_sequence(self):
         with open(self.fasta) as fasta_file:
             fasta_file.next()
@@ -277,15 +271,14 @@ class GeneReport(Report):
 
     def make_unpham_gene(self, start, stop, orientation):
         self.get_sequence()
-        gene = phamgene.UnPhamGene(self.number, start, stop, orientation, self.phage_name, 
-                           self.sequence)
+        gene = phamgene.UnPhamGene(self.number, start, stop, orientation, self.phage_name, self.sequence)
         self.pham_no = gene.blast()
         self.get_pham(self.pham_no, [gene])
 
     def make_report(self, whole=False):
         self.pham.align()
         self.pham.find_most_common_start()
-        pickle_file = os.path.join(self.output_dir, "%s%s.pickle" % (self.pham.file, self.pham.pham_no))#TODO: Figure out base name things
+        pickle_file = os.path.join(self.output_dir, "%s%s.pickle" % (self.pham.file, self.pham.pham_no)) # TODO: Figure out base name things
         f = open(pickle_file, "wb")
         cPickle.dump(self.pham, f)
         f.close()
@@ -294,7 +287,6 @@ class GeneReport(Report):
         self.make_file(args, whole)
         # graph_args = ["-p", self.phage, "-n", pham_no, "-f", pickle_file, "-m", "graph"]
         return self.pham
-
 
     def get_specific_gene(self):
         # gene = self.pham.genes[]
@@ -311,7 +303,7 @@ class GeneReport(Report):
         file_path = os.path.join(self.final_dir, "%sPham%sReport.pdf" % (self.phage_name, self.pham.pham_no))
         merger.write(open(file_path, 'wb'))
         return file_path, "%sPham%sReport.pdf" % (self.phage_name, self.pham.pham_no)
-        
+
 
 class UnPhamGeneReport(GeneReport):
     def __init__(self, base_name, phage_name, number, start, stop, orientation, fasta_file):
@@ -320,7 +312,6 @@ class UnPhamGeneReport(GeneReport):
         self.stop = stop
         self.orientation = orientation
         self.fasta_file = fasta_file
-
 
     def get_sequence(self):
         if not self.sequence:
@@ -341,11 +332,10 @@ class UnPhamGeneReport(GeneReport):
         try:
             gene = phamgene.UnPhamGene(self.number, start, stop, orientation, self.name, sequence)
         except:
-            raise StarteratorError("The gene could not be made! Check to make sure coordinates are correct. Start: %s, Stop: %s, Orientation: %s" % 
-                (start, stop, orientation))
+            raise StarteratorError("The gene could not be made! Check coordinates: Start: %s, Stop: %s, Orientation: %s"
+                                   % (start, stop, orientation))
         self.pham_no = gene.blast()
         self.get_pham(self.pham_no, gene)
-
 
     def get_pham(self, pham_no, gene):
         self.pham = phams.Pham(pham_no, [gene])
@@ -357,7 +347,7 @@ class PhamReport(Report):
     def __init__(self, pham_no):
         Report.__init__(self)
         self.pham_no = pham_no
-    
+
     def final_report(self, save_json=False):
         if save_json:
             self.make_report(save_json=True)
@@ -369,25 +359,24 @@ class PhamReport(Report):
         self.pham = phams.Pham(self.pham_no)
         self.pham.align()
         self.pham.find_most_common_start()
-        pickle_file = os.path.join(self.output_dir, "%s.pickle" % (self.pham.pham_no)) #TODO: Figure out base name things
+        pickle_file = os.path.join(self.output_dir, "%s.pickle" % self.pham.pham_no)  # TODO:Figure out base name things
         f = open(pickle_file, "wb")
         cPickle.dump(self.pham, f)
         f.close()
         if save_json:
             blob = self.pham.annot_summary()
-            json_file= pickle_file.replace(".pickle", ".json")
+            json_file = pickle_file.replace(".pickle", ".json")
             with open(json_file, "w") as outfile:
-                json.dump(blob, outfile, indent=4, ensure_ascii=False )
+                json.dump(blob, outfile, indent=4, ensure_ascii=False)
         args = ["-n", self.pham_no, "-f", pickle_file, '-m', "text"]
         self.make_file(args)
 
     def merge_report(self):
         merger = PyPDF2.PdfFileMerger()
-        graph = open(os.path.join(self.output_dir, "OnePham%sGraph.pdf" % ( self.pham_no)), "rb")
-        text = open(os.path.join(self.output_dir,'Pham%sText.pdf' % (self.pham_no)), 'rb')
+        graph = open(os.path.join(self.output_dir, "OnePham%sGraph.pdf" % self.pham_no), "rb")
+        text = open(os.path.join(self.output_dir, 'Pham%sText.pdf' % self.pham_no), 'rb')
         merger.append(fileobj=graph)
         merger.append(fileobj=text)
-        file_path = os.path.join(self.final_dir, "Pham%sReport.pdf" % (self.pham_no))
+        file_path = os.path.join(self.final_dir, "Pham%sReport.pdf" % self.pham_no)
         merger.write(open(file_path, 'wb'))
-        return file_path, "Pham%sReport.pdf" % ( self.pham_no)
-        
+        return file_path, "Pham%sReport.pdf" % self.pham_no

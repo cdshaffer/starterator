@@ -465,6 +465,7 @@ def graph_start_sites(args, pham, file_path):
         right_draw_boundary = min([len(genes[0][0].alignment), max_start_coord + 30])
 
     if len(genes) > 100:
+        seqColor = 0
         for i in xrange(0, int(math.ceil(len(genes)/50.0))):
             gd_diagram = GenomeDiagram.Diagram(pham.pham_no)
             if not args.phage:
@@ -488,8 +489,11 @@ def graph_start_sites(args, pham, file_path):
                     empty_feature = SeqFeature(FeatureLocation(0, 1), strand=None)
                     gd_feature_set.add_feature(empty_feature, color="black", label=True)
                 else:
+                    if i + j > 0: # i.e. not the first track
+                        if genes[i*50 + j][0].cluster != genes[i*50 +j - 1][0].cluster:
+                            seqColor += 1
                     gene = genes[i*50 + j][0]
-                    make_gene_track(gd_diagram, pham, genes[i*50 + j], j, 50)
+                    make_gene_track(gd_diagram, pham, genes[i*50 + j], j, 50, seqColor)
 
             gd_diagram.draw(format="linear", orientation="portrait", pagesize=reportlab.lib.pagesizes.letter,
                             fragments=1, start=left_draw_boundary, end=right_draw_boundary)
