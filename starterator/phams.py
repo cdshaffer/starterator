@@ -57,10 +57,10 @@ class Pham(object):
             Get the genes of the Phamily
         """
         results = get_db().query("SELECT `gene`.`GeneID`, `gene`.`phageID`, " +
-               " `Length`, `Start`, `Stop`, `Orientation`" +
-               " FROM `gene`"
-                " JOIN `pham` ON `gene`.`GeneID` = `pham`.`GeneID`" + 
-               " WHERE `pham`.`name` =%s; ", self.pham_no)
+                                 " `Length`, `Start`, `Stop`, `Orientation`" +
+                                 " FROM `gene`"
+                                 " JOIN `pham` ON `gene`.`GeneID` = `pham`.`GeneID`" +
+                                 " WHERE `pham`.`name` =%s; ", self.pham_no)
         genes = {}
         self.count = len(results)
         for gene_info in results:
@@ -110,7 +110,7 @@ class Pham(object):
     def call_clustal(self, fasta_file):
 
         outfile = fasta_file.replace(".fasta", ".aln")
-        subprocess.check_call(['clustalo', '--infile=%s' % (fasta_file), '--outfile=%s' % (outfile), '--outfmt=clu'])
+        subprocess.check_call(['clustalo', '--infile=%s' % fasta_file, '--outfile=%s' % outfile, '--outfmt=clu'])
 
         # subprocess.check_call(['clustalw', '-infile=%s' % (fasta_file), '-quicktree'])
 
@@ -119,7 +119,7 @@ class Pham(object):
         return alignment
 
     def make_fasta(self, file_name=None):
-        if file_name == None:
+        if file_name is None:
             file_name = os.path.join(utils.INTERMEDIATE_DIR, "%sPham%s" % (self.file, self.pham_no))
         genes = [gene.sequence for gene in self.genes.values()]
         count = SeqIO.write(genes, "%s.fasta" % file_name, "fasta")
@@ -177,7 +177,7 @@ class Pham(object):
             if not grouped[i]:
                 # gene is not in a group yet
                 gene = genes[i]
-                j = i + 1 # genes before index i have been grouped
+                j = i + 1  # genes before index i have been grouped
                 group = []
                 group.append(gene)  # add gene to this group - first one
                 while j < len(self.genes):  # see if other genes are similar
@@ -216,11 +216,8 @@ class Pham(object):
                     remaining.sort(key=lambda x: abs(x[0].cluster_hash-sort_from))
                     groups[1:] = remaining
 
-
         else:
             groups.sort(key=lambda x: x[0].cluster)
-
-
 
         return groups
 
@@ -311,11 +308,10 @@ class Pham(object):
                 start_stats['called_counts'][k] = len(l)
 
         start_stats['annot_counts'] = {}
-        for k,l in start_stats['called_starts'].items():
+        for k, l in start_stats['called_starts'].items():
             annotated = [g for g in l if not self.genes[g].draftStatus]
             if len(annotated) > 0:
                 start_stats['annot_counts'][k] = len(annotated)
-
 
         genes_without_most_called = []
         print "phams.find_most_common_start: genes_start_most_called " + str(genes_start_most_called)
@@ -430,7 +426,6 @@ class Pham(object):
             gene_dict['AvailableStarts'] = gene.alignment_candidate_start_nums
             gene_dict['AvailableCoord'] = [gene.alignment_index_to_coord(s) for s in gene.alignment_candidate_starts]
             genelist.append(gene_dict)
-
 
         summary_dict['Genes'] = genelist
         annotlist = {}

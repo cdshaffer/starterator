@@ -45,6 +45,11 @@ class Report(object):
 class PhageReport(Report):
     def __init__(self, name, gui=None, event=None):
         Report.__init__(self, name)
+        self.phage_genes = {}
+        self.phage_ = []
+        self.genes = []
+        self._phams = {}
+        self.seq_length = None
         self.name = name
         self.gui = gui
         self.event = event
@@ -71,7 +76,6 @@ class PhageReport(Report):
         self.seq_length = self.phage_.length()
 
     def make_reports(self):
-        self.phage_genes = {}
         pham_counter = 0
         total_no = len(self._phams.keys())
         pham_items = self._phams.items()
@@ -123,7 +127,7 @@ class PhageReport(Report):
                 merger.append(fileobj=text)
                 phams_added.append(pham)
         merger.write(open(os.path.join(self.final_dir, "%sReport.pdf" % self.name), 'wb'))
-        return (os.path.join(self.final_dir,"%sReport.pdf" % (self.name)), "%sReport.pdf" % self.name)
+        return (os.path.join(self.final_dir,"%sReport.pdf" % self.name), "%sReport.pdf" % self.name)
 
     def check_stop(self):
         if self.gui:
@@ -247,6 +251,9 @@ class GeneReport(Report):
         self.number = number
         self.all = whole_phage
         self.fasta = fasta_file
+        self.pham = None
+        self.sequence = None
+        self.seq_length = None
 
     def get_pham(self, pham_no=None, genes=None):
         if pham_no and genes:
