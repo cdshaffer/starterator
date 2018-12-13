@@ -95,6 +95,7 @@ def get_pham_no(phage_name, gene_number):
             (phage_name + "%", phage_name, '^([[:alnum:]]*_)*([[:alpha:]])*%s$' % str(gene_number)))
         print "DB query 1"
         if len(results) < 1:
+            print "DB query 1 failed, try search 2"
             results = db.query("SELECT pham.name \n\
                 FROM gene JOIN pham ON gene.GeneID = pham.GeneID \n\
                 JOIN phage ON gene.PhageID = phage.PhageID \n\
@@ -102,7 +103,7 @@ def get_pham_no(phage_name, gene_number):
                 (phage_name + "%", phage_name, '^([[:alnum:]]*_)*([[:alpha:]])*%s$' % str(gene_number)))
         if len(results) < 1:
             #try to determine root of gene names since they are
-            print "db query 3"
+            print "DB query 2 failed, try search 3"
             results = db.query("SELECT pham.name \n\
                 FROM gene JOIN pham ON gene.GeneID = pham.GeneID \n\
                 JOIN phage ON gene.PhageID = phage.PhageID \n\
