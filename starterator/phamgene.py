@@ -490,7 +490,7 @@ class UnPhamGene(PhamGene):
         self.orientation = orientation
         self.pham_size = None
         self.pham_no = None
-        self.cluster = "singleton"
+        self.cluster = "Unassigned"
         self.cluster_hash = sum([pow(ord(elem), i + 1) for i, elem in enumerate(self.cluster)])
 
 
