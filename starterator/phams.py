@@ -425,6 +425,9 @@ class Pham(object):
             gene_dict['Orientation'] = gene.orientation
             gene_dict['AvailableStarts'] = gene.alignment_candidate_start_nums
             gene_dict['AvailableCoord'] = [gene.alignment_index_to_coord(s) for s in gene.alignment_candidate_starts]
+            if gene.locustag is None:
+                gene.get_locustag()
+            gene_dict['locustag'] = gene.locustag
             genelist.append(gene_dict)
 
         summary_dict['Genes'] = genelist
@@ -432,5 +435,10 @@ class Pham(object):
         annotlist['Starts'] = self.stats['most_common']['annot_counts'].keys()
         annotlist['Counts'] = self.stats['most_common']['annot_counts'].values()
         summary_dict['Annots'] = annotlist
+
+        conservationdict = {}
+        for i in range(0, summary_dict['TotalStarts']):
+            conservationdict[i+1] = float(len(self.stats["most_common"]['possible'][i+1]))/self.count
+        summary_dict['Conservation'] = conservationdict
 
         return summary_dict

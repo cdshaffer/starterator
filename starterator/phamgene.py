@@ -215,6 +215,7 @@ class PhamGene(Gene):
         self.stop = stop
         self.cluster = None
         self.cluster_hash = None
+        self.locustag = None
 
         if orientation == 'R':
             self.start_codon_location = stop
@@ -475,6 +476,10 @@ class PhamGene(Gene):
             if feature1.type != feature2.type:
                 return False
         return True
+
+    def get_locus_tag(self):
+        locustag = "test_locustag"
+        return
 
     def __repr__(self):
         return 'Phamgene for %s' % self.gene_id
