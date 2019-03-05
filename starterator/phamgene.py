@@ -216,6 +216,8 @@ class PhamGene(Gene):
         self.cluster = None
         self.cluster_hash = None
         self.locustag = None
+        self.annotQC = None  # confidence of annots, 0 = not checked by Pitt, 1 = validated by Pitt
+        self.annot_author = None  # 0 means non-SEA/Pitt phage, 1 means is SEA/Pitt phage and can change genbank record
 
         if orientation == 'R':
             self.start_codon_location = stop
@@ -478,7 +480,12 @@ class PhamGene(Gene):
         return True
 
     def get_locustag(self):
-        locustag = "test_locustag"
+        db_return = get_db().get(
+                "SELECT phage.annotationqc, phage.annotationauthor, gene.locustag from gene JOIN phage on gene.phageid=phage.phageid where gene.geneid = %s",
+                self.db_id)
+        self.annotQC = db_return[0]
+        self.annot_author = db_return[1]
+        self.locustag = db_return[2]
         return
 
     def __repr__(self):
