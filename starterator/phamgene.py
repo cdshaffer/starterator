@@ -477,7 +477,7 @@ class PhamGene(Gene):
                 return False
         return True
 
-    def get_locus_tag(self):
+    def get_locustag(self):
         locustag = "test_locustag"
         return
 
