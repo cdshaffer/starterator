@@ -427,7 +427,11 @@ class Pham(object):
             gene_dict['AvailableCoord'] = [gene.alignment_index_to_coord(s) for s in gene.alignment_candidate_starts]
             if gene.locustag is None:
                 gene.get_locustag()
-            gene_dict['locustag'] = gene.locustag
+            if gene.locustag is not "":
+                gene_dict['locustag'] = gene.locustag
+            if gene.annot_author == 1 and gene.status == 'final': # Pitt "owns" it and is in genbank already
+                gene_dict['Editable'] = "True"
+
             genelist.append(gene_dict)
 
         summary_dict['Genes'] = genelist
