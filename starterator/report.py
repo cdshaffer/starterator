@@ -25,7 +25,7 @@ import os
 from utils import StarteratorError
 import csv
 import annotate
-import json
+
 
 class Report(object):
     def __init__(self, name=None):
@@ -371,10 +371,9 @@ class PhamReport(Report):
         cPickle.dump(self.pham, f)
         f.close()
         if save_json:
-            blob = self.pham.annot_summary()
             json_file = pickle_file.replace(".pickle", ".json")
-            with open(json_file, "w") as outfile:
-                json.dump(blob, outfile, indent=4, ensure_ascii=False)
+            self.pham.export_json(json_file)
+
         args = ["-n", self.pham_no, "-f", pickle_file, '-m', "text"]
         self.make_file(args)
 

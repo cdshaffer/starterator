@@ -7,6 +7,7 @@ import utils
 import subprocess
 import os
 from utils import StarteratorError
+import json
 
 
 def get_pham_number(phage_name, gene_number):
@@ -446,3 +447,8 @@ class Pham(object):
         summary_dict['Conservation'] = conservationdict
 
         return summary_dict
+
+    def export_json(self, filename):
+        blob = self.annot_summary()
+        with open(filename, "w") as outfile:
+            json.dump(blob, outfile, indent=4, ensure_ascii=False)
