@@ -52,6 +52,7 @@ class Pham(object):
                 self.add(gene)
             whole = "All" if len(genes) > 1 else "One"
             self.file = "%s%s" % (genes[0].phage_name, whole)
+        self.aligner = None
 
     def get_genes(self):
         """
@@ -112,8 +113,10 @@ class Pham(object):
 
         outfile = fasta_file.replace(".fasta", ".aln")
         subprocess.check_call(['clustalo', '--infile=%s' % fasta_file, '--outfile=%s' % outfile, '--outfmt=clu'])
+        self.aligner = 'ClustalO'
 
         # subprocess.check_call(['clustalw', '-infile=%s' % (fasta_file), '-quicktree'])
+        # self.aligner = 'ClustalW"
 
         aln_file = fasta_file.replace(".fasta", ".aln")
         alignment = AlignIO.read(aln_file, "clustal")
@@ -416,6 +419,7 @@ class Pham(object):
         summary_dict['AnnotCount'] = len(self.stats['most_common']['annot_list'])
         summary_dict['TotalStarts'] = len(self.total_possible_starts)
         summary_dict['DbVersion'] = get_version()
+        summary_dict['Aligner'] = self.aligner
 
         genelist = []
         for gene in self.genes.values():
