@@ -116,7 +116,7 @@ class Pham(object):
         self.aligner = 'ClustalO'
 
         # subprocess.check_call(['clustalw', '-infile=%s' % (fasta_file), '-quicktree'])
-        # self.aligner = 'ClustalW"
+        # self.aligner = 'ClustalW'
 
         aln_file = fasta_file.replace(".fasta", ".aln")
         alignment = AlignIO.read(aln_file, "clustal")
