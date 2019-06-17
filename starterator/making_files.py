@@ -162,11 +162,18 @@ def output_start_sites(stats):
             percent_called = float(len(genes)) / presence * 100
             output.append(u'\u2022' + " Called %10.1f%% of time when present \n\t" % percent_called)
 
+            cluster_list = {}
+            for p_gene in stats['annot_list']:
+                cluster_list[p_gene.gene_id] = p_gene.cluster
+
+            for p_gene in stats['draft_list']:
+                cluster_list[p_gene.gene_id] = p_gene.cluster
+
             genes.sort()
             s = ''
             for gene in genes:
-                s += gene + ", "
-            output.append(u'\u2022' + " Phage where called:\t" + s + '')
+                s += gene + " (" + cluster_list[gene] + ") " + ", "
+            output.append(u'\u2022' + " Phage (with cluster) where this start called:\t" + s + '')
             output.append('')
 
         return output
