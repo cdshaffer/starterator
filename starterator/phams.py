@@ -140,7 +140,7 @@ class Pham(object):
         genes = [gene.sequence for gene in self.genes.values()]
         count = SeqIO.write(genes, "%s.fasta" % file_name, "fasta")
         if len(self.genes) == 1:
-            alignment = [gene.sequence]
+            alignment = [genes.sequence]
         else:
             try:
                 alignment = AlignIO.read(file_name + ".aln", "clustal")
