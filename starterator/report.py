@@ -188,27 +188,66 @@ class UnPhamPhageReport(PhageReport):
                 try:
                     with open(self.profile, "rbU") as profile:
                         print self.profile, "has been opened!"
-                        csv_reader = csv.reader(profile)
-                        line = csv_reader.next()
-                        print line
-                        csv_reader.next()
-                        for row in csv_reader:
-                            print row
-                            feature_type = row[7].strip()
-                            print feature_type
-                            if feature_type == "ORF":
-                                number = row[1].replace('"', "")
-                                orientation = row[2]
-                                start = int(row[4])
-                                stop = int(row[5])
-                                print number, start, stop, orientation, self.name
-                                gene = phamgene.UnPhamGene(number, start, stop, orientation, self.name, sequence)
-                                genes.append(gene)
+                        first_line = profile.readline()
+                        first_word = first_line.split()[0]
+                        if first_word == "Profile":
+                            csv_reader = csv.reader(profile)
+                            line = csv_reader.next()
+                            print line
+                            csv_reader.next()
+                            for row in csv_reader:
+                                print row
+                                feature_type = row[7].strip()
+                                print feature_type
+                                if feature_type == "ORF":
+                                    number = row[1].replace('"', "")
+                                    orientation = row[2]
+                                    start = int(row[4])
+                                    stop = int(row[5])
+                                    print number, start, stop, orientation, self.name
+                                    gene = phamgene.UnPhamGene(number, start, stop, orientation, self.name, sequence)
+                                    genes.append(gene)
 
-                                pham_no = gene.blast()
-                                if pham_no not in self._phams:
-                                    self._phams[pham_no] = []
-                                self._phams[pham_no].append(gene)
+                                    pham_no = gene.blast()
+                                    if pham_no not in self._phams:
+                                        self._phams[pham_no] = []
+                                    self._phams[pham_no].append(gene)
+                        else:
+                            if first_word == "CDS":
+                                profile.seek(0)
+                                gene_count = 0
+                                for line in profile:
+                                    if line[0:3] == "CDS":
+                                        if line[4:8] == 'join':
+                                            continue
+
+                                        else:
+                                            gene_count += 1
+                                            line2 = line.replace("(", "")
+                                            line3 = line2.replace(")", "")
+                                            line_items = line3.split()
+
+                                            if line_items[1] == "complement":
+                                                gene_orientation = "R"
+                                                gene_start = int(line_items[2])
+                                                gene_end = int(line_items[4])
+
+                                            else:
+                                                gene_orientation = "F"
+                                                gene_start = int(line_items[1])
+                                                gene_end = int(line_items[3])
+                                        gene = phamgene.UnPhamGene(gene_count, gene_start, gene_end, gene_orientation, self.name, sequence)
+                                        genes.append(gene)
+
+                                        pham_no = gene.blast()
+                                        if pham_no not in self._phams:
+                                            self._phams[pham_no] = []
+                                        self._phams[pham_no].append(gene)
+
+                                    else:
+                                        continue
+                            else:
+                                raise StarteratorError("The profile file (%s) could not be read correctly! Please make sure it is correct." % self.profile)
                 except:
                     raise StarteratorError("The profile file (%s) could not be read correctly! Please make sure it is correct." % self.profile)
         return self._phams
