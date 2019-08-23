@@ -72,6 +72,7 @@ class DB(object):
         cursor = self._cursor()
         try:
             self._execute(cursor, query, params)
+            result = cursor.fetchall()
             return cursor.fetchall()
         except:
             self.reconnect()
