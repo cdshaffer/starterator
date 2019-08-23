@@ -28,14 +28,12 @@ class Phage(object):
     def get_name(self):
         if not self.name:
             row = get_db().get(
-                "SELECT Name, Cluster, Sequence, status, AnnotationQC, AnnotationAuthor from phage where PhageID = %s",
+                "SELECT Name, Cluster, Sequence, status from phage where PhageID = %s",
                 self.phage_id)
             self.name = row[0]
             self.cluster = row[1]
             self.sequence = row[2]
             self.status = row[3] # 'draft' = auto-annotated, 'final' = final/approved, 'gbk' imported non Pitt phage
-            self.annotQC = row[4] # confidence of annots, 0 = not checked by Pitt, 1 = validated by Pitt
-            self.annot_author = row[5] # 0 means non-SEA/Pitt phage, 1 means is SEA/Pitt phage and can update genbank
         return self.name
 
     def get_id(self):
