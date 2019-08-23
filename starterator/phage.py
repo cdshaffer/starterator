@@ -22,8 +22,6 @@ class Phage(object):
         self.phams = None
         self.genes = None
         self.status = None
-        self.annotQC = None
-        self.annot_author = None
 
     def get_name(self):
         if not self.name:
@@ -39,14 +37,12 @@ class Phage(object):
     def get_id(self):
         if not self.phage_id:
             row = get_db().get(
-                "SELECT PhageID, Cluster, Sequence, status, AnnotationQC, AnnotationAuthor from phage where Name like %s",
+                "SELECT PhageID, Cluster, Sequence, status from phage where Name like %s",
                 self.name)
             self.phage_id = row[0]
             self.cluster = row[1]
             self.sequence = row[2]
             self.status = row[3] # 'draft' = auto-annotated, 'final' = final/approved, 'gbk' imported non Pitt phage
-            self.annotQC = row[4] # confidence of annots, 0 = not checked by Pitt, 1 = validated by Pitt
-            self.annot_author = row[5] # 0 means non-SEA/Pitt phage, 1 means is SEA/Pitt phage
         return self.phage_id
     
     def get_sequence(self):
