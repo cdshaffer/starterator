@@ -117,21 +117,6 @@ class Phage(object):
         return self.status
 
 
-    def get_annotQC(self):
-        if not self.annotQC:
-            row = get_db().get(
-                "SELECT AnnotationQC from phage where PhageID = %s", self.phage_id)
-            self.annotQC = row[0]
-        return self.annotQC
-
-    def get_annot_author(self):
-        if not self.annot_author:
-            row = get_db().get(
-                "SELECT AnnotationAuthor from phage where PhageID = %s", self.phage_id)
-            self.annot_author = row[0]
-        return self.annot_author
-
-
 class UnPhamPhage(Phage):
     def __init__(name, fasta_file, profile_file):
         pass
