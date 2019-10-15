@@ -26,7 +26,7 @@ class Phage(object):
     def get_name(self):
         if not self.name:
             row = get_db().get(
-                "SELECT Name, Cluster, Sequence, status from phage where PhageID = %s",
+                "SELECT Name, Cluster, Sequence, Status from phage where PhageID = %s",
                 self.phage_id)
             self.name = row[0]
             self.cluster = row[1]
@@ -37,7 +37,7 @@ class Phage(object):
     def get_id(self):
         if not self.phage_id:
             row = get_db().get(
-                "SELECT PhageID, Cluster, Sequence, status from phage where Name like %s",
+                "SELECT PhageID, Cluster, Sequence, Status from phage where Name like %s",
                 self.name)
             self.phage_id = row[0]
             self.cluster = row[1]
