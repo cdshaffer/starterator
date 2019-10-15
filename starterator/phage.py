@@ -120,7 +120,3 @@ class Phage(object):
 class UnPhamPhage(Phage):
     def __init__(name, fasta_file, profile_file):
         pass
-
-
-
-
