@@ -13,7 +13,7 @@ import json
 def get_pham_number(phage_name, gene_number):
     try:
         db = DB()
-        results = db.query("SELECT pham.name \n\
+        results = db.query("SELECT pham.Name \n\
             FROM gene JOIN pham ON gene.GeneID = pham.Gene \n\
             JOIN phage ON gene.PhageID = phage.PhageID \n\
             WHERE phage.Name LIKE %s AND gene.Name LIKE %s \n\
@@ -27,7 +27,7 @@ def get_pham_number(phage_name, gene_number):
 
 def get_pham_colors():
     db = DB()
-    results = db.query("SELECT `name`, `color` from `pham_color`;")
+    results = db.query("SELECT `Name`, `Color` from `pham_color`;")
     pham_colors = {}
     for row in results:
         pham_colors[str(row[0])] = row[1]
@@ -35,7 +35,7 @@ def get_pham_colors():
 
 def get_version():
     db = DB()
-    results = db.query("SELECT version from version;")
+    results = db.query("SELECT Version from version;")
     return int(results[0][0])
 
 
