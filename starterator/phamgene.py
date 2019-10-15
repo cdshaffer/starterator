@@ -31,7 +31,7 @@ import os
 
 def get_protein_sequences():
     proteins = []
-    results = get_db().query('SELECT GeneID, translation from gene')
+    results = get_db().query('SELECT GeneID, Translation from gene')
     for row in results:
         gene_id = row[0].replace("-", "_")
         protein = SeqRecord(Seq(row[1].replace('-', ''), IUPAC.protein),
@@ -81,14 +81,14 @@ def get_pham_no(phage_name, gene_number):
     """
     print phage_name, gene_number
     db = DB()
-    query = "SELECT pham.name \n\
+    query = "SELECT pham.Name \n\
             FROM gene JOIN pham ON gene.GeneID = pham.GeneID \n\
             JOIN phage ON gene.PhageID = phage.PhageID \n\
             WHERE (phage.Name LIKE %s or phage.PhageID = %s) AND gene.Name RLIKE %s \n\
             "% (phage_name + "%", phage_name, '^[:alpha:]*(_)*%s$' % str(gene_number))
     print query
     try:
-        results = db.query("SELECT pham.name \n\
+        results = db.query("SELECT pham.Name \n\
             FROM gene JOIN pham ON gene.GeneID = pham.GeneID \n\
             JOIN phage ON gene.PhageID = phage.PhageID \n\
             WHERE (phage.Name LIKE %s or phage.PhageID = %s) AND gene.Name RLIKE %s",
@@ -96,7 +96,7 @@ def get_pham_no(phage_name, gene_number):
         print "DB query 1"
         if len(results) < 1:
             print "DB query 1 failed, try search 2"
-            results = db.query("SELECT pham.name \n\
+            results = db.query("SELECT pham.Name \n\
                 FROM gene JOIN pham ON gene.GeneID = pham.GeneID \n\
                 JOIN phage ON gene.PhageID = phage.PhageID \n\
                 WHERE (phage.Name LIKE %s or phage.PhageID = %s) AND gene.geneID RLIKE %s",
@@ -104,7 +104,7 @@ def get_pham_no(phage_name, gene_number):
         if len(results) < 1:
             #try to determine root of gene names since they are
             print "DB query 2 failed, try search 3"
-            results = db.query("SELECT pham.name \n\
+            results = db.query("SELECT pham.Name \n\
                 FROM gene JOIN pham ON gene.GeneID = pham.GeneID \n\
                 JOIN phage ON gene.PhageID = phage.PhageID \n\
                 WHERE gene.geneid LIKE %s AND gene.geneID RLIKE %s",
@@ -480,7 +480,7 @@ class PhamGene(Gene):
 
     def get_locustag(self):
         db_return = get_db().get(
-                "SELECT  phage.status, gene.locustag from gene JOIN phage on gene.phageid=phage.phageid where gene.geneid = %s",
+                "SELECT  phage.Status, gene.LocusTag from gene JOIN phage on gene.phageid=phage.phageid where gene.geneid = %s",
                 self.db_id)
         self.status = db_return[0]
         self.locustag = db_return[1]
