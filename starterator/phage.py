@@ -80,7 +80,7 @@ class Phage(object):
                 self.get_phage_id()
             self.genes = []
             results = get_db().query(
-                "SELECT `pham`.`GeneID`, `pham`.`name`, `gene`.Name, \n\
+                "SELECT `pham`.`GeneID`, `pham`.`Name`, `gene`.Name, \n\
                 `gene`.`Start`, `gene`.`Stop`, `gene`.`Orientation`\n\
                 FROM `pham` JOIN `gene` on `pham`.`GeneID` = `gene`.`GeneID`\n\
                 WHERE `gene`.`PhageID` = %s", self.phage_id) 
@@ -96,7 +96,7 @@ class Phage(object):
             self.phams = {}
             # gene.Name can be in from gp<Number>, gene<Number>, or <PHAGE_NAME>_<Number>
             results = get_db().query(
-                "SELECT `pham`.`GeneID`, `pham`.`name`, `gene`.Name,\n\
+                "SELECT `pham`.`GeneID`, `pham`.`Name`, `gene`.Name,\n\
                 `gene`.`Start`, `gene`.`Stop`, `gene`.`Orientation` , `gene`.`length`\n\
                 FROM `pham` JOIN `gene` on `pham`.`GeneID` = `gene`.`GeneID`\n\
                 WHERE `gene`.`PhageID` = %s", self.phage_id)
