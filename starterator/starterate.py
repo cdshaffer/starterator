@@ -99,6 +99,9 @@ def starterate(info, gui=None, event=None):
         phage = report.PhageReport(phage, gui=gui, event=event)
         final_file, short_final = phage.final_report()
     elif info['all'] and not info['phamerated']:
+        # clear intermediate files if doing this
+        clean_up_files(utils.INTERMEDIATE_DIR)
+
         # phams.update_protein_db(db, config)
         phage = report.UnPhamPhageReport(phage, fasta_file=info['fasta'], profile_file=info['profile'],
                                          gui=gui, event=event)
