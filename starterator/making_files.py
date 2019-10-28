@@ -616,14 +616,11 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     story.append(Paragraph('<font size=12>Phages represented in each track:</font>', styles["Normal"]))
 
     groups = pham.group_similar_genes(order_by)
-
     tracks_info = []
     for index in range(len(groups)):
-        cluster_list = [g.cluster for g in groups[index]]
-        max_cluster = max(set(cluster_list), key=cluster_list.count)
-        percent_cluster = cluster_list.count(max_cluster)/len(cluster_list)
-        text += "Track %s, (%s% cluster %s) : " % (index + 1, percent_cluster, max_cluster)
-        text += ", ".join(gene.gene_id for gene in groups[index])      tracks_info.append("<font size=12> " + u'\u2022' + " %s</font>" % text)
+        text = "Track %s : " % (index + 1)
+        text += ", ".join(gene.gene_id for gene in groups[index])
+        tracks_info.append("<font size=12> " + u'\u2022' + " %s</font>" % text)
     for line in tracks_info:
         story.append(Paragraph(line, styles["Normal"]))
     story.append(Spacer(1, 12))
