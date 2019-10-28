@@ -174,8 +174,8 @@ def output_start_sites(stats):
             s = ''
             cluster_start = []
             for gene in genes:
-                cluster_start.append(cluster_dict[gene]
-                s += gene + " (" +) cluster_dict[gene] + "), "
+                cluster_start.append(cluster_dict[gene])
+                s += gene + " (" + cluster_dict[gene] + "), "
             output.append(u'\u2022' + " Phage (with cluster) where this start called:\t" + s + '')
 
             cnt = Counter(cluster_start)
@@ -283,19 +283,19 @@ def output_start_sites_by_phage(stats, genelist):
 
         genes = stats["called_starts"][start]
 
-        cluster_list = {}
+        cluster_dict = {}
         for p_gene in stats['annot_list']:
-            cluster_list[p_gene.gene_id] = p_gene.cluster
+            cluster_dict[p_gene.gene_id] = p_gene.cluster
 
         for p_gene in stats['draft_list']:
-            cluster_list[p_gene.gene_id] = p_gene.cluster
+            cluster_dict[p_gene.gene_id] = p_gene.cluster
 
         genes.sort()
         s = ''
         cluster_start = []
         for gene in genes:
-            cluster_start.append(cluster_dict[gene]
-            s += gene + " (" + cluster_list[gene] + "), "
+            cluster_start.append(cluster_dict[gene])
+            s += gene + " (" + cluster_dict[gene] + "), "
         output.append(u'\u2022' + " Phage (with cluster) where this start called:\t" + s + '')
         cnt = Counter(cluster_start)
         cluster_counts = dict(cnt)
