@@ -30,6 +30,7 @@ import utils
 import phams
 import phamgene
 import os
+from collections import Counter
 # from phage import
 # from reportlab.lib import colors
 
@@ -174,7 +175,19 @@ def output_start_sites(stats):
             for gene in genes:
                 s += gene + " (" + cluster_dict[gene] + "), "
             output.append(u'\u2022' + " Phage (with cluster) where this start called:\t" + s + '')
+
+
+            cluster_list = [g.cluster for g in stats['annot_list']]
+            cnt = Counter(cluster_list)
+            max_cluster = cnt.most_common(1)[0]
+            cluster_counts = dict(cnt)
+            line = "Cluster makeup of genes with this annotated start: "
+            for clstr, count in cluster_counts.items():
+                line += "%s has %s, " % (clstr, str(count))
+            output.append(u'\u2022' + line)
             output.append('')
+
+
 
         return output
 
