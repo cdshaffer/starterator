@@ -410,6 +410,7 @@ class Pham(object):
 
         # now update genes based on start analysis
         self.add_alignment_stats_to_phamgenes()
+        self.add_cluster_stats(start_stats)
         return start_stats
 
     def annot_summary(self):
@@ -457,3 +458,16 @@ class Pham(object):
         blob = self.annot_summary()
         with open(filename, "w") as outfile:
             json.dump(blob, outfile, indent=4, ensure_ascii=False)
+
+    def add_cluster_stats(self, self_stats):
+        clusters_present = set()
+        genes_by_cluster = {}
+        for g, pg in self.genes.items():
+            clusters_present.add(pg.cluster)
+            if pg.cluster in genes_by_cluster.keys():
+                genes_by_cluster[pg.cluster].append(g)
+            else:
+                genes_by_cluster[pg.cluster] = [g]
+
+        self_stats['clusters_present'] = [str(t) for t in clusters_present]
+        self_stats['genes_by_cluster'] = genes_by_cluster

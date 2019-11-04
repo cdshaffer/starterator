@@ -177,13 +177,44 @@ def output_start_sites(stats):
                 cluster_start.append(cluster_dict[gene])
                 s += gene + " (" + cluster_dict[gene] + "), "
             output.append(u'\u2022' + " Phage (with cluster) where this start called:\t" + s + '')
+            output.append('')
 
-            cnt = Counter(cluster_start)
-            cluster_counts = dict(cnt)
-            line = "Cluster makeup of genes with this annotated start: "
-            for clstr, count in cluster_counts.items():
-                line += "%s has %s, " % (clstr, str(count))
-            output.append(u'\u2022' + line)
+        output.append("<b>Summary by clusters:</b>")
+        output.append('')
+
+        if int(len(stats['clusters_present'])) == 1:
+            cluster_string = str(stats['clusters_present'])
+            s = "There is one cluster represented in this pham: %s" % str(stats['clusters_present'])[2:-2]
+        else:
+            cluster_string = ""
+            for s in stats['clusters_present']:
+                cluster_string += s + ", "
+            s = "There are %s clusters represented in this pham: %s" % (len(stats['clusters_present']), cluster_string)
+
+        output.append(s)
+        output.append('')
+
+        annotated_genes = [g.gene_id for g in stats['annot_list']]
+
+        for cluster in sorted(stats['clusters_present']):
+            if cluster == 'singleton':
+                continue
+
+            count_MA = 0
+            for geneid in annotated_genes:
+                if geneid in stats['genes_by_cluster'][cluster]:
+                    count_MA += 1
+            if count_MA > 0:
+                output.append("Info for manual annotations of cluster %s:" % cluster)
+                annotated_cluster_starts = [ph.alignment_start_num_called for ph in stats['annot_list'] if ph.cluster == cluster]
+                start_counts = dict([(x,annotated_cluster_starts.count(x)) for x in set(annotated_cluster_starts)])
+                for start, count in start_counts.items():
+                    if count > 1:
+                        s = "Start number %s was manually annotated %s times for cluster %s." % (start, count, cluster)
+                    else:
+                        s = "Start number %s was manually annotated 1 time in pham for cluster %s." % (start, cluster)
+                    output.append(u'\u2022' + s)
+
             output.append('')
 
         return output
@@ -205,6 +236,11 @@ def output_start_sites_by_phage(stats, genelist):
     # total_genes = stats["phamCount"]
     # draftCount = stats["draftCount"]
     # calledCount = len(stats["called_starts"][most_called_start])
+
+    # If an unphamerated whole phage report, use the standard pham report not this one
+    if genelist[0].cluster == 'Unassigned':
+        return output_start_sites(stats)
+
 
     genelist.sort(key=lambda x: x.start)
     most_annotated_start = stats["most_annotated_start"]
@@ -297,14 +333,46 @@ def output_start_sites_by_phage(stats, genelist):
             cluster_start.append(cluster_dict[gene])
             s += gene + " (" + cluster_dict[gene] + "), "
         output.append(u'\u2022' + " Phage (with cluster) where this start called:\t" + s + '')
-        cnt = Counter(cluster_start)
-        cluster_counts = dict(cnt)
-        line = "Cluster makeup of genes with this annotated start: "
-        for clstr, count in cluster_counts.items():
-            line += "%s has %s, " % (clstr, str(count))
-        output.append(u'\u2022' + line)
-
         output.append('')
+
+    output.append("<b>Summary by clusters:</b>")
+    output.append('')
+
+    if int(len(stats['clusters_present'])) == 1:
+        cluster_string = str(stats['clusters_present'])
+        s = "There is one cluster represented in this pham: %s" % str(stats['clusters_present'])[2:-2]
+    else:
+        cluster_string = ""
+        for s in stats['clusters_present']:
+            cluster_string += s + ", "
+        s = "There are %s clusters represented in this pham: %s" % (len(stats['clusters_present']), cluster_string)
+
+    output.append(s)
+    output.append('')
+
+    annotated_genes = [g.gene_id for g in stats['annot_list']]
+
+    cluster = genelist[0].cluster
+
+    if cluster == 'singleton':
+        output.append("This phage is a singleton, no other cluster members to compare.")
+    else:
+        count_MA = 0
+        for geneid in annotated_genes:
+            if geneid in stats['genes_by_cluster'][cluster]:
+                count_MA += 1
+        if count_MA > 0:
+            output.append("Info for manual annotations of cluster %s:" % cluster)
+            annotated_cluster_starts = [ph.alignment_start_num_called for ph in stats['annot_list'] if ph.cluster == cluster]
+            start_counts = dict([(x,annotated_cluster_starts.count(x)) for x in set(annotated_cluster_starts)])
+            for start, count in start_counts.items():
+                if count > 1:
+                    s = "Start number %s was manually annotated %s times for cluster %s." % (start, count, cluster)
+                else:
+                    s = "Start number %s was manually annotated 1 time in pham for cluster %s." % (start, cluster)
+                output.append(u'\u2022' + s)
+
+    output.append('')
 
     return output
 
