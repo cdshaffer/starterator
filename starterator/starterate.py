@@ -83,7 +83,7 @@ def get_arguments():
                         help='Path to a DNAMaster profile. For case when want whole report of an unphameratored phage')
     parser.add_argument('-f', '--fasta', help='Path to Fasta File')
     parser.add_argument('-j', '--save_json', type=bool, default=False,
-                        help='Boolean, use with -n to save json file describing a pham genes and annots')
+                        help='Boolean, use with -n to save json file describing complete results.')
     return parser.parse_args()
 
 
