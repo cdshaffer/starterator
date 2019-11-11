@@ -208,11 +208,13 @@ def output_start_sites(stats):
                 output.append("Info for manual annotations of cluster %s:" % cluster)
                 annotated_cluster_starts = [ph.alignment_start_num_called for ph in stats['annot_list'] if ph.cluster == cluster]
                 start_counts = dict([(x,annotated_cluster_starts.count(x)) for x in set(annotated_cluster_starts)])
-                for start, count in start_counts.items():
+                starts_present = sorted(start_counts.keys())
+                for start in starts_present:
+                    count = start_counts[start]
                     if count > 1:
                         s = "Start number %s was manually annotated %s times for cluster %s." % (start, count, cluster)
                     else:
-                        s = "Start number %s was manually annotated 1 time in pham for cluster %s." % (start, cluster)
+                        s = "Start number %s was manually annotated 1 time for cluster %s." % (start, cluster)
                     output.append(u'\u2022' + s)
 
             output.append('')
@@ -365,11 +367,13 @@ def output_start_sites_by_phage(stats, genelist):
             output.append("Info for manual annotations of cluster %s:" % cluster)
             annotated_cluster_starts = [ph.alignment_start_num_called for ph in stats['annot_list'] if ph.cluster == cluster]
             start_counts = dict([(x,annotated_cluster_starts.count(x)) for x in set(annotated_cluster_starts)])
-            for start, count in start_counts.items():
+            starts_present = sorted(start_counts.keys())
+            for start in starts_present:
+                count = start_counts[start]
                 if count > 1:
                     s = "Start number %s was manually annotated %s times for cluster %s." % (start, count, cluster)
                 else:
-                    s = "Start number %s was manually annotated 1 time in pham for cluster %s." % (start, cluster)
+                    s = "Start number %s was manually annotated 1 time for cluster %s." % (start, cluster)
                 output.append(u'\u2022' + s)
 
     output.append('')
