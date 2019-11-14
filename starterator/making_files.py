@@ -30,7 +30,6 @@ import utils
 import phams
 import phamgene
 import os
-from collections import Counter
 # from phage import
 # from reportlab.lib import colors
 
