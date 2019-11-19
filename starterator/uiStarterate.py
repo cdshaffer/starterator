@@ -58,7 +58,7 @@ class StarteratorEnterInformation(Gtk.Dialog):
 
     def show_profile_entry(self):
         hbox = Gtk.Box(spacing=6)
-        label = Gtk.Label("Phage Profile File (optional)")
+        label = Gtk.Label("DNA Master Profile or Pecaan CDS")
         unphamed_profile_button = Gtk.Button('Select')
         profile_entry = Gtk.Entry()
         profile_entry.connect('changed', self.on_entry_changed, 'profile')
@@ -269,6 +269,9 @@ class StarteratorEnterInformation(Gtk.Dialog):
         if len(results) < 1:
             self.info['phamerated'] = False
             return None
+        elif self.info['profile'] is not None:
+            self.info['phamerated'] = False
+            return results[0][0]
         else:
             self.info['phamerated'] = True
             return results[0][0]
