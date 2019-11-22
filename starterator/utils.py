@@ -55,7 +55,7 @@ def get_pham_no(db, phage_name, gene_number):
     #Query the database for genes that match the given gene number and phage name
     like_phage_name = phage_name +'%'
     print like_phage_name, gene_number
-    cursor.execute("SELECT `gene`.`GeneID` , `pham`.`name` , `phage`.`PhageID`\n\
+    cursor.execute("SELECT `gene`.`GeneID` , `pham`.`Name` , `phage`.`PhageID`\n\
     FROM `gene`\n\
     JOIN `pham` ON `gene`.`GeneID` = `pham`.`GeneID`\n\
     JOIN `phage` ON `gene`.`PhageID` = `phage`.`PhageID`\n\
@@ -82,7 +82,7 @@ def find_phams_of_a_phage(db, phage):
     """
     # write sql statement to get phams of a phage
     cursor = db.cursor()
-    cursor.execute("""SELECT `pham`.`GeneID`, `pham`.`name`, `phage`.`Name`, `phage`.`SequenceLength`\n\
+    cursor.execute("""SELECT `pham`.`GeneID`, `pham`.`Name`, `phage`.`Name`, `phage`.`SequenceLength`\n\
     from `pham` \n\
     join `gene` on `pham`.`GeneID` = `gene`.`GeneID` \n\
     join `phage` on `phage`.`PhageID` = `gene`.`PhageID`\n\
@@ -98,7 +98,7 @@ def find_phams_of_a_phage(db, phage):
 
 def get_protein_sequences():
     proteins = []
-    get_db().execute('SELECT GeneID, translation from gene')
+    get_db().execute('SELECT GeneID, Translation from gene')
     results = cursor.fetchall()
     for row in results:
         protein = SeqRecord(Seq(row[1], IUPAC.protein), id=row[0]+"+", name=row[0], description=row[0])
