@@ -90,7 +90,7 @@ class StarteratorWindow:
         Gtk.main_quit()
 
     def on_view_clicked(self, button):
-        print os.path.abspath(fself.config_info["final_file_dir"])
+        print os.path.abspath(self.config_info["final_file_dir"])
         os.system("xdg-open \""+ os.path.abspath(self.config_info["final_file_dir"])+"\"")
 
     def on_contents_clicked(self, button):
