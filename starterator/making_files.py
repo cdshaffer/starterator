@@ -684,7 +684,8 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     story.append(Paragraph(text, styles['Center']))
     story.append(Spacer(1, 12))
     current_date = time.strftime("%x")
-    run_date = '<font size=12>This analysis was run %s. </font>' % current_date
+    db_version = phams.get_version()
+    run_date = '<font size=12>This analysis was run %s on database version %s. </font>' % (current_date, db_version)
     story.append(Paragraph(run_date, styles["Normal"]))
     story.append(Spacer(1, 12))
 
