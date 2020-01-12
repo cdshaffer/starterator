@@ -442,6 +442,7 @@ def make_gene_track(gd_diagram, pham, gene_group, num_on_diagram, total, seqColo
     if len(gene_group) > 1:
         track_name += " + "
         track_name += str(len(gene_group)-1)
+    num_on_diagram = num_on_diagram%50 # change from label to positional info
     gd_gene_track = gd_diagram.new_track(total - num_on_diagram, label=True,
                                          name=track_name, greytrack=1, greytrack_labels=1)
     gd_seq_set = gd_gene_track.new_set()
@@ -598,7 +599,7 @@ def graph_start_sites(args, pham, file_path):
                         if genes[i*50 + j][0].cluster != genes[i*50 +j - 1][0].cluster:
                             seqColor += 1
                     gene = genes[i*50 + j][0]
-                    make_gene_track(gd_diagram, pham, genes[i*50 + j], j, 50, seqColor)
+                    make_gene_track(gd_diagram, pham, genes[i*50 + j], i*50 + j, 50, seqColor)
 
             gd_diagram.draw(format="linear", orientation="portrait", pagesize=reportlab.lib.pagesizes.letter,
                             fragments=1, start=left_draw_boundary, end=right_draw_boundary)
