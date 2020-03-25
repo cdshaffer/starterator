@@ -593,7 +593,7 @@ class UnPhamGene(PhamGene):
             if "_" not in first_result:
                 first_result = blast_record.descriptions[1].title.split(',')[0].split(' ')[-1]
 
-            phage_name = first_result.split("_")[-2]
+            phage_name = first_result.split("_")[0]
             #exception for error in locus tags specific to this phage:
             if phage_name == 'FRIAPREACHER':
                 phage_name = 'FRIARPREACHER'
