@@ -537,6 +537,23 @@ class UnPhamGene(PhamGene):
         gene = SeqRecord(sequence, id=self.gene_id, name=self.gene_id)
         return gene
 
+    def phambymatch(self):
+        #try to must make a perfect match to the translation field
+        protein = str(self.sequence[self.ahead_of_start:].seq.translate())
+        #repair translations if start codon was TTG or GTG and remove stop codon
+        protein = "M" + protein[1:-1]
+        db = DB()
+        result = db.query("SELECT GeneID FROM gene WHERE gene.Translation = %s", protein)
+        if len(result) < 1:
+            return None
+        else:
+            result2 = db.query("select name from pham where geneid = %s", result[0])
+            print "pham %s by exact match to gene %s"%(result2[0],result[0])
+            number, = result2[0]
+            self.pham_no = number
+
+            return self.pham_no
+
     def blast(self):
         # not sure where to put this... this makes more sense, 
         # but I wanted to keep the Genes out of file making...
