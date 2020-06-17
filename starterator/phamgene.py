@@ -547,7 +547,7 @@ class UnPhamGene(PhamGene):
         if len(result) < 1:
             return None
         else:
-            result2 = db.query("select name from pham where geneid = %s", result[0])
+            result2 = db.query("SELECT name FROM pham WHERE geneid = %s", result[0])
             print "pham %s by exact match to gene %s"%(result2[0],result[0])
             number, = result2[0]
             self.pham_no = number
@@ -609,18 +609,25 @@ class UnPhamGene(PhamGene):
             print first_result
             if "_" not in first_result:
                 first_result = blast_record.descriptions[1].title.split(',')[0].split(' ')[-1]
-
-            phage_name = first_result.split("_")[0]
-            #exception for error in locus tags specific to this phage:
-            if phage_name == 'FRIAPREACHER':
-                phage_name = 'FRIARPREACHER'
-            if phage_name.lower() == "draft":
-                phage_name = first_result.split("_")[-3]
-            gene_number = first_result.split("_")[-1]
-            print phage_name, gene_number
-            pham_no = get_pham_no(phage_name, gene_number)
-            self.pham_no = pham_no
-            return pham_no
+            # Try to get pham directly from gene name
+            db = DB()
+            results = db.query("SELECT name from pham where geneID = %s", first_result)
+            if len(results) == 1:
+                number, = results[0]
+                self.pham_no = number
+                return number
+            else:
+                phage_name = first_result.split("_")[0]
+                #exception for error in locus tags specific to this phage:
+                if phage_name == 'FRIAPREACHER':
+                    phage_name = 'FRIARPREACHER'
+                if phage_name.lower() == "draft":
+                    phage_name = first_result.split("_")[-3]
+                gene_number = first_result.split("_")[-1]
+                print phage_name, gene_number
+                pham_no = get_pham_no(phage_name, gene_number)
+                self.pham_no = pham_no
+                return pham_no
         else:
             self.pham_no = None
             return None
