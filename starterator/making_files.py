@@ -570,7 +570,7 @@ def graph_start_sites(args, pham, file_path):
         left_draw_boundary = max([0, min_start_coord - 30])
         right_draw_boundary = min([len(genes[0][0].alignment), max_start_coord + 30])
 
-    if len(genes) > 100:
+    if len(genes) > 50:
         seqColor = 0
         for i in xrange(0, int(math.ceil(len(genes)/50.0))):
             gd_diagram = GenomeDiagram.Diagram(pham.pham_no)
