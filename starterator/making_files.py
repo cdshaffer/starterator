@@ -93,7 +93,7 @@ def output_start_sites(stats):
 
         if annotated_count > 0:
             annotated_with_most_annotated_called = \
-                [g.full_name for g in stats["annot_list"] if g.gene_id in stats["called_starts"][most_annotated_start]]
+                [g.full_name for g in stats["annot_list"] if g.full_name in stats["called_starts"][most_annotated_start]]
             # annotated_with_most_predicted_called = \
             #    [g.gene_id for g in stats["draft_list"] if g.gene_id in stats["called_starts"][most_called_start]]
 
@@ -254,7 +254,7 @@ def output_start_sites_by_phage(stats, genelist):
 
     if annotated_count > 0:
         annotated_with_most_annotated_called = \
-            [g.gene_id for g in stats["annot_list"] if g.gene_id in stats["called_starts"][most_annotated_start]]
+            [g.full_name for g in stats["annot_list"] if g.full_name in stats["called_starts"][most_annotated_start]]
         # annotated_with_most_predicted_called = \
         #    [g.gene_id for g in stats["draft_list"] if g.gene_id in stats["called_starts"][most_called_start]]
 
