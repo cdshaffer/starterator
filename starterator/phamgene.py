@@ -344,7 +344,7 @@ class PhamGene(Gene):
         num_gene_in_pham = len(pham.genes)
 
         for startnum, genelist in pham.stats['most_common']['possible'].iteritems():
-            if self.gene_id in genelist:
+            if self.full_name in genelist:
                 self.alignment_candidate_start_nums.append(startnum)
 
         for num in self.alignment_candidate_start_nums:
