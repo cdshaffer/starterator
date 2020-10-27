@@ -25,12 +25,17 @@ def get_pham_number(phage_name, gene_number):
         raise StarteratorError("Gene %s of Phage %s not found in database!" % (gene_number, phage_name))
 
 
-def get_pham_colors():
+def get_pham_colors(phams=None):
     db = DB()
-    results = db.query("SELECT `Name`, `Color` from `pham_color`;")
+    results = db.query("SELECT `PhamID`, `Color` from `pham`;")
     pham_colors = {}
-    for row in results:
-        pham_colors[str(row[0])] = row[1]
+    if phams:
+        for row in results:
+            if row[0] in phams:
+                pham_colors[str(row[0])] = row[1]
+    else:
+        for row in results:
+            pham_colors[str(row[0])] = row[1]
     return pham_colors
 
 def get_version():
@@ -59,10 +64,9 @@ class Pham(object):
             Get the genes of the Phamily
         """
         results = get_db().query("SELECT `gene`.`GeneID`, `gene`.`phageID`, " +
-                                 " `Length`, `Start`, `Stop`, `Orientation`" +
+                                 " `Length`, `Start`, `Stop`, `Orientation`, `gene`.`name`" +
                                  " FROM `gene`"
-                                 " JOIN `pham` ON `gene`.`GeneID` = `pham`.`GeneID`" +
-                                 " WHERE `pham`.`name` =%s; ", self.pham_no)
+                                 " WHERE `gene`.`PhamID` =%s; ", self.pham_no)
         genes = {}
         self.count = len(results)
         for gene_info in results:
@@ -71,7 +75,8 @@ class Pham(object):
             start = gene_info[3]
             stop = gene_info[4]
             orientation = gene_info[5]
-            gene = new_PhamGene(gene_id, start, stop, orientation, phage_id)
+            name = gene_info[6]
+            gene = new_PhamGene(gene_id, start, stop, orientation, phage_id, name)
             if gene.has_valid_start():
                 genes[gene.gene_id] = gene
         if len(genes) < 1:
@@ -92,8 +97,8 @@ class Pham(object):
             Get the color of the phamily from the database
         """
         try:
-            result = get_db().get("SELECT `name`, `color`\n\
-                FROM `pham_color` WHERE `name` = %s;", self.pham_no)
+            result = get_db().get("SELECT `phamid`, `color`\n\
+                FROM `pham` WHERE `phamid` = %s;", self.pham_no)
             return result[1]
         except:
             raise StarteratorError("Pham number %s not found in database!" % self.pham_no)
@@ -270,9 +275,9 @@ class Pham(object):
             start_stats["called_starts"][i+1] = []
             for gene in self.genes.values():
                 if site in gene.alignment_candidate_starts:
-                    start_stats["possible"][i+1].append(gene.gene_id)
+                    start_stats["possible"][i+1].append(gene.full_name)
                 if site == gene.alignment_start_site:
-                    start_stats["called_starts"][i+1].append(gene.gene_id)
+                    start_stats["called_starts"][i+1].append(gene.full_name)
 
         all_starts_count = Counter(all_start_sites)
         all_annot_count = Counter(all_annotated_start_sites)
@@ -313,33 +318,37 @@ class Pham(object):
                 start_stats['called_counts'][k] = len(l)
 
         start_stats['annot_counts'] = {}
-        for k, l in start_stats['called_starts'].items():
-            annotated = [g for g in l if not self.genes[g].draftStatus]
-            if len(annotated) > 0:
-                start_stats['annot_counts'][k] = len(annotated)
+        not_drafts = [pg for pg in self.genes.values() if not pg.draftStatus]
+        for gene in not_drafts:
+            start_number = [key for key,val in start_stats['called_starts'].items() if gene.full_name in val]
+            start_number = start_number[0]
+            if start_number not in start_stats['annot_counts'].keys():
+                start_stats['annot_counts'][start_number] = 0
+            start_stats['annot_counts'][start_number] += 1
+             #   start_stats['annot_counts'][k] = len(annotated)
 
         genes_without_most_called = []
         print "phams.find_most_common_start: genes_start_most_called " + str(genes_start_most_called)
         for gene in self.genes.values():
             # check if the gene even has the most called start
-            if gene.gene_id in start_stats["possible"][most_called_start_index]:
-                if gene.gene_id in genes_start_most_called:
+            if gene.full_name in start_stats["possible"][most_called_start_index]:
+                if gene.full_name in genes_start_most_called:
                     if gene.orientation == 'F':   # only +1 for forward genes
                         # genes where most called start is present and it is called as the start are "most_called"
                         gene.suggested_start["most_called"] = (most_called_start_index, gene.start+1)
                     else:
                         gene.suggested_start["most_called"] = (most_called_start_index, gene.start)
-                    start_stats["most_called"].append(gene.gene_id)
+                    start_stats["most_called"].append(gene.full_name)
                 else:
                     # genes where most called start is present but it's not the called start are "most_not_called
-                    start_stats["most_not_called"].append(gene.gene_id)
+                    start_stats["most_not_called"].append(gene.full_name)
                     most_called_alignment_index = self.total_possible_starts[most_called_start_index-1]
                     suggested_start = gene.alignment_index_to_coord(most_called_alignment_index)
                     gene.suggested_start["most_called"] = (most_called_start_index, suggested_start)
 
             else:
                 # genes where the most called start is NOT even present are no_most_called
-                start_stats["no_most_called"].append(gene.gene_id)
+                start_stats["no_most_called"].append(gene.full_name)
                 possible_starts_coords = []
                 for start in gene.alignment_candidate_starts:
                     index = self.total_possible_starts.index(start) + 1
@@ -348,18 +357,18 @@ class Pham(object):
                 gene.suggested_start["most_called"] = possible_starts_coords
 
             if most_annot_start_index is not None:
-                if gene.gene_id in start_stats["possible"][most_annot_start_index]:
-                    if gene.gene_id in genes_start_most_annot:
+                if gene.full_name in start_stats["possible"][most_annot_start_index]:
+                    if gene.full_name in genes_start_most_annot:
                         # code below used for deprecated "suggested starts" list
                         # if gene.orientation == 'F':  # only +1 for forward genes
                         #     # genes where most annotated start is present and it is called as the start are "most_annotated"
                         #     gene.suggested_start["most_annotated"] = (most_annot_start_index, gene.start + 1)
                         # else:
                         #     gene.suggested_start["most_annotated"] = (most_annot_start_index, gene.start)
-                        start_stats["most_annotated"].append(gene.gene_id)
+                        start_stats["most_annotated"].append(gene.full_name)
                     else:
                         # genes where most annotated start is present but it's not the called start are "most_not_annotated"
-                        start_stats["most_not_annotated"].append(gene.gene_id)
+                        start_stats["most_not_annotated"].append(gene.full_name)
                         # code below used for deprecated "suggested starts" list
                         most_annot_alignment_index = self.total_possible_starts[most_annot_start_index - 1]
                         suggested_start = gene.alignment_index_to_coord(
@@ -368,7 +377,7 @@ class Pham(object):
 
                 else:
                     # genes where the most annotated start is NOT even present are no_most_annot
-                    start_stats["no_most_annot"].append(gene.gene_id)
+                    start_stats["no_most_annot"].append(gene.full_name)
                     # Code below used for deprecated "suggested starts" list
                     # possible_starts_coords = []
                     # for start in gene.alignment_candidate_starts:

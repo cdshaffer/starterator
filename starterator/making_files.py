@@ -93,7 +93,7 @@ def output_start_sites(stats):
 
         if annotated_count > 0:
             annotated_with_most_annotated_called = \
-                [g.gene_id for g in stats["annot_list"] if g.gene_id in stats["called_starts"][most_annotated_start]]
+                [g.full_name for g in stats["annot_list"] if g.gene_id in stats["called_starts"][most_annotated_start]]
             # annotated_with_most_predicted_called = \
             #    [g.gene_id for g in stats["draft_list"] if g.gene_id in stats["called_starts"][most_called_start]]
 
@@ -164,10 +164,10 @@ def output_start_sites(stats):
 
             cluster_dict = {}
             for p_gene in stats['annot_list']:
-                cluster_dict[p_gene.gene_id] = p_gene.cluster
+                cluster_dict[p_gene.full_name] = p_gene.cluster
 
             for p_gene in stats['draft_list']:
-                cluster_dict[p_gene.gene_id] = p_gene.cluster
+                cluster_dict[p_gene.full_name] = p_gene.cluster
 
             genes.sort()
             s = ''
@@ -271,13 +271,13 @@ def output_start_sites_by_phage(stats, genelist):
         for gene in genelist:
             if gene.gene_id in called_most_annotated:
                 output.append('<b>%s did call</b> the "Most Annotated" start (%s).' %
-                              (gene.gene_id, str(gene.alignment_start_num_called)))
+                              (gene.full_name, str(gene.alignment_start_num_called)))
             elif gene.gene_id in have_most_annotated:
                 output.append('<b>%s has but does not call</b> the "Most Annotated" start, calling start %s instead.' %
-                              (gene.gene_id, str(gene.alignment_start_num_called)))
+                              (gene.full_name, str(gene.alignment_start_num_called)))
             elif gene.gene_id in has_not_most_annotated:
                 output.append('<b>%s does not have</b> the "Most Annotated" start, calling start %s instead. ' %
-                              (gene.gene_id, str(gene.alignment_start_num_called)))
+                              (gene.full_name, str(gene.alignment_start_num_called)))
 
         output.append('')
 
@@ -290,13 +290,13 @@ def output_start_sites_by_phage(stats, genelist):
     for gene in genelist:
         if len(gene.alignment_annot_start_nums) > 1:
             output.append("%s has %d starts with manual annotations (numbers: %s; called: %s times)." %
-                          (gene.gene_id, len(gene.alignment_annot_start_nums),
+                          (gene.full_name, len(gene.alignment_annot_start_nums),
                            str(gene.alignment_annot_start_nums)[1:-1], str(gene.alignment_annot_start_counts)[1:-1]))
         elif len(gene.alignment_annot_start_nums) == 1:
             output.append("%s has 1 start with manual annotations (number %s; called: %s times)." %
-                          (gene.gene_id, str(gene.alignment_annot_start_nums)[1:-1], str(gene.alignment_annot_start_counts)[1:-1]))
+                          (gene.full_name, str(gene.alignment_annot_start_nums)[1:-1], str(gene.alignment_annot_start_counts)[1:-1]))
         else:
-            output.append("%s has no starts with manual annotations in other genes." % gene.gene_id)
+            output.append("%s has no starts with manual annotations in other genes." % gene.full_name)
 
     output.append('')
     if len(genelist) > 1:
@@ -438,7 +438,7 @@ def make_gene_track(gd_diagram, pham, gene_group, num_on_diagram, total, seqColo
     # change track_name to name of fist gene in list
     track_name = str(num_on_diagram+1)
     track_name += ": "
-    track_name += gene.gene_id
+    track_name += gene.full_name
     if len(gene_group) > 1:
         track_name += " + "
         track_name += str(len(gene_group)-1)
@@ -570,7 +570,7 @@ def graph_start_sites(args, pham, file_path):
         left_draw_boundary = max([0, min_start_coord - 30])
         right_draw_boundary = min([len(genes[0][0].alignment), max_start_coord + 30])
 
-    if len(genes) > 100:
+    if len(genes) > 50:
         seqColor = 0
         for i in xrange(0, int(math.ceil(len(genes)/50.0))):
             gd_diagram = GenomeDiagram.Diagram(pham.pham_no)
@@ -711,7 +711,7 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     tracks_info = []
     for index in range(len(groups)):
         text = "Track %s : " % (index + 1)
-        text += ", ".join(gene.gene_id for gene in groups[index])
+        text += ", ".join(gene.full_name for gene in groups[index])
         tracks_info.append("<font size=12> " + u'\u2022' + " %s</font>" % text)
     for line in tracks_info:
         story.append(Paragraph(line, styles["Normal"]))
@@ -770,11 +770,11 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
                 else:
                     candidate_starts += '(' + str(start_num) + ', ' + str(gene.alignment_index_to_coord(start)) + '), '
 
-            story.append(Paragraph(" Gene: %s \n Start: %s, Stop: %s, Start Num: %s " % (gene.gene_id,
+            story.append(Paragraph(" Gene: %s \n Start: %s, Stop: %s, Start Num: %s " % (gene.full_name,
                                    gene.start_codon_location, gene.stop_codon_location,
                                    gene.suggested_start["current_start_number"]), text_style))
 
-            story.append(Paragraph(" Candidate Starts for %s: " % gene.gene_id, text_style))
+            story.append(Paragraph(" Candidate Starts for %s: " % gene.full_name, text_style))
             story.append(Paragraph("     " + candidate_starts, text_style))
             story.append(Spacer(1, 12))
     else:   # if working on a pham report for one particular phage then only list starts for that phage
@@ -803,7 +803,8 @@ def make_pham_genome(phage_genes, phage_name, length, file_path):
     file_name = os.path.join(file_path, '%sPhamsGraph.pdf' % phage_name)
     if check_file(file_name):
         return
-    pham_colors = phams.get_pham_colors()
+    phams_in_genome = [g['pham_no'] for g in phage_genes.values()]
+    pham_colors = phams.get_pham_colors(phams_in_genome)
     gd_diagram = GenomeDiagram.Diagram(phage_name)
     gd_track = gd_diagram.new_track(1, name=phage_name, greytrack=1)
     gd_pham_set = gd_track.new_set()
@@ -841,7 +842,7 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
     """
         Creates a PDF page of the suggested starts of a phage
         Genes are list in order
-        {Gene Name} is a member of Pham {Number}: {Suggested Start Coordinates}
+        {Gene Name} is in Pham {Number}: {Suggested Start Coordinates}
     """
     file_name = os.path.join(file_path, "%sSuggestedStarts.pdf" % phage_name)
     text_file_name = os.path.join(file_path, "%sSuggestedStarts.txt" % phage_name)
@@ -877,11 +878,11 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
         gene = phage_gene["gene"]
         suggested_start = phage_gene["suggested_start"]
         if pham is None:
-            text = '<font size=12> %s is not a member of an existing Pham </font>' % gene.gene_id
-            simple_text = '%s is not a member of an existing Pham ' % gene.gene_id
+            text = '<font size=12> %s is not a member of an existing Pham </font>' % gene.full_name
+            simple_text = '%s is not a member of an existing Pham ' % gene.full_name
         else:
-            text = '<font size=12> %s is a member of Pham %s:  %s </font>' % (gene.gene_id, pham, suggested_start)
-            simple_text = '%s is a member of Pham %s:  %s ' % (gene.gene_id, pham, suggested_start)
+            text = '<font size=12> %s is in Pham %s:  %s </font>' % (gene.full_name, pham, suggested_start)
+            simple_text = '%s is in Pham %s:  %s ' % (gene.full_name, pham, suggested_start)
         story.append(Paragraph(text, styles['Normal']))
         just_text.append(simple_text)
 
@@ -890,7 +891,7 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
         if gene.pham_no is None:
             continue
         gene_summary = list()
-        gene_summary.append(gene.gene_id)
+        gene_summary.append(gene.full_name)
 
         # Colm 1 Pham num
         gene_summary.append(gene.pham_no)

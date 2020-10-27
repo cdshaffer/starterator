@@ -179,11 +179,11 @@ class Gene(object):
 pham_genes = {}
 
 
-def new_PhamGene(db_id, start, stop, orientation, phage_id, phage_sequence=None):
+def new_PhamGene(db_id, start, stop, orientation, phage_id, name, phage_sequence=None):
     if db_id is None:
         return UnPhamGene(db_id, start, stop, orientation, phage_id, phage_sequence)
     if pham_genes.get(db_id, True):
-        pham_genes[db_id] = PhamGene(db_id, start, stop, orientation, phage_id)
+        pham_genes[db_id] = PhamGene(db_id, start, stop, orientation, phage_id, name)
     return pham_genes[db_id]
 
 
@@ -208,14 +208,18 @@ def get_gene_number(gene_name):
 
 
 class PhamGene(Gene):
-    def __init__(self, db_id, start, stop, orientation, phage_id, pham_no=None):
+    def __init__(self, db_id, start, stop, orientation, phage_id, name, pham_no=None):
         self.db_id = db_id
+        self.gene_id = db_id
         self.phage_id = phage_id
         self.start = start
         self.stop = stop
         self.cluster = None
         self.cluster_hash = None
         self.locustag = None
+        self.gene_no = name
+        self.full_name = self.phage_id + "_" + self.gene_no
+
         self.status = None # 'draft' = auto-annotated, 'final' = final/approved, 'gbk' imported non Pitt phage
 
         if orientation == 'R':
@@ -255,10 +259,7 @@ class PhamGene(Gene):
         """
         phage = new_phage(phage_id=self.phage_id)
         self.phage_name = phage.get_name()
-        gene_no = self.db_id.split("_")[-1]
-        gene_no = gene_no.split(" ")[0]
-        self.gene_id = self.phage_name + "_" + gene_no
-        self.gene_id = self.gene_id.replace('-', "_")
+        self.name = self.phage_name + "_" + self.gene_no
         self.cluster = phage.cluster
         if self.cluster == None:
             self.cluster = "singleton"
@@ -278,7 +279,7 @@ class PhamGene(Gene):
         sequence, self.ahead_of_start = find_upstream_stop_site(
                                 self.start, self.stop, self.orientation, phage_sequence)
         self.ahead_of_start_coord = self.start - self.ahead_of_start
-        gene = SeqRecord(sequence, id=self.gene_id, name=self.gene_id,
+        gene = SeqRecord(sequence, id=self.gene_id, name=self.name,
                          description="|%i-%i| %s" % (self.start, self.stop, self.orientation))
         return gene
 
@@ -363,7 +364,7 @@ class PhamGene(Gene):
                 self.alignment_annot_start_counts.append(annot_count)
 
         for startnum, genelist in pham.stats['most_common']['called_starts'].iteritems():
-            if self.gene_id in genelist:
+            if self.full_name in genelist:
                 self.alignment_start_num_called = startnum
 
         if len(self.alignment_annot_start_counts) > 0:
@@ -537,6 +538,23 @@ class UnPhamGene(PhamGene):
         gene = SeqRecord(sequence, id=self.gene_id, name=self.gene_id)
         return gene
 
+    def phambymatch(self):
+        #try to must make a perfect match to the translation field
+        protein = str(self.sequence[self.ahead_of_start:].seq.translate())
+        #repair translations if start codon was TTG or GTG and remove stop codon
+        protein = "M" + protein[1:-1]
+        db = DB()
+        result = db.query("SELECT GeneID FROM gene WHERE gene.Translation = %s", protein)
+        if len(result) < 1:
+            return None
+        else:
+            result2 = db.query("SELECT name FROM pham WHERE geneid = %s", result[0])
+            print "pham %s by exact match to gene %s"%(result2[0],result[0])
+            number, = result2[0]
+            self.pham_no = number
+
+            return self.pham_no
+
     def blast(self):
         # not sure where to put this... this makes more sense, 
         # but I wanted to keep the Genes out of file making...
@@ -592,18 +610,25 @@ class UnPhamGene(PhamGene):
             print first_result
             if "_" not in first_result:
                 first_result = blast_record.descriptions[1].title.split(',')[0].split(' ')[-1]
-
-            phage_name = first_result.split("_")[0]
-            #exception for error in locus tags specific to this phage:
-            if phage_name == 'FRIAPREACHER':
-                phage_name = 'FRIARPREACHER'
-            if phage_name.lower() == "draft":
-                phage_name = first_result.split("_")[-3]
-            gene_number = first_result.split("_")[-1]
-            print phage_name, gene_number
-            pham_no = get_pham_no(phage_name, gene_number)
-            self.pham_no = pham_no
-            return pham_no
+            # Try to get pham directly from gene name
+            db = DB()
+            results = db.query("SELECT name from pham where geneID = %s", first_result)
+            if len(results) == 1:
+                number, = results[0]
+                self.pham_no = number
+                return number
+            else:
+                phage_name = first_result.split("_")[0]
+                #exception for error in locus tags specific to this phage:
+                if phage_name == 'FRIAPREACHER':
+                    phage_name = 'FRIARPREACHER'
+                if phage_name.lower() == "draft":
+                    phage_name = first_result.split("_")[-3]
+                gene_number = first_result.split("_")[-1]
+                print phage_name, gene_number
+                pham_no = get_pham_no(phage_name, gene_number)
+                self.pham_no = pham_no
+                return pham_no
         else:
             self.pham_no = None
             return None

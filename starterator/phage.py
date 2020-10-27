@@ -98,16 +98,15 @@ class Phage(object):
             self.phams = {}
             # gene.Name can be in from gp<Number>, gene<Number>, or <PHAGE_NAME>_<Number>
             results = get_db().query(
-                "SELECT `pham`.`GeneID`, `pham`.`Name`, `gene`.Name,\n\
+                "SELECT `gene`.`GeneID`, `gene`.`PhamID`, `gene`.`Name`,\n\
                 `gene`.`Start`, `gene`.`Stop`, `gene`.`Orientation` , `gene`.`length`\n\
-                FROM `pham` JOIN `gene` on `pham`.`GeneID` = `gene`.`GeneID`\n\
-                WHERE `gene`.`PhageID` = %s", self.phage_id)
+                FROM gene WHERE `gene`.`PhageID` = %s", self.phage_id)
             for row in results:
                 if row[4] - row[3] != row[6]:   #inconsistent gene data; likely wrap around gene, skip for now
                     continue
                 if row[1] not in self.phams:
                     self.phams[row[1]] = []
-                gene = phamgene.PhamGene(row[0], row[3], row[4], row[5], self.phage_id)
+                gene = phamgene.PhamGene(row[0], row[3], row[4], row[5], self.phage_id, row[2], row[1])
                 self.phams[row[1]].append(gene)
         return self.phams  #this links genes in phage to pham number
 

@@ -238,8 +238,10 @@ class UnPhamPhageReport(PhageReport):
                                                 gene_end = int(line_items[3])
                                         gene = phamgene.UnPhamGene(gene_count, gene_start, gene_end, gene_orientation, self.name, sequence)
                                         genes.append(gene)
+                                        pham_no = gene.phambymatch()
+                                        if pham_no is None:
+                                            pham_no = gene.blast()
 
-                                        pham_no = gene.blast()
                                         if pham_no not in self._phams:
                                             self._phams[pham_no] = []
                                         self._phams[pham_no].append(gene)
