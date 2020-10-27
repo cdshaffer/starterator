@@ -329,7 +329,7 @@ class PhamGene(Gene):
         return aligned_starts
 
     def add_alignment_start_stats(self, pham):
-        annotated = [gene.gene_id for gene in pham.stats['most_common']['annot_list']]
+        annotated = [gene.full_name for gene in pham.stats['most_common']['annot_list']]
         self.alignment_candidate_start_nums = []
         self.alignment_candidate_start_counts = []
         self.alignment_annot_start_nums = []
