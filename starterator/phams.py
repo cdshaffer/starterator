@@ -472,11 +472,11 @@ class Pham(object):
         clusters_present = set()
         genes_by_cluster = {}
         for g, pg in self.genes.items():
-            clusters_present.add(pg.cluster)
+            clusters_present.add(pg.subcluster)
             if pg.cluster in genes_by_cluster.keys():
-                genes_by_cluster[pg.cluster].append(g)
+                genes_by_cluster[pg.subcluster].append(g)
             else:
-                genes_by_cluster[pg.cluster] = [g]
+                genes_by_cluster[pg.subcluster] = [g]
 
         self_stats['clusters_present'] = [str(t) for t in clusters_present]
         self_stats['genes_by_cluster'] = genes_by_cluster
