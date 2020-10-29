@@ -18,6 +18,7 @@ class Phage(object):
         self.phage_id = phage_id
         self.sequence = sequence
         self.cluster= cluster
+        self.subcluster = None
         self.genes = None
         self.phams = None
         self.genes = None
@@ -26,25 +27,27 @@ class Phage(object):
     def get_name(self):
         if not self.name:
             row = get_db().get(
-                "SELECT Name, Cluster, Sequence, Status, AnnotationAuthor from phage where PhageID = %s",
+                "SELECT Name, Cluster, Sequence, Status, AnnotationAuthor, Subcluster from phage where PhageID = %s",
                 self.phage_id)
             self.name = row[0]
             self.cluster = row[1]
             self.sequence = row[2]
-            self.status = row[3] # 'draft' = auto-annotated, 'final' = final/approved, 'gbk' imported non Pitt phage
+            self.status = row[3] # 'draft' = auto-annotated, 'final' = final/approved, 'unknown' imported non Pitt phage
             self.annot_author = row[4] # 0 means non-SEA/Pitt phage, 1 means is SEA/Pitt phage
+            self.subcluster = row[5]
         return self.name
 
     def get_id(self):
         if not self.phage_id:
             row = get_db().get(
-                "SELECT PhageID, Cluster, Sequence, Status, AnnotationAuthor from phage where Name like %s",
+                "SELECT PhageID, Cluster, Sequence, Status, AnnotationAuthor, Subcluster from phage where Name like %s",
                 self.name)
             self.phage_id = row[0]
             self.cluster = row[1]
             self.sequence = row[2]
-            self.status = row[3] # 'draft' = auto-annotated, 'final' = final/approved, 'gbk' imported non Pitt phage
+            self.status = row[3] # 'draft' = auto-annotated, 'final' = final/approved, 'unknown' imported non Pitt phage
             self.annot_author = row[4] # 0 means non-SEA/Pitt phage, 1 means is SEA/Pitt phage
+            self.subcluster = row[5]
         return self.phage_id
     
     def get_sequence(self):
