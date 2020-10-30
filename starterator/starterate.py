@@ -17,11 +17,11 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import letter, A4
-from gi.repository import Gtk, Gdk, GObject
+#from gi.repository import Gtk, Gdk, GObject
 import report
 import phamgene
 
-
+"""
 def gui():
     GObject.threads_init()
     Gdk.threads_init()
@@ -31,7 +31,7 @@ def gui():
     Gdk.threads_enter()
     Gtk.main()
     Gdk.threads_leave()
-
+"""
 def get_output_one_pham(pham, pham_no, config):
     """
         Creates a PDF Report for the specific pham.
