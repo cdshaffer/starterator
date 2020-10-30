@@ -552,7 +552,7 @@ class UnPhamGene(PhamGene):
         if len(result) < 1:
             return None
         else:
-            result2 = db.query("SELECT name FROM pham WHERE geneid = %s", result[0])
+            result2 = db.query("SELECT phamid FROM gene WHERE geneid = %s", result[0])
             print "pham %s by exact match to gene %s"%(result2[0],result[0])
             number, = result2[0]
             self.pham_no = number
