@@ -247,7 +247,8 @@ class UnPhamPhageReport(PhageReport):
                                             self._phams[pham_no] = []
                                         self._phams[pham_no].append(gene)
 
-                                        gene.add_cluster_hits()
+                                        if pham_no is not None:
+                                            gene.add_cluster_hits()
 
                                     else:
                                         continue
