@@ -616,7 +616,7 @@ class UnPhamGene(PhamGene):
                 first_result = blast_record.descriptions[1].title.split(',')[0].split(' ')[-1]
             # Try to get pham directly from gene name
             db = DB()
-            results = db.query("SELECT name from pham where geneID = %s", first_result)
+            results = db.query("SELECT phamid from gene where geneID = %s", first_result)
             if len(results) == 1:
                 number, = results[0]
                 self.pham_no = number
