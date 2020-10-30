@@ -502,7 +502,7 @@ class UnPhamGene(PhamGene):
         self.number = number
         self.phage_name = phage_name
         self.gene_id = "%s_%s" % (phage_name, number)
-        self.full_name = gene_id
+        self.full_name = self.gene_id
         self.name = number
         self.start = start-1
         self.stop = stop
@@ -510,6 +510,7 @@ class UnPhamGene(PhamGene):
         self.pham_size = None
         self.pham_no = None
         self.cluster = "Unassigned"
+        self.subcluster = "Unassigned"
         self.cluster_hash = sum([pow(ord(elem), i + 1) for i, elem in enumerate(self.cluster)])
 
 
