@@ -502,6 +502,8 @@ class UnPhamGene(PhamGene):
         self.number = number
         self.phage_name = phage_name
         self.gene_id = "%s_%s" % (phage_name, number)
+        self.full_name = gene_id
+        self.name = number
         self.start = start-1
         self.stop = stop
         self.orientation = orientation
