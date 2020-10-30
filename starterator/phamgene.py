@@ -647,16 +647,17 @@ class UnPhamGene(PhamGene):
         db = DB()
         result = db.query("SELECT distinct(phage.cluster) FROM phage JOIN gene on gene.phageid = phage.phageid\
                            WHERE gene.phamid = %s", self.pham_no)
+
         for item in result:
-            if item[0], != "Null":
+            hit = list(item)[0]
+            if hit is not None:
                 self.cluster_hits.append(item[0],)
 
         self.subcluster_hits = []
         result2 = db.query("SELECT distinct(phage.subcluster) FROM phage JOIN gene on gene.phageid = phage.phageid\
                            WHERE gene.phamid = %s", self.pham_no)
-
-
         for item in result2:
-            if item[0], != "Null":
+            hit2 = list(item)[0]
+            if hit2 is not None:
                 self.subcluster_hits.append(item[0], )
 
