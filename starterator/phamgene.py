@@ -511,6 +511,8 @@ class UnPhamGene(PhamGene):
         self.pham_no = None
         self.cluster = "Unassigned"
         self.subcluster = "Unassigned"
+        self.cluster_hits = None
+        self.subcluster_hits = None
         self.cluster_hash = sum([pow(ord(elem), i + 1) for i, elem in enumerate(self.cluster)])
 
 
@@ -639,3 +641,22 @@ class UnPhamGene(PhamGene):
         else:
             self.pham_no = None
             return None
+
+    def add_cluster_hits(self):
+        self.cluster_hits = []
+        db = DB()
+        result = db.query("SELECT distinct(phage.cluster) FROM phage JOIN gene on gene.phageid = phage.phageid\
+                           WHERE gene.phamid = %s", self.pham_no)
+        for item in result:
+            if item[0], != "Null":
+                self.cluster_hits.append(item[0],)
+
+        self.subcluster_hits = []
+        result2 = db.query("SELECT distinct(phage.subcluster) FROM phage JOIN gene on gene.phageid = phage.phageid\
+                           WHERE gene.phamid = %s", self.pham_no)
+
+
+        for item in result2:
+            if item[0], != "Null":
+                self.subcluster_hits.append(item[0], )
+

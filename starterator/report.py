@@ -151,6 +151,7 @@ class UnPhamPhageReport(PhageReport):
 
     def final_report(self):
         self.get_phams()
+        self.get_cluster()
         self.make_reports()
         self.make_phage_pages()
         return self.merge_reports()
@@ -246,6 +247,8 @@ class UnPhamPhageReport(PhageReport):
                                             self._phams[pham_no] = []
                                         self._phams[pham_no].append(gene)
 
+                                        gene.add_cluster_hits()
+
                                     else:
                                         continue
                             else:
@@ -253,6 +256,21 @@ class UnPhamPhageReport(PhageReport):
                 except:
                     raise StarteratorError("The profile file (%s) could not be read correctly! Please make sure it is correct." % self.profile)
         return self._phams
+
+    def get_cluster(self):
+        pham_list = []
+        for phamgene in self._phams:
+            pham_list.append(phamgene.cluster_hits)
+
+        cluster = None
+        subcluster = None
+
+        for phamgene in self._phams:
+            phamgene.cluster = cluster
+            phamgene.subcluster = subcluster
+
+
+
 
     def make_reports(self):
         self.phage_genes = {}
