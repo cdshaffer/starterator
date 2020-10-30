@@ -259,16 +259,20 @@ class UnPhamPhageReport(PhageReport):
         return self._phams
 
     def get_cluster(self):
-        pham_list = []
-        for phamgene in self._phams:
-            pham_list.append(phamgene.cluster_hits)
+        cluster_list = []
+        subcluster_list = []
+        for genelist in self._phams.values():
+            for pg in genelist:
+                cluster_list.append(pg.cluster_hits)
+                subcluster_list.append(pg.subcluster_hits)
 
         cluster = None
         subcluster = None
 
-        for phamgene in self._phams:
-            phamgene.cluster = cluster
-            phamgene.subcluster = subcluster
+        for genelist in self._phams.values():
+            for pg in genelist:
+                phamgene.cluster = cluster
+                phamgene.subcluster = subcluster
 
 
 
