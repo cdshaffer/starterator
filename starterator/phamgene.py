@@ -651,7 +651,7 @@ class UnPhamGene(PhamGene):
         for item in result:
             hit = list(item)[0]
             if hit is not None:
-                self.cluster_hits.append(item[0],)
+                self.cluster_hits.append(hit)
 
         self.subcluster_hits = []
         result2 = db.query("SELECT distinct(phage.subcluster) FROM phage JOIN gene on gene.phageid = phage.phageid\
@@ -659,5 +659,5 @@ class UnPhamGene(PhamGene):
         for item in result2:
             hit2 = list(item)[0]
             if hit2 is not None:
-                self.subcluster_hits.append(item[0], )
+                self.subcluster_hits.append(hit2 )
 

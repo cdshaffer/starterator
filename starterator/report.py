@@ -25,6 +25,7 @@ import os
 from utils import StarteratorError
 import csv
 import annotate
+from collections import Counter
 
 
 class Report(object):
@@ -263,18 +264,45 @@ class UnPhamPhageReport(PhageReport):
         subcluster_list = []
         for genelist in self._phams.values():
             for pg in genelist:
-                cluster_list.append(pg.cluster_hits)
-                subcluster_list.append(pg.subcluster_hits)
+                if pg.cluster_hits is not None:
+                    for i in pg.cluster_hits:
+                        if i is not None:
+                            cluster_list.append(i)
+                if pg.subcluster_hits is not None:
+                    for i in pg.subcluster_hits:
+                        if i is not None:
+                            subcluster_list.append(i)
 
-        cluster = None
-        subcluster = None
+        cluster_counts = Counter(cluster_list)
+        subcluster_counts = Counter(subcluster_list)
+        cluster_guess, guess_count = cluster_counts.most_common(1)[0]
+        penult_cluster, penult_count = cluster_counts.most_common(2)[1]
+        total_genes = sum([len(gl) for gl in self._phams.values()])
+        best_fraction = guess_count/(total_genes * 1.0)
+        penult_fraction = penult_count/(total_genes * 1.0)
+        if best_fraction > 0.9 and (best_fraction - penult_fraction) > 0.3:
+            cluster = cluster_guess
+        else:
+            cluster = "Unassigned"
+
+        subcluster_guess, subguess_count = subcluster_counts.most_common(1)[0]
+        penult_subcluster, penult_subcount = subcluster_counts.most_common(2)[1]
+
+        best_subfraction = subguess_count/(total_genes * 1.0)
+        penult_subfraction = penult_subcount/(total_genes * 1.0)
+        if best_subfraction > 0.9 and (best_subfraction - penult_subfraction) > 0.2:
+            subcluster = subcluster_guess
+            cluster = subcluster_guess
+        else:
+            cluster = "Unassigned"
+
 
         for genelist in self._phams.values():
+            ch = sum([pow(ord(elem), i + 1) for i, elem in enumerate(subcluster)])
             for pg in genelist:
-                phamgene.cluster = cluster
-                phamgene.subcluster = subcluster
-
-
+                pg.cluster = cluster
+                pg.subcluster = subcluster
+                pg.cluster_hash = ch
 
 
     def make_reports(self):
