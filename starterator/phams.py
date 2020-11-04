@@ -227,7 +227,7 @@ class Pham(object):
                     groups[1:] = remaining
 
         else:
-            groups.sort(key=lambda x: x[0].cluster)
+            groups.sort(key=lambda x: x[0].subcluster)
 
         return groups
 
