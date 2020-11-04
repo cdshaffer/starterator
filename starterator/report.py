@@ -294,6 +294,7 @@ class UnPhamPhageReport(PhageReport):
             subcluster = subcluster_guess
             cluster = subcluster_guess
         else:
+            subcluster = "Unassigned"
             cluster = "Unassigned"
 
 

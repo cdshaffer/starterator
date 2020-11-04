@@ -238,7 +238,7 @@ def output_start_sites_by_phage(stats, genelist):
     # draftCount = stats["draftCount"]
     # calledCount = len(stats["called_starts"][most_called_start])
 
-    # If an unphamerated whole phage report, use the standard pham report not this one
+    # If cluster not known or a singleton, use the standard pham report not this one
     if genelist[0].cluster == 'Unassigned':
         return output_start_sites(stats)
 

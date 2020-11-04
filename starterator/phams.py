@@ -473,7 +473,7 @@ class Pham(object):
         genes_by_cluster = {}
         for g, pg in self.genes.items():
             clusters_present.add(pg.subcluster)
-            if pg.cluster in genes_by_cluster.keys():
+            if pg.subcluster in genes_by_cluster.keys():
                 genes_by_cluster[pg.subcluster].append(g)
             else:
                 genes_by_cluster[pg.subcluster] = [g]
