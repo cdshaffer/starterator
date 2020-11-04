@@ -293,6 +293,8 @@ class UnPhamPhageReport(PhageReport):
         if best_subfraction > 0.9 and (best_subfraction - penult_subfraction) > 0.2:
             subcluster = subcluster_guess
             cluster = subcluster_guess
+        elif cluster != "Unassigned":
+            subcluster = cluster
         else:
             subcluster = "Unassigned"
             cluster = "Unassigned"
