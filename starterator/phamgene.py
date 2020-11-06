@@ -513,7 +513,7 @@ class UnPhamGene(PhamGene):
         self.subcluster = "Unassigned"
         self.cluster_hits = None
         self.subcluster_hits = None
-        self.cluster_hash = sum([pow(ord(elem), i + 1) for i, elem in enumerate(self.cluster)])
+        self.cluster_hash = sum([pow(ord(elem), i + 1) for i, elem in enumerate(self.subcluster)])
 
 
         if orientation == 'R':
