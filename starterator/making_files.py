@@ -596,7 +596,7 @@ def graph_start_sites(args, pham, file_path):
                     gd_feature_set.add_feature(empty_feature, color="black", label=True)
                 else:
                     if i + j > 0: # i.e. not the first track
-                        if genes[i*50 + j][0].cluster != genes[i*50 +j - 1][0].cluster:
+                        if genes[i*50 + j][0].subcluster != genes[i*50 +j - 1][0].subcluster:
                             seqColor += 1
                     gene = genes[i*50 + j][0]
                     make_gene_track(gd_diagram, pham, genes[i*50 + j], i*50 + j, 50, seqColor)
@@ -630,7 +630,7 @@ def graph_start_sites(args, pham, file_path):
 
             for gene_group in genes:
                 if i > 0:
-                    if genes[i][0].cluster != genes[i-1][0].cluster:
+                    if genes[i][0].subcluster != genes[i-1][0].subcluster:
                         seqColor += 1
                 print 'making_files.graph_start_sites: adding group ' + str(i)
                 make_gene_track(gd_diagram, pham, gene_group, i, len(genes), seqColor)
