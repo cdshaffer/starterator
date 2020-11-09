@@ -322,10 +322,10 @@ def output_start_sites_by_phage(stats, genelist):
 
         cluster_dict = {}
         for p_gene in stats['annot_list']:
-            cluster_dict[p_gene.full_name] = p_gene.cluster
+            cluster_dict[p_gene.full_name] = p_gene.subcluster
 
         for p_gene in stats['draft_list']:
-            cluster_dict[p_gene.full_name] = p_gene.cluster
+            cluster_dict[p_gene.full_name] = p_gene.subcluster
 
         genes.sort()
         s = ''
