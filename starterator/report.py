@@ -290,7 +290,7 @@ class UnPhamPhageReport(PhageReport):
 
         best_subfraction = subguess_count/(total_genes * 1.0)
         penult_subfraction = penult_subcount/(total_genes * 1.0)
-        if best_subfraction > 0.9 and (best_subfraction - penult_subfraction) > 0.2:
+        if best_subfraction > 0.9 and (best_subfraction - penult_subfraction) > 0.15:
             subcluster = subcluster_guess
             cluster = subcluster_guess
         elif cluster != "Unassigned":
