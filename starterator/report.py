@@ -280,7 +280,7 @@ class UnPhamPhageReport(PhageReport):
         total_genes = sum([len(gl) for gl in self._phams.values()])
         best_fraction = guess_count/(total_genes * 1.0)
         penult_fraction = penult_count/(total_genes * 1.0)
-        if best_fraction > 0.9 and (best_fraction - penult_fraction) > 0.3:
+        if best_fraction > 0.9 and (best_fraction - penult_fraction) > 0.2:
             cluster = cluster_guess
         else:
             cluster = "Unassigned"
@@ -290,7 +290,7 @@ class UnPhamPhageReport(PhageReport):
 
         best_subfraction = subguess_count/(total_genes * 1.0)
         penult_subfraction = penult_subcount/(total_genes * 1.0)
-        if best_subfraction > 0.9 and (best_subfraction - penult_subfraction) > 0.15:
+        if best_subfraction > 0.97 or (best_subfraction > 0.9 and (best_subfraction - penult_subfraction) > 0.10):
             subcluster = subcluster_guess
             cluster = subcluster_guess
         elif cluster != "Unassigned":
