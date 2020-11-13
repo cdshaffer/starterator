@@ -63,7 +63,8 @@ def get_arguments():
     parser = argparse.ArgumentParser(prog='starterate.py', usage='Phameratored Phage Report: %(prog)s -p {Phage Name}\n'
             + 'One Gene of Phameratored Phage Report:  %(prog)s -p {Phage Name} -n {Pham Number}\n'
             + 'Unphameratored Phage Report:  %(prog)s -p {Phage Name} -u True -f {Path to DNAMaster profile file}\n'
-            + 'One Gene of Unphameratored Phage Report:  %(prog)s -p {Phage Name} -u True -s {Start of Gene} -t {Stop of Gene} -o {Orientation of Gene} -g {Number of Gene}')
+            + 'One Gene of Unphameratored Phage Report:  %(prog)s -p {Phage Name} -u True -s {Start of Gene} '
+            + '-t {Stop of Gene} -o {Orientation of Gene} -g {Number of Gene}')
     parser.add_argument('-n', '--pham_no', default = -1,
                         help='Number of the Pham. For case when want report of a phameratored phage gene.')
     parser.add_argument('-p' , '--phage', default=None,
