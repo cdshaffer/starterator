@@ -353,7 +353,7 @@ def output_start_sites_by_phage(stats, genelist):
 
     annotated_genes = [g.gene_id for g in stats['annot_list']]
 
-    cluster = genelist[0].cluster
+    cluster = genelist[0].subcluster
 
     if cluster == 'singleton':
         output.append("This phage is a singleton, no other cluster members to compare.")
