@@ -28,7 +28,7 @@ class Phage(object):
         if not self.name:
             row = get_db().get(
                 "SELECT Name, Cluster, Sequence, Status, AnnotationAuthor, Subcluster from phage where PhageID = %s",
-                self.phage_id)
+                (self.phage_id,))
             self.name = row[0]
             self.cluster = row[1]
             self.sequence = row[2]
