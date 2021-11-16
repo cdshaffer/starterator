@@ -77,6 +77,14 @@ class Pham(object):
             orientation = gene_info[5]
             name = gene_info[6]
             gene = new_PhamGene(gene_id, start, stop, orientation, phage_id, name)
+            # Data validations: screen out incompatible annotations:
+            # screen out phage with N's in the genome sequence:
+            genome_query_results = get_db().query("SELECT sequence FROM phage WHERE phageid = %s", phage_id)
+            genome_seq, = genome_query_results[0][0],
+            if "N" in genome_seq:
+                continue
+
+            # and only keep if there is a valid start at the annotation start of the gene
             if gene.has_valid_start():
                 genes[gene.gene_id] = gene
         if len(genes) < 1:
