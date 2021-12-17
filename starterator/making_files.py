@@ -193,6 +193,9 @@ def output_start_sites(stats):
         output.append(s)
         output.append('')
 
+        output.append('Summary based on SEA-PHAGES annotations:')
+        output.append('')
+
         annotated_genes = [g.gene_id for g in stats['annot_list']]
 
         for cluster in sorted(stats['clusters_present']):
@@ -217,6 +220,8 @@ def output_start_sites(stats):
                     output.append(u'\u2022' + s)
 
             output.append('')
+
+        output.append('Summary based on conservation across all genes:')
 
         return output
 
