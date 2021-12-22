@@ -207,7 +207,7 @@ def output_start_sites(stats):
                 if geneid in stats['genes_by_cluster'][cluster]:
                     count_MA += 1
             if count_MA > 0:
-                output.append("Info for manual annotations of cluster %s:" % cluster)
+                output.append("There are %s SEA-PHAGES manual annotations of cluster %s:" % (cluster)
                 annotated_cluster_starts = [ph.alignment_start_num_called for ph in stats['annot_list'] if ph.subcluster == cluster]
                 start_counts = dict([(x,annotated_cluster_starts.count(x)) for x in set(annotated_cluster_starts)])
                 starts_present = sorted(start_counts.keys())
