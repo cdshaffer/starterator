@@ -34,7 +34,7 @@ def get_pham_colors(phams=None):
 
 def get_version():
     version = get_db().get("SELECT Version from version;")
-    return int(version)
+    return int(version[0])
 
 
 class Pham(object):
