@@ -71,7 +71,7 @@ class DB(object):
     def query(self, query, params=None):
         cursor = self._cursor()
         try:
-            self._execute(cursor, query, params)
+            self._execute(cursor, query)
             result = cursor.fetchall()
             return result
         except:
@@ -80,7 +80,7 @@ class DB(object):
         finally:
             cursor.close()
 
-    def get(self, query, params):
+    def get(self, query, params=None):
         """Returns the first row returned for the given query."""
         rows = self.query(query, params)
         if not rows:
@@ -104,9 +104,9 @@ class DB(object):
         self._ensure_connected()
         return self._db.cursor()
 
-    def _execute(self, cursor, query, params):
+    def _execute(self, cursor, query):
         try:
-            return cursor.execute(query, params)
+            return cursor.execute(query)
         except MySQLdb.OperationalError:
             print "Error connecting to MySQL on %s", self.host
             self.close()

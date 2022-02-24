@@ -261,11 +261,9 @@ class StarteratorEnterInformation(Gtk.Dialog):
             phage_list.append(row)
 
     def find_phage_in_db(self, db, phage):
-        results = db.query("SELECT Name\n\
-            from phage\n\
-            where Name like %s\n\
-            or Name like %s \n\
-            or Name = %s", (phage + '-%', phage + '_%', phage))
+        results = db.query("SELECT Name from phage where Name like '%s' or "
+                           "Name like '%s' or Name = '%s';" %
+                           (phage + '-%', phage + '_%', phage))
         if len(results) < 1:
             self.info['phamerated'] = False
             return None

@@ -12,22 +12,15 @@ import json
 
 def get_pham_number(phage_name, gene_number):
     try:
-        db = DB()
-        results = db.query("SELECT pham.Name \n\
-            FROM gene JOIN pham ON gene.GeneID = pham.Gene \n\
-            JOIN phage ON gene.PhageID = phage.PhageID \n\
-            WHERE phage.Name LIKE %s AND gene.Name LIKE %s \n\
-            ESCAPE '!'", (phage_name+"%", '%'+str(gene_number)))
-        row = results[0]
-        pham_no = row[0]
+        pham_no = get_db().get("SELECT PhamID FROM gene WHERE PhageID = '%s' "
+                               "AND Name = %s" % (phage_name, str(gene_number)))
         return str(pham_no)
     except:
         raise StarteratorError("Gene %s of Phage %s not found in database!" % (gene_number, phage_name))
 
 
 def get_pham_colors(phams=None):
-    db = DB()
-    results = db.query("SELECT `PhamID`, `Color` from `pham`;")
+    results = get_db().query("SELECT PhamID, Color from pham;")
     pham_colors = {}
     if phams:
         for row in results:
@@ -38,10 +31,10 @@ def get_pham_colors(phams=None):
             pham_colors[str(row[0])] = row[1]
     return pham_colors
 
+
 def get_version():
-    db = DB()
-    results = db.query("SELECT Version from version;")
-    return int(results[0][0])
+    version = get_db().get("SELECT Version from version;")
+    return int(version)
 
 
 class Pham(object):
@@ -63,32 +56,25 @@ class Pham(object):
         """
             Get the genes of the Phamily
         """
-        results = get_db().query("SELECT `gene`.`GeneID`, `gene`.`phageID`, " +
-                                 " `Length`, `Start`, `Stop`, `Orientation`, `gene`.`name`" +
-                                 " FROM `gene`"
-                                 " WHERE `gene`.`PhamID` =%s; ", self.pham_no)
+        results = get_db().query("SELECT GeneID, PhageID, Start, Stop, "
+                                 "Orientation, Name FROM gene WHERE "
+                                 "PhamID = %s;" % str(self.pham_no))
         genes = {}
         self.count = len(results)
-        for gene_info in results:
-            gene_id = gene_info[0]
-            phage_id = gene_info[1]
-            start = gene_info[3]
-            stop = gene_info[4]
-            orientation = gene_info[5]
-            name = gene_info[6]
-            gene = new_PhamGene(gene_id, start, stop, orientation, phage_id, name)
-            # Data validations: screen out incompatible annotations:
-            # screen out phage with N's in the genome sequence:
-            genome_query_results = get_db().query("SELECT sequence FROM phage WHERE phageid = %s", phage_id)
-            genome_seq, = genome_query_results[0][0],
-            if "N" in genome_seq:
-                continue
+        for geneid, phageid, start, stop, orientation, name in results:
+            gene = new_PhamGene(geneid, start, stop, orientation, phageid, name)
+            # Data validation:
+            # ignore phages with 'N' nucleotides
+            # ignore genes lacking valid starts
+            seq = get_db().get("SELECT Sequence FROM phage WHERE "
+                               "PhageID = '%s';" % phageid)
 
-            # and only keep if there is a valid start at the annotation start of the gene
-            if gene.has_valid_start():
+            if "N" not in seq and gene.has_valid_start():
                 genes[gene.gene_id] = gene
+
         if len(genes) < 1:
             raise StarteratorError("Pham Number %s not found or all genes fail validation!" % self.pham_no)
+
         return genes
 
     def get_phage_genes(self):
@@ -105,9 +91,9 @@ class Pham(object):
             Get the color of the phamily from the database
         """
         try:
-            result = get_db().get("SELECT `phamid`, `color`\n\
-                FROM `pham` WHERE `phamid` = %s;", self.pham_no)
-            return result[1]
+            color = get_db().get("SELECT Color FROM pham WHERE PhamID = %s;" %
+                                 str(self.pham_no))
+            return color
         except:
             raise StarteratorError("Pham number %s not found in database!" % self.pham_no)
 
