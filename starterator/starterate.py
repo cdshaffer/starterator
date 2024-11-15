@@ -138,12 +138,12 @@ def main():
     
     # Check if the configuration file exists
     if not os.path.exists(config_path):
-        logging.error(f"Configuration file {config_path} does not exist.")
+        logging.error("Configuration file {} does not exist.".format(config_path))
         return
     
     # Log the content of the configuration file
     with open(config_path, 'r') as config_file:
-        logging.info(f"Configuration file {config_path} content:\n{config_file.read()}")
+        logging.info("Configuration file {} content:\n{}".format(config_path, config_file.read()))
     
     # Existing code
     config = utils.get_config()
