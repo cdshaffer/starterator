@@ -126,8 +126,26 @@ def starterate(info, gui=None, event=None):
     return final_file
 
 
+import os
+import logging
+import utils
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 def main():
-    args = get_arguments()
+    config_path = "/usr/src/app/starterator/extras/starterator.config"
+    
+    # Check if the configuration file exists
+    if not os.path.exists(config_path):
+        logging.error(f"Configuration file {config_path} does not exist.")
+        return
+    
+    # Log the content of the configuration file
+    with open(config_path, 'r') as config_file:
+        logging.info(f"Configuration file {config_path} content:\n{config_file.read()}")
+    
+    # Existing code
     config = utils.get_config()
     print config["count"]
     phamgene.check_protein_db(config["count"])
