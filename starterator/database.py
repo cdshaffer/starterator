@@ -69,6 +69,7 @@ class DB(object):
             cursor.close()
 
     def query(self, query, params=None):
+        '''
         cursor = self._cursor()
         try:
             self._execute(cursor, query, params)
@@ -79,6 +80,24 @@ class DB(object):
             self.query(query, params)
         finally:
             cursor.close()
+        '''
+        #Potential fix for connection error from github copilot
+        cursor = self._cursor()
+        try:
+            self._execute(cursor, query, params)
+            result = cursor.fetchall()
+            return result
+        except MySQLdb.OperationalError as e:
+            print(f"OperationalError: {e}")
+            self.reconnect()
+            return self.query(query, params)
+        finally:
+            if cursor:
+                try:
+                    cursor.close()
+                except MySQLdb.OperationalError as e:
+                    print(f"Error closing cursor: {e}")
+
 
     def get(self, query, params):
         """Returns the first row returned for the given query."""
