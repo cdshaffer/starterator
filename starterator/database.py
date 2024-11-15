@@ -125,12 +125,17 @@ class DB(object):
 
     def _execute(self, cursor, query, params):
         try:
-            return cursor.execute(query, (params,))
+            if params is None:
+                return cursor.execute(query)
+            elif isinstance(params, tuple):
+                return cursor.execute(query, params)
+            else:
+                return cursor.execute(query, (params,))
         except MySQLdb.OperationalError:
             print("Error connecting to MySQL on %s" % self.host)
             self.close()
             raise StarteratorError("Error connecting to database! Please enter correct login credentials in Preferences menu.")
-
+            
 class Row(dict):
     """A dict that allows for object-like property access syntax."""
     def __getattr__(self, name):
