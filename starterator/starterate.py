@@ -190,12 +190,6 @@ def main():
     # email_final_report(args.email, short_final)
 
 
-if __name__ == '__main__':
-    try:
-        # print utils.DIR_PATH ???
-        main()
-    except Exception, e:
-        # send_error_email(e)
-        raise
-    finally:
-        pass   # clean_up_files()
+
+if __name__ == "__main__":
+    main()
