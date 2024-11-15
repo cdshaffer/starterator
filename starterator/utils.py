@@ -210,26 +210,37 @@ def write_to_config_file(config_info):
 
 def get_config():
     global INTERMEDIATE_DIR, FINAL_DIR, PROTEIN_DB, BLAST_DIR, CLUSTAL_DIR
-    if not os.path.exists(os.path.join(os.environ["HOME"], ".starterator")):
+    config_file = os.path.abspath(os.path.join(os.environ["HOME"], ".starterator/starterator.config"))
+    
+    if not os.path.exists(config_file):
         # Directly call the necessary setup functions without `add_desktop_file`
         create_folders()
         move_config_file()
-        # add_desktop_file()  # Ensure this line is skipped or removed
-    config_file = os.path.abspath(os.path.join(os.environ["HOME"], ".starterator/starterator.config"))
+        logging.info("Configuration file created at {}".format(config_file))
+    
     config = ConfigParser.RawConfigParser()
     config.read(config_file)
-    print "?", CONFIGURATION_FILE, config
+    logging.info("Configuration file {} content:\n{}".format(config_file, config))
+    
     config_info = dict(config.items('Starterator'))
     INTERMEDIATE_DIR = config_info["intermediate_file_dir"]
     FINAL_DIR = config_info["final_file_dir"]
-    # PROTEIN_DB = config_info["protein_db"]
     CLUSTAL_DIR = config_info["clustalw_dir"]
     BLAST_DIR = config_info["blast_dir"]
     return config_info
-    # config_info['intermediate_file_dir'] = os.path.abspath(self.config_info['intermediate_file_dir'])+ '/'
-    # config_info['final_file_dir'] = os.path.abspath(self.config_info['final_file_dir']) + '/'
-    # self.config_info['protein_db'] = os.path.abspath(self.config_info['protein_db']) + '/'
 
+def create_folders():
+    if not os.path.exists(os.path.join(os.environ["HOME"], ".starterator")):
+        os.mkdir(os.path.join(os.environ["HOME"], ".starterator"))
+    if not os.path.exists(PROTEIN_DB):
+        os.mkdir(PROTEIN_DB)
+    if not os.path.exists(config_file):
+        shutil.copyfile(CONFIGURATION_FILE, config_file)
+        logging.info("Copied configuration file to {}".format(config_file))
+    if not os.path.exists(os.path.join(os.environ["HOME"], ".starterator", "Intermediate Files")):
+        os.mkdir(os.path.join(os.environ["HOME"], ".starterator", "Intermediate Files"))
+    if not os.path.exists(os.path.join(os.environ["HOME"], ".starterator", "Report Files")): 
+        os.mkdir(os.path.join(os.environ["HOME"], ".starterator", "Report Files"))
 
 def db_connect(config_info):
     db = MySQLdb.connect(config_info['database_server'], 
