@@ -74,7 +74,7 @@ class DB(object):
         try:
             self._execute(cursor, query, params)
             result = cursor.fetchall()
-            return result
+            return result.
         except:
             self.reconnect()
             self.query(query, params)
@@ -88,7 +88,7 @@ class DB(object):
             result = cursor.fetchall()
             return result
         except MySQLdb.OperationalError as e:
-            print(f"OperationalError: {e}")
+            print("OperationalError: %s" % e)
             self.reconnect()
             return self.query(query, params)
         finally:
@@ -96,7 +96,7 @@ class DB(object):
                 try:
                     cursor.close()
                 except MySQLdb.OperationalError as e:
-                    print(f"Error closing cursor: {e}")
+                    print("Error closing cursor: %s" % e)
 
 
     def get(self, query, params):
