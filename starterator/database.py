@@ -125,9 +125,9 @@ class DB(object):
 
     def _execute(self, cursor, query, params):
         try:
-            return cursor.execute(query, params)
+            return cursor.execute(query, (params,))
         except MySQLdb.OperationalError:
-            print "Error connecting to MySQL on %s", self.host
+            print("Error connecting to MySQL on %s" % self.host)
             self.close()
             raise StarteratorError("Error connecting to database! Please enter correct login credentials in Preferences menu.")
 
