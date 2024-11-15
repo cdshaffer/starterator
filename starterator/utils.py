@@ -143,6 +143,7 @@ def get_gene_number(geneID):
     return int(gene_num)
 
 def add_desktop_file():
+    '''
     desktop = ConfigParser.RawConfigParser()
     desktop.optionxform = str
     desktop.readfp(open(DESKTOP_FILE))
@@ -160,6 +161,9 @@ def add_desktop_file():
     # if not os.path.exists(os.path.join(os.environ["HOME"], ".starterator", "starterator.svg")):
     shutil.copyfile(ICON_FILE,
             os.path.join(os.environ["HOME"], ".starterator/", "starterator.svg"))
+            '''
+         # Function implementation
+    pass
 
 def create_folders():
     if not os.path.exists(os.path.join(os.environ["HOME"], ".starterator")):
@@ -186,8 +190,8 @@ def move_config_file():
 def set_up():
     create_folders()
     move_config_file()
-    add_desktop_file()
-
+    # Comment out or remove the following line to skip setting up desktop files
+    # add_desktop_file()
 
 def write_to_config_file(config_info):
     global INTERMEDIATE_DIR, FINAL_DIR, PROTEIN_DB, BLAST_DIR, CLUSTAL_DIR
@@ -207,7 +211,10 @@ def write_to_config_file(config_info):
 def get_config():
     global INTERMEDIATE_DIR, FINAL_DIR, PROTEIN_DB, BLAST_DIR, CLUSTAL_DIR
     if not os.path.exists(os.path.join(os.environ["HOME"], ".starterator")):
-        set_up()
+        # Directly call the necessary setup functions without `add_desktop_file`
+        create_folders()
+        move_config_file()
+        # add_desktop_file()  # Ensure this line is skipped or removed
     config_file = os.path.abspath(os.path.join(os.environ["HOME"], ".starterator/starterator.config"))
     config = ConfigParser.RawConfigParser()
     config.read(config_file)
