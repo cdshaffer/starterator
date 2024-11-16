@@ -5,6 +5,7 @@ from Bio import SeqIO
 from collections import Counter
 import utils
 import subprocess
+import multiprocessing
 import os
 from utils import StarteratorError
 import json
@@ -128,7 +129,7 @@ class Pham(object):
 
         if self.aligner == 'ClustalO':
             outfile = fasta_file.replace(".fasta", ".aln")
-            subprocess.check_call(['clustalo', '--infile=%s' % fasta_file, '--outfile=%s' % outfile, '--outfmt=clu', '--threads', str(os.cpu_count())])
+            subprocess.check_call(['clustalo', '--infile=%s' % fasta_file, '--outfile=%s' % outfile, '--outfmt=clu', '--threads', str(multiprocessing.cpu_count())])
             # subprocess.check_call(['clustalo', '--infile=%s' % fasta_file, '--outfile=%s' % outfile, '--outfmt=clu'])
         else:
             subprocess.check_call(['clustalw', '-infile=%s' % (fasta_file), '-quicktree'])
