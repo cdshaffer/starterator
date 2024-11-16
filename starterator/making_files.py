@@ -789,11 +789,11 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
                 else:
                     candidate_starts += '(' + str(start_num) + ', ' + str(gene.alignment_index_to_coord(start)) + '), '
 
-            story.append(Paragraph(" Gene: %s \n Start: %s, Stop: %s, Start Num: %s " % (gene.gene_id,
+            story.append(Paragraph(" Gene: %s \n Start: %s, Stop: %s, Start Num: %s " % (gene.full_name,
                                    gene.start_codon_location, gene.stop_codon_location,
                                    gene.suggested_start["current_start_number"]), text_style))
 
-            story.append(Paragraph(" Candidate Starts for %s: " % gene.gene_id, text_style))
+            story.append(Paragraph(" Candidate Starts for %s: " % gene.full_name, text_style))
             story.append(Paragraph("     " + candidate_starts, text_style))
             story.append(Spacer(1, 12))
     doc.build(story)
