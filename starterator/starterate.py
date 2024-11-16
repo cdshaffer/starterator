@@ -146,6 +146,7 @@ def main():
         logging.info("Configuration file {} content:\n{}".format(config_path, config_file.read()))
     
     # Existing code
+    args = get_arguments()
     config = utils.get_config()
     print config["count"]
     phamgene.check_protein_db(config["count"])
