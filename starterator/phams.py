@@ -123,12 +123,13 @@ class Pham(object):
             gene.add_gaps_as_features()
 
     def call_clustal(self, fasta_file):
-        # self.aligner = 'ClustalO'
-        self.aligner = 'ClustalW'
+        self.aligner = 'ClustalO'
+        # self.aligner = 'ClustalW'
 
         if self.aligner == 'ClustalO':
             outfile = fasta_file.replace(".fasta", ".aln")
-            subprocess.check_call(['clustalo', '--infile=%s' % fasta_file, '--outfile=%s' % outfile, '--outfmt=clu'])
+            subprocess.check_call(['clustalo', '--infile=%s' % fasta_file, '--outfile=%s' % outfile, '--outfmt=clu', '--threads', str(os.cpu_count())])
+            # subprocess.check_call(['clustalo', '--infile=%s' % fasta_file, '--outfile=%s' % outfile, '--outfmt=clu'])
         else:
             subprocess.check_call(['clustalw', '-infile=%s' % (fasta_file), '-quicktree'])
 
