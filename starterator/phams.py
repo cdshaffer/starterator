@@ -124,8 +124,8 @@ class Pham(object):
             gene.add_gaps_as_features()
 
     def call_clustal(self, fasta_file):
-        self.aligner = 'ClustalO'
-        # self.aligner = 'ClustalW'
+        # self.aligner = 'ClustalO'
+        self.aligner = 'ClustalW'
 
         if self.aligner == 'ClustalO':
             outfile = fasta_file.replace(".fasta", ".aln")
