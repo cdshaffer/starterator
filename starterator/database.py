@@ -29,7 +29,7 @@ class DB(object):
         args = {}
         config = get_config()
         args["user"] = config["database_user"]
-        args["passwd"] = config["database_password"]
+        args["passwd"] = ""
         args["db"] = config["database_name"]
         args["unix_socket"] = "/tmp/mysqld.sock"
         args["host"] = config["database_server"]
