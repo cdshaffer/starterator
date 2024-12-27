@@ -31,6 +31,7 @@ class DB(object):
         args["user"] = config["database_user"]
         args["passwd"] = config["database_password"]
         args["db"] = config["database_name"]
+        args["unix_socket"] = "/tmp/mysqld.sock"
         args["host"] = config["database_server"]
         args["port"] =  3307
         self.host = "{0}:{1}".format(args['host'], args['port'])
