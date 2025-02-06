@@ -60,8 +60,8 @@ MENU_UI = """
 class StarteratorWindow:
     def __init__(self):
 
-        self.choices = [ 'Pham', 'Whole Phamerated Phage', 'Whole Unphamerated Phage',
-                        'One Phamerated Gene', 'One Unphamerated Gene']
+        self.choices = ['Whole Phamerated Phage', 'Whole Unphamerated Phage', 
+                        'One Phamerated Gene', 'One Unphamerated Gene', 'Pham']
   
         # self.set_border_width(10)
         self.config_info = utils.get_config()
@@ -90,7 +90,7 @@ class StarteratorWindow:
         Gtk.main_quit()
 
     def on_view_clicked(self, button):
-        print os.path.abspath(self.config_info["final_file_dir"])
+        print os.path.abspath(fself.config_info["final_file_dir"])
         os.system("xdg-open \""+ os.path.abspath(self.config_info["final_file_dir"])+"\"")
 
     def on_contents_clicked(self, button):

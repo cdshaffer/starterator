@@ -10,7 +10,7 @@
 # Utility functions for Starterator
 
 import MySQLdb
-import ConfigParser
+import configparser
 import getpass
 import os, subprocess
 import re
@@ -19,7 +19,6 @@ from Bio.Seq import Seq
 from Bio import SeqIO
 from Bio.Alphabet import IUPAC
 import shutil
-import logging 
 
 
 MAKING_FILES = os.path.join(os.path.dirname(os.path.abspath(__file__)))+ "/making_files.py" # absolute path to making files file
@@ -55,8 +54,8 @@ def get_pham_no(db, phage_name, gene_number):
     cursor = db.cursor()
     #Query the database for genes that match the given gene number and phage name
     like_phage_name = phage_name +'%'
-    print like_phage_name, gene_number
-    cursor.execute("SELECT `gene`.`GeneID` , `pham`.`Name` , `phage`.`PhageID`\n\
+    print(like_phage_name, gene_number)
+    cursor.execute("SELECT `gene`.`GeneID` , `pham`.`name` , `phage`.`PhageID`\n\
     FROM `gene`\n\
     JOIN `pham` ON `gene`.`GeneID` = `pham`.`GeneID`\n\
     JOIN `phage` ON `gene`.`PhageID` = `phage`.`PhageID`\n\
@@ -64,7 +63,7 @@ def get_pham_no(db, phage_name, gene_number):
     AND `gene`.`GeneID` LIKE %s \n\
     ESCAPE '!'", (like_phage_name, '%!_'+ str(gene_number)))
     results = cursor.fetchall()
-    print results, phage_name, gene_number
+    print(results, phage_name, gene_number)
     # There should only be one result.
     row = results[0]
     pham_no = row[1]
@@ -83,7 +82,7 @@ def find_phams_of_a_phage(db, phage):
     """
     # write sql statement to get phams of a phage
     cursor = db.cursor()
-    cursor.execute("""SELECT `pham`.`GeneID`, `pham`.`Name`, `phage`.`Name`, `phage`.`SequenceLength`\n\
+    cursor.execute("""SELECT `pham`.`GeneID`, `pham`.`name`, `phage`.`Name`, `phage`.`SequenceLength`\n\
     from `pham` \n\
     join `gene` on `pham`.`GeneID` = `gene`.`GeneID` \n\
     join `phage` on `phage`.`PhageID` = `gene`.`PhageID`\n\
@@ -92,14 +91,14 @@ def find_phams_of_a_phage(db, phage):
     phage_phams = []
     seq_length = results[0][3]
     for row in results:
-        print row[0], row[1]
+        print(row[0], row[1])
         phage_phams.append([row[0],str(row[1])])
     return phage_phams, seq_length
 
 
 def get_protein_sequences():
     proteins = []
-    get_db().execute('SELECT GeneID, Translation from gene')
+    get_db().execute('SELECT GeneID, translation from gene')
     results = cursor.fetchall()
     for row in results:
         protein = SeqRecord(Seq(row[1], IUPAC.protein), id=row[0]+"+", name=row[0], description=row[0])
@@ -116,14 +115,14 @@ def update_protein_db():
                     '-in',"\""+ fasta_file + ".fasta" +"\"",
                     "-dbtype","prot", "-title", "Proteins",
                      "-out", "%s"% fasta_file]
-        print blast_db_command
+        print(blast_db_command)
     # else:
     #     blast_db_command = [BLAST_DIR + 'formatdb',
     #                 '-i', "\""+ fasta_file+ "\"",
     #                 '-o', 'T',
     #                 "-t", "Proteins"]
     #     print blast_db_command
-    subprocess.check_call(blast_db_command) #TODO add file clean-up here
+    subprocess.check_call(blast_db_command)
 
 def check_protein_db(count):
     get_db().execute('SELECT count(*) from gene')
@@ -144,8 +143,7 @@ def get_gene_number(geneID):
     return int(gene_num)
 
 def add_desktop_file():
-    '''
-    desktop = ConfigParser.RawConfigParser()
+    desktop = configparser.RawConfigParser()
     desktop.optionxform = str
     desktop.readfp(open(DESKTOP_FILE))
     desktop_info = dict(desktop.items("Desktop Entry"))
@@ -156,15 +154,12 @@ def add_desktop_file():
     with open(DESKTOP_FILE, 'wb') as df:
         desktop.write(df)
     subprocess.check_call(["xdg-desktop-icon",  "install", "--novendor", DESKTOP_FILE])
-    print "icon file added"
+    print("icon file added")
     subprocess.check_call(["xdg-desktop-menu", "install", "--novendor", DESKTOP_FILE])
-    print "desktop menu icon installed"
+    print("desktop menu icon installed")
     # if not os.path.exists(os.path.join(os.environ["HOME"], ".starterator", "starterator.svg")):
     shutil.copyfile(ICON_FILE,
             os.path.join(os.environ["HOME"], ".starterator/", "starterator.svg"))
-            '''
-         # Function implementation
-    pass
 
 def create_folders():
     if not os.path.exists(os.path.join(os.environ["HOME"], ".starterator")):
@@ -191,12 +186,12 @@ def move_config_file():
 def set_up():
     create_folders()
     move_config_file()
-    # Comment out or remove the following line to skip setting up desktop files
-    # add_desktop_file()
+    add_desktop_file()
+
 
 def write_to_config_file(config_info):
     global INTERMEDIATE_DIR, FINAL_DIR, PROTEIN_DB, BLAST_DIR, CLUSTAL_DIR
-    config = ConfigParser.RawConfigParser()
+    config = configparser.RawConfigParser()
     INTERMEDIATE_DIR = config_info["intermediate_file_dir"]
     FINAL_DIR = config_info["final_file_dir"]
     # PROTEIN_DB = config_info["protein_db"]
@@ -205,43 +200,29 @@ def write_to_config_file(config_info):
     config.add_section('Starterator')
     for name in config_info:
         config.set('Starterator', name, config_info[name])
-    print 'write'
+    print('write')
     with open(config_file, 'w') as configfile:
         config.write(configfile)
 
 def get_config():
     global INTERMEDIATE_DIR, FINAL_DIR, PROTEIN_DB, BLAST_DIR, CLUSTAL_DIR
+    if not os.path.exists(os.path.join(os.environ["HOME"], ".starterator")):
+        set_up()
     config_file = os.path.abspath(os.path.join(os.environ["HOME"], ".starterator/starterator.config"))
-    
-    if not os.path.exists(config_file):
-        # Directly call the necessary setup functions without `add_desktop_file`
-        create_folders()
-        move_config_file()
-        logging.info("Configuration file created at {}".format(config_file))
-    
-    config = ConfigParser.RawConfigParser()
+    config = configparser.RawConfigParser()
     config.read(config_file)
-    logging.info("Configuration file {} content:\n{}".format(config_file, config))
-    
+    print("?", CONFIGURATION_FILE, config)
     config_info = dict(config.items('Starterator'))
     INTERMEDIATE_DIR = config_info["intermediate_file_dir"]
     FINAL_DIR = config_info["final_file_dir"]
+    # PROTEIN_DB = config_info["protein_db"]
     CLUSTAL_DIR = config_info["clustalw_dir"]
     BLAST_DIR = config_info["blast_dir"]
     return config_info
+    # config_info['intermediate_file_dir'] = os.path.abspath(self.config_info['intermediate_file_dir'])+ '/'
+    # config_info['final_file_dir'] = os.path.abspath(self.config_info['final_file_dir']) + '/'
+    # self.config_info['protein_db'] = os.path.abspath(self.config_info['protein_db']) + '/'
 
-def create_folders():
-    if not os.path.exists(os.path.join(os.environ["HOME"], ".starterator")):
-        os.mkdir(os.path.join(os.environ["HOME"], ".starterator"))
-    if not os.path.exists(PROTEIN_DB):
-        os.mkdir(PROTEIN_DB)
-    if not os.path.exists(config_file):
-        shutil.copyfile(CONFIGURATION_FILE, config_file)
-        logging.info("Copied configuration file to {}".format(config_file))
-    if not os.path.exists(os.path.join(os.environ["HOME"], ".starterator", "Intermediate Files")):
-        os.mkdir(os.path.join(os.environ["HOME"], ".starterator", "Intermediate Files"))
-    if not os.path.exists(os.path.join(os.environ["HOME"], ".starterator", "Report Files")): 
-        os.mkdir(os.path.join(os.environ["HOME"], ".starterator", "Report Files"))
 
 def db_connect(config_info):
     db = MySQLdb.connect(config_info['database_server'], 
@@ -252,18 +233,18 @@ def db_connect(config_info):
     
 def attempt_db_connect(config_info):
     try:
-        print 'attempting to connect', config_info
+        print('attempting to connect', config_info)
         db = MySQLdb.connect(config_info['database_server'], 
                 config_info['database_user'],
                 config_info['database_password'],
                 config_info['database_name'])
         db.close()
     except:
-        config_info['database_server'] = raw_input("Enter Database server: ")
-        config_info['database_user'] = raw_input("Enter Database username: ")
+        config_info['database_server'] = input("Enter Database server: ")
+        config_info['database_user'] = input("Enter Database username: ")
         config_info['database_password'] = getpass.getpass('Enter Database password: ')
-        config_info['database_name'] = raw_input("Enter database name: ")
-        print config_info
+        config_info['database_name'] = input("Enter database name: ")
+        print(config_info)
         attempt_db_connect(config_info)
     return config_info
 

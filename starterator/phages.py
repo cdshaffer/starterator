@@ -223,7 +223,7 @@ class PhageReport(object):
         """
             Creates a PDF page of the suggested starts of a phage
             Genes are list in order
-            {Gene Name} is in Pham {Number}: {Suggested Start Coordinates}
+            {Gene Name} is a member of Pham {Number}: {Suggested Start Coordinates}
         """
         doc = SimpleDocTemplate("%sSuggestedStarts.pdf" % (self.intermediate_dir + self.name), pagesize=letter)
         story = []
@@ -241,7 +241,7 @@ class PhageReport(object):
                 text = '<font size=12> %s is not a member of an existing Pham </font>' % (gene.id)
             else:
                 suggested_start = gene.annotations['suggested_start']
-                text = '<font size=12> %s is in Pham %s:  %s </font>' % (gene.id, pham, suggested_start)
+                text = '<font size=12> %s is a member of Pham %s:  %s </font>' % (gene.id, pham, suggested_start)
             story.append(Paragraph(text, styles['Normal']))
         doc.build(story)
 
