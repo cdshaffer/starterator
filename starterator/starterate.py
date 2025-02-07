@@ -11,17 +11,33 @@
 # Starterate function 
 
 import argparse
-import utils
-from utils import clean_up_files
+from . import utils
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter, A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+import PyPDF2
+from Bio.SeqFeature import SeqFeature, FeatureLocation
+from Bio.SeqRecord import SeqRecord
+from Bio import SeqIO
+from Bio.Graphics import GenomeDiagram
+from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter, A4
-#from gi.repository import Gtk, Gdk, GObject
-import report
-import phamgene
+from Bio.Blast import NCBIXML
+from Bio.Blast.Applications import NcbiblastpCommandline as Blastp
+from Bio.Blast.Applications import BlastallCommandline
+import MySQLdb
+import subprocess
+import os, sys
+import math
+import pickle
+from gi.repository import Gtk, Gdk, GObject
+import getpass
+from . import report
+from . import phamgene
 
-"""
 def gui():
     GObject.threads_init()
     Gdk.threads_init()
@@ -31,7 +47,7 @@ def gui():
     Gdk.threads_enter()
     Gtk.main()
     Gdk.threads_leave()
-"""
+
 def get_output_one_pham(pham, pham_no, config):
     """
         Creates a PDF Report for the specific pham.
@@ -61,30 +77,24 @@ def get_output_one_pham(pham, pham_no, config):
 
 def get_arguments():
     parser = argparse.ArgumentParser(prog='starterate.py', usage='Phameratored Phage Report: %(prog)s -p {Phage Name}\n'
-            + 'One Gene of Phameratored Phage Report:  %(prog)s -p {Phage Name} -n {Pham Number}\n'
+            +'One Gene of Phameratored Phage Report:  %(prog)s -p {Phage Name} -n {Pham Number}\n'
             + 'Unphameratored Phage Report:  %(prog)s -p {Phage Name} -u True -f {Path to DNAMaster profile file}\n'
-            + 'One Gene of Unphameratored Phage Report:  %(prog)s -p {Phage Name} -u True -s {Start of Gene} '
-            + '-t {Stop of Gene} -o {Orientation of Gene} -g {Number of Gene}')
-    parser.add_argument('-n', '--pham_no', default = -1,
-                        help='Number of the Pham. For case when want report of a phameratored phage gene.')
-    parser.add_argument('-p' , '--phage', default=None,
-                        help='The Phamerator database Phage Name. Always needed')
+            + 'One Gene of Unphameratored Phage Report:  %(prog)s -p {Phage Name} -u True -s {Start of Gene} -t {Stop of Gene} -o {Orientation of Gene} -g {Number of Gene}')
+    parser.add_argument('-n', '--pham_no', default = -1, help='Number of the Pham. For case when want report of a phameratored phage gene.')
+    parser.add_argument('-p' , '--phage', default=None, help='The Phamerator database Phage Name. Always needed')
     parser.add_argument('-u', '--unphamed', type=bool, default=False,
-                        help='Boolean. If phage has been phameratored: False.'
-                        +' If phage is unphameratored: True. For use when want report with an unphameratored phage')
-    parser.add_argument('-s', '--given_start', type=int, default=-1,
-                        help= 'The start of a gene. Use to report on one gene of an unphameratored phage.')
-    parser.add_argument('-t', '--given_stop', type=int,
-                        help= 'The stop of a gene. Use to report on one gene of an unphameratored phage.')
+                 help='Boolean. If phage has been phameratored: False.'
+                +' If phage is unphameratored: True. For use when want report with an unphameratored phage')
+    parser.add_argument('-s', '--given_start', type=int, default=-1, 
+        help= 'The start of a gene. For case when want report of one gene of an unphameratored phage. ')
+    parser.add_argument('-t', '--given_stop', type=int, 
+        help= 'The stop of a gene. For case when want report of one gene of an unphameratored phage.')
     parser.add_argument('-o', '--given_orientation',
-                        help='The orientation of a gene. Use to report on one gene of an unphameratored phage.')
+         help='The orientation of a gene. For case when want report of one gene of an unphameratored phage.')
     parser.add_argument('-g', '--gene_number', default=-1,
-                        help='The number of a gene. Use to report on one gene of an unphameratored phage.')
-    parser.add_argument('-d', '--profile',
-                        help='Path to a DNAMaster profile. For case when want whole report of an unphameratored phage')
+         help='The number of a gene. For case when want report of one gene of an unphameratored phage.')
+    parser.add_argument('-d', '--profile', help='Path to a DNAMaster profile. For case when want whole report of an unphameratored phage')
     parser.add_argument('-f', '--fasta', help='Path to Fasta File')
-    parser.add_argument('-j', '--save_json', type=bool, default=False,
-                        help='Boolean, use with -n to save json file describing complete results.')
     return parser.parse_args()
 
 
@@ -101,15 +111,11 @@ def starterate(info, gui=None, event=None):
         phage = report.PhageReport(phage, gui=gui, event=event)
         final_file, short_final = phage.final_report()
     elif info['all'] and not info['phamerated']:
-        # clear intermediate files if doing this
-        clean_up_files(utils.INTERMEDIATE_DIR)
-
         # phams.update_protein_db(db, config)
-        phage = report.UnPhamPhageReport(phage, fasta_file=info['fasta'], profile_file=info['profile'],
-                                         gui=gui, event=event)
+        phage = report.UnPhamPhageReport(phage, fasta_file=info['fasta'], profile_file=info['profile'], gui=gui, event=event)
         final_file, short_final = phage.final_report()
     elif not info['all'] and info['phamerated'] and not info['pham']:
-        gene = report.GeneReport(info['phage'], number=info['gene_no'])
+        gene = report.GeneReport( info['phage'], number=info['gene_no'])
         gene.get_pham()
         gene.make_report()
         final_file, s = gene.merge_report()
@@ -122,44 +128,24 @@ def starterate(info, gui=None, event=None):
     else:
         # Pham without phage'
         pham = report.PhamReport(info['pham'])
-        final_file, s = pham.final_report()
+        final_file,s = pham.final_report()
     return final_file
 
-
-import os
-import logging
-import utils
-
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 def main():
-    config_path = "/usr/src/app/starterator/extras/starterator.config"
-    
-    # Check if the configuration file exists
-    if not os.path.exists(config_path):
-        logging.error("Configuration file {} does not exist.".format(config_path))
-        return
-    
-    # Log the content of the configuration file
-    with open(config_path, 'r') as config_file:
-        logging.info("Configuration file {} content:\n{}".format(config_path, config_file.read()))
-    
-    # Existing code
     args = get_arguments()
     config = utils.get_config()
-    print config["count"]
+    print((config["count"]))
     phamgene.check_protein_db(config["count"])
     # --Phamerated and only one gene
-    if args.gene_number != -1 and args.phage is not None and args.unphamed is False:
+    if args.gene_number != -1 and args.phage != None and args.unphamed == False:
         gene = report.GeneReport(args.phage, args.gene_number, True)
-        print gene
+        print(gene)
         gene.get_pham()
         gene.make_report()
         final_file, s = gene.merge_report()
 
     # --Unphameratored Phage with only one gene
-    elif args.given_start > -1 and args.phage is not None and args.unphamed is True:
+    elif args.given_start > -1 and args.phage != None and args.unphamed == True:
         # given start and stop coordinates and orientation
         one_or_all = 'One'
         given_start = args.given_start
@@ -168,29 +154,32 @@ def main():
         gene_name = args.phage + '_' + str(args.gene_number)
         gene = report.GeneReport(args.phage, args.gene_number, fasta_file=args.fasta)
         gene.make_unpham_gene(given_start, given_stop, given_orientation)
-        print gene
+        print(gene)
         gene.make_report()
         final_file, s = gene.merge_report()
 
     # --Phameratored or Unphameratored Phages with all genes
-    elif args.pham_no == -1 and args.phage is not None and args.unphamed is False:
+    elif args.pham_no == -1 and args.phage != None and args.unphamed == False:
         phage = report.PhageReport(args.phage, gui=None)
         final_file, short_final = phage.final_report()
 
-    elif args.pham_no == -1 and args.phage is not None and args.unphamed is True:
+    elif args.pham_no == -1 and args.phage != None and args.unphamed == True:
         phage = report.UnPhamPhageReport(args.phage, fasta_file=args.fasta, profile_file=args.profile, gui=None)
         final_file, short_final = phage.final_report()
-    elif args.phage is None:
+    elif args.phage == None:
         pham = report.PhamReport(args.pham_no)
-        if args.save_json is True:
-            final_file, short_final = pham.final_report(save_json=True)
-        else:
-            final_file, short_final = pham.final_report()
-
+        final_file, short_final = pham.final_report()
     # clean_up_files()
     # email_final_report(args.email, short_final)
 
 
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    try:
+        # print utils.DIR_PATH ???
+        main() 
+    except Exception as e:
+        # send_error_email(e)
+        raise
+    finally:
+        pass
+         # clean_up_files()

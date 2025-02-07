@@ -69,35 +69,15 @@ class DB(object):
             cursor.close()
 
     def query(self, query, params=None):
-        '''
         cursor = self._cursor()
         try:
             self._execute(cursor, query, params)
-            result = cursor.fetchall()
-            return result.
+            return cursor.fetchall()
         except:
             self.reconnect()
             self.query(query, params)
         finally:
             cursor.close()
-        '''
-        #Potential fix for connection error from github copilot
-        cursor = self._cursor()
-        try:
-            self._execute(cursor, query, params)
-            result = cursor.fetchall()
-            return result
-        except MySQLdb.OperationalError as e:
-            print("OperationalError: %s" % e)
-            self.reconnect()
-            return self.query(query, params)
-        finally:
-            if cursor:
-                try:
-                    cursor.close()
-                except MySQLdb.OperationalError as e:
-                    print("Error closing cursor: %s" % e)
-
 
     def get(self, query, params):
         """Returns the first row returned for the given query."""
@@ -125,17 +105,12 @@ class DB(object):
 
     def _execute(self, cursor, query, params):
         try:
-            if params is None:
-                return cursor.execute(query)
-            elif isinstance(params, tuple):
-                return cursor.execute(query, params)
-            else:
-                return cursor.execute(query, (params,))
+            return cursor.execute(query, params)
         except MySQLdb.OperationalError:
-            print("Error connecting to MySQL on %s" % self.host)
+            print "Error connecting to MySQL on %s", self.host
             self.close()
             raise StarteratorError("Error connecting to database! Please enter correct login credentials in Preferences menu.")
-            
+
 class Row(dict):
     """A dict that allows for object-like property access syntax."""
     def __getattr__(self, name):
