@@ -39,7 +39,7 @@ class Report(object):
             specifics = ["-a", 'All'] + specifics
         args = ['python', utils.MAKING_FILES, "-d", utils.INTERMEDIATE_DIR] + specifics
         sargs = " ".join(args)
-        print sargs
+        # print sargs
         subprocess.check_call(args)
 
 
@@ -91,10 +91,10 @@ class PhageReport(Report):
                 gene_report = GeneReport(self.base_name, self.phage_)
                 pham_no = gene_report.get_pham(pham_no)
                 pham = gene_report.make_report(whole=True)
-                print pham_no
+                # print pham_no
                 genes = self._phams[pham_no]
                 for gene in genes:
-                    print gene.gene_id
+                    # print gene.gene_id
                     phage_gene = pham.genes[gene.gene_id]
                     gene_no = phamgene.get_gene_number(gene.gene_id)
                     self.phage_genes[gene_no] = {'suggested_start': phage_gene.suggested_start["most_called"],
@@ -189,24 +189,24 @@ class UnPhamPhageReport(PhageReport):
             else:
                 try:
                     with open(self.profile, "rbU") as profile:
-                        print self.profile, "has been opened!"
+                        # print self.profile, "has been opened!"
                         first_line = profile.readline()
                         first_word = first_line.split()[0]
                         if first_word == "Profile":
                             csv_reader = csv.reader(profile)
                             line = csv_reader.next()
-                            print line
+                            #  print line
                             csv_reader.next()
                             for row in csv_reader:
-                                print row
+                                # print row
                                 feature_type = row[8].strip()
-                                print feature_type
+                                #  print feature_type
                                 if feature_type == "ORF":
                                     number = row[1].replace('"', "")
                                     orientation = row[2]
                                     start = int(row[5])
                                     stop = int(row[6])
-                                    print number, start, stop, orientation, self.name
+                                    # print number, start, stop, orientation, self.name
                                     gene = phamgene.UnPhamGene(number, start, stop, orientation, self.name, sequence)
                                     genes.append(gene)
 
@@ -362,7 +362,7 @@ class GeneReport(Report):
         elif pham_no:
             self.pham = phams.Pham(pham_no)
         else:
-            print self.phage_name, self.number
+            # print self.phage_name, self.number
             pham_no = phamgene.get_pham_no(self.phage_name, self.number)
             self.pham = phams.Pham(pham_no)
         return pham_no
