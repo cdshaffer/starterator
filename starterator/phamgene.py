@@ -54,7 +54,7 @@ def update_protein_db():
 
     blast_db_command = [utils.BLAST_DIR + 'makeblastdb', '-in', "\"" + fasta_file + "\"",
                         "-dbtype", "prot", "-title", "Proteins", "-out", "%s" % fasta_file]
-    print blast_db_command
+    # print blast_db_command
     # else:
     #     blast_db_command = [BLAST_DIR + 'formatdb',
     #                 '-i', "\""+ fasta_file+ "\"",
@@ -67,7 +67,7 @@ def update_protein_db():
 def check_protein_db(count):
     results = get_db().query('SELECT count(*) from gene')
     new_count = results[0][0]
-    print new_count
+    # print new_count
     if int(new_count) != int(count):
         update_protein_db()
         config = utils.get_config()
@@ -79,23 +79,23 @@ def get_pham_no(phage_name, gene_number):
     """
         Gets the pham number of a gene, given the phage name and the gene number
     """
-    print phage_name, gene_number
+    # print phage_name, gene_number
     db = DB()
     query = "SELECT pham.Name \n\
             FROM gene JOIN pham ON gene.GeneID = pham.GeneID \n\
             JOIN phage ON gene.PhageID = phage.PhageID \n\
             WHERE (phage.Name LIKE %s or phage.PhageID = %s) AND gene.Name RLIKE %s \n\
             "% (phage_name + "%", phage_name, '^[:alpha:]*(_)*%s$' % str(gene_number))
-    print query
+    # print query
     try:
         results = db.query("SELECT pham.Name \n\
             FROM gene JOIN pham ON gene.GeneID = pham.GeneID \n\
             JOIN phage ON gene.PhageID = phage.PhageID \n\
             WHERE (phage.Name LIKE %s or phage.PhageID = %s) AND gene.geneid RLIKE %s",
             (phage_name + "%", phage_name, '^([[:alnum:]]*_)*([[:alpha:]])*%s$' % str(gene_number)))
-        print "DB query 1"
+        # print "DB query 1"
         if len(results) < 1:
-            print "DB query 1 failed, try search 2"
+            # print "DB query 1 failed, try search 2"
             results = db.query("SELECT pham.Name \n\
                 FROM gene JOIN pham ON gene.GeneID = pham.GeneID \n\
                 JOIN phage ON gene.PhageID = phage.PhageID \n\
@@ -103,14 +103,14 @@ def get_pham_no(phage_name, gene_number):
                 (phage_name + "%", phage_name, '^([[:alnum:]]*_)*([[:alpha:]])*%s$' % str(gene_number)))
         if len(results) < 1:
             #try to determine root of gene names since they are
-            print "DB query 2 failed, try search 3"
+            # print "DB query 2 failed, try search 3"
             results = db.query("SELECT pham.Name \n\
                 FROM gene JOIN pham ON gene.GeneID = pham.GeneID \n\
                 JOIN phage ON gene.PhageID = phage.PhageID \n\
                 WHERE gene.geneid LIKE %s AND gene.geneID RLIKE %s",
                    (phage_name + "%", '^([[:alnum:]]*_)*([[:alpha:]])*%s$' % str(gene_number)))
 
-        print results
+        # print results
         row = results[0]
         pham_no = row[0]
         return str(pham_no)
@@ -567,13 +567,13 @@ class UnPhamGene(PhamGene):
     def blast(self):
         # not sure where to put this... this makes more sense, 
         # but I wanted to keep the Genes out of file making...
-        print "Running BLASTp"
+        # print "Running BLASTp"
         try:
             result_handle = open("%s/%s.xml" % (utils.INTERMEDIATE_DIR, self.gene_id))
             result_handle.close()
         except:
             protein = SeqRecord(self.sequence[self.candidate_starts[0]:].seq.translate(), id=self.gene_id)
-            print protein, self.sequence
+            # print protein, self.sequence
             # short proteins need lower e_value
             query_len = (self.stop - self.start) / 3
             if query_len < 50:
@@ -594,7 +594,7 @@ class UnPhamGene(PhamGene):
                           "-db", "\"%s/Proteins.fasta\"" % (utils.PROTEIN_DB),
                           "-evalue", str(e_value)
                           ]
-            print " ".join(blast_args)
+            # print " ".join(blast_args)
             try:
                 subprocess.check_call(blast_args)
             except:
@@ -616,7 +616,7 @@ class UnPhamGene(PhamGene):
 
         if len(blast_record.descriptions) > 0:
             first_result = blast_record.descriptions[0].title.split(',')[0].split(' ')[-1]
-            print first_result
+            # print first_result
             if "_" not in first_result:
                 first_result = blast_record.descriptions[1].title.split(',')[0].split(' ')[-1]
             # Try to get pham directly from gene name
@@ -634,7 +634,7 @@ class UnPhamGene(PhamGene):
                 if phage_name.lower() == "draft":
                     phage_name = first_result.split("_")[-3]
                 gene_number = first_result.split("_")[-1]
-                print phage_name, gene_number
+                # print phage_name, gene_number
                 pham_no = get_pham_no(phage_name, gene_number)
                 self.pham_no = pham_no
                 return pham_no
