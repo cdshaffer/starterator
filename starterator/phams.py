@@ -335,7 +335,7 @@ class Pham(object):
              #   start_stats['annot_counts'][k] = len(annotated)
 
         genes_without_most_called = []
-        print "phams.find_most_common_start: genes_start_most_called " + str(genes_start_most_called)
+        # print "phams.find_most_common_start: genes_start_most_called " + str(genes_start_most_called)
         for gene in self.genes.values():
             # check if the gene even has the most called start
             if gene.full_name in start_stats["possible"][most_called_start_index]:
