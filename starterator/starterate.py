@@ -148,12 +148,12 @@ def main():
     # Existing code
     args = get_arguments()
     config = utils.get_config()
-    print config["count"]
+    # print config["count"]
     phamgene.check_protein_db(config["count"])
     # --Phamerated and only one gene
     if args.gene_number != -1 and args.phage is not None and args.unphamed is False:
         gene = report.GeneReport(args.phage, args.gene_number, True)
-        print gene
+        # print gene
         gene.get_pham()
         gene.make_report()
         final_file, s = gene.merge_report()

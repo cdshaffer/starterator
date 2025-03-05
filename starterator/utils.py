@@ -19,7 +19,7 @@ from Bio.Seq import Seq
 from Bio import SeqIO
 from Bio.Alphabet import IUPAC
 import shutil
-import logging 
+# import logging
 
 
 MAKING_FILES = os.path.join(os.path.dirname(os.path.abspath(__file__)))+ "/making_files.py" # absolute path to making files file
@@ -217,11 +217,11 @@ def get_config():
         # Directly call the necessary setup functions without `add_desktop_file`
         create_folders()
         move_config_file()
-        logging.info("Configuration file created at {}".format(config_file))
+        # logging.info("Configuration file created at {}".format(config_file))
     
     config = ConfigParser.RawConfigParser()
     config.read(config_file)
-    logging.info("Configuration file {} content:\n{}".format(config_file, config))
+    # logging.info("Configuration file {} content:\n{}".format(config_file, config))
     
     config_info = dict(config.items('Starterator'))
     INTERMEDIATE_DIR = config_info["intermediate_file_dir"]
@@ -237,7 +237,7 @@ def create_folders():
         os.mkdir(PROTEIN_DB)
     if not os.path.exists(config_file):
         shutil.copyfile(CONFIGURATION_FILE, config_file)
-        logging.info("Copied configuration file to {}".format(config_file))
+        # logging.info("Copied configuration file to {}".format(config_file))
     if not os.path.exists(os.path.join(os.environ["HOME"], ".starterator", "Intermediate Files")):
         os.mkdir(os.path.join(os.environ["HOME"], ".starterator", "Intermediate Files"))
     if not os.path.exists(os.path.join(os.environ["HOME"], ".starterator", "Report Files")): 
