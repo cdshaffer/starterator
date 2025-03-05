@@ -398,15 +398,15 @@ def add_pham_no_title(args, pham_no, first_graph_path, i="", zoom=False):
     new_pdf = PyPDF2.PdfFileReader(packet)
     existing_pdf = PyPDF2.PdfFileReader(file(first_graph_path, 'rb'))
     output = PyPDF2.PdfFileWriter()
-    print first_graph_path
+    # print first_graph_path
     page = existing_pdf.getPage(0)
     page.mergePage(new_pdf.getPage(0))
     output.addPage(page)
-    print utils.INTERMEDIATE_DIR
-    print "old graph?", os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage + args.one_or_all, pham_no, i))
+    # print utils.INTERMEDIATE_DIR
+    # print "old graph?", os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage + args.one_or_all, pham_no, i))
     output_strm = file(os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage + args.one_or_all, pham_no, i)), 'wb')
     # print outputStream
-    print output_strm
+    # print output_strm
     os.remove(first_graph_path)
     output.write(output_strm)
     output_strm.close()
@@ -415,7 +415,7 @@ def add_pham_no_title(args, pham_no, first_graph_path, i="", zoom=False):
 def combine_graphs(args, phage, pham_no, num_pages):
     merger = PyPDF2.PdfFileMerger()
     for j in xrange(0, num_pages + 1):
-        print os.path.join(args.dir, "%sPham%sGraph%d.pdf" % (phage + args.one_or_all, pham_no, j))
+        # print os.path.join(args.dir, "%sPham%sGraph%d.pdf" % (phage + args.one_or_all, pham_no, j))
         graph = open(os.path.join(args.dir, "%sPham%sGraph%d.pdf" % (phage + args.one_or_all, pham_no, j)), "rb")
         merger.append(fileobj=graph)
     merger.write(open(os.path.join(args.dir, "%sPham%sGraph.pdf" % (phage + args.one_or_all, pham_no)), "wb"))
