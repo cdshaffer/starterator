@@ -30,14 +30,14 @@ class PhageReport(object):
 
     def make_report(self):
         if self.is_phamerated:
-            print 'before phams found'
+            # print 'before phams found'
             phams = self.phage.get_phams()
             seq_length = self.phage.length()
-            print 'after phams found'
+            # print 'after phams found'
             for gene_name, pham_no in phams:
                 if self.gui:
                     if self.event.is_set():
-                        print 'stopped in make_report'
+                        # print 'stopped in make_report'
                         sys.exit(0)
                 gene_number = utils.get_gene_number(gene_name)
                 # gene_id = self.name +'_' + str(gene_number)
@@ -48,7 +48,7 @@ class PhageReport(object):
         else:
             
             if self.gui:
-                print 'in unphamerated pham'
+                # print 'in unphamerated pham'
                 if self.event.is_set():
                     sys.exit(0)
                 self.gui.update('Finished Making Unphamerated Genes.', .02)
@@ -190,11 +190,11 @@ class PhageReport(object):
         gd_diagram = GenomeDiagram.Diagram(self.name)
         gd_track = gd_diagram.new_track(1, name=self.name, greytrack=1)
         gd_pham_set = gd_track.new_set()
-        print "making genome page"
+        # print "making genome page"
         for gene_num in pham_genes:
             pham = pham_genes[gene_num][1]
             gene = pham_genes[gene_num][0]
-            print pham, gene.id
+            # print pham, gene.id
             if pham == None:
                 pham_no = "None"
                 pham_color = 'Black'
@@ -227,7 +227,7 @@ class PhageReport(object):
         """
         doc = SimpleDocTemplate("%sSuggestedStarts.pdf" % (self.intermediate_dir + self.name), pagesize=letter)
         story = []
-        print "making suggested starts page"
+        # print "making suggested starts page"
         styles = getSampleStyleSheet()
         styles.add(ParagraphStyle(name="paragraph"))
         styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
@@ -252,7 +252,7 @@ class PhageReport(object):
             {Phage}Report.pdf
         """
         one_or_all = 'All'
-        print "making report"
+        # print "making report"
         merger = PyPDF2.PdfFileMerger()
         phage_starts = open("%sSuggestedStarts.pdf" % (self.intermediate_dir + self.name), 'rb')
         phage_genome = open('%sPhamsGraph.pdf' % (self.intermediate_dir + self.name), 'rb')
