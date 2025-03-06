@@ -589,7 +589,7 @@ def graph_start_sites(args, pham, file_path):
 
             for j in xrange(0, 50):
                 if i*50 + j >= len(genes):
-                    print i * 50, + j, len(genes)
+                    # print i * 50, + j, len(genes)
                     gd_gene_track = gd_diagram.new_track(50-j)
                     gd_feature_set = gd_gene_track.new_set()
                     empty_feature = SeqFeature(FeatureLocation(0, 1), strand=None)
@@ -619,7 +619,7 @@ def graph_start_sites(args, pham, file_path):
             graph_path = os.path.join(file_path, "Pham%sGraph_.pdf" % pham.pham_no)
         else:
             graph_path = os.path.join(file_path, "%sPham%sGraph_.pdf" % (args.phage, pham.pham_no))
-        print "making_files.graph_start_sites: path to graph is " + str(graph_path)
+        # print "making_files.graph_start_sites: path to graph is " + str(graph_path)
 
         if check_file(final_graph_path):
             pass
@@ -632,7 +632,7 @@ def graph_start_sites(args, pham, file_path):
                 if i > 0:
                     if genes[i][0].subcluster != genes[i-1][0].subcluster:
                         seqColor += 1
-                print 'making_files.graph_start_sites: adding group ' + str(i)
+                # print 'making_files.graph_start_sites: adding group ' + str(i)
                 make_gene_track(gd_diagram, pham, gene_group, i, len(genes), seqColor)
                 i += 1
             gd_diagram.draw(format="linear", orientation="portrait", pagesize=reportlab.lib.pagesizes.letter,
@@ -808,12 +808,12 @@ def make_pham_genome(phage_genes, phage_name, length, file_path):
     gd_diagram = GenomeDiagram.Diagram(phage_name)
     gd_track = gd_diagram.new_track(1, name=phage_name, greytrack=1)
     gd_pham_set = gd_track.new_set()
-    print "making genome page"
+    # print "making genome page"
     for gene_id in sorted(phage_genes.iterkeys()):
         phage_gene = phage_genes[gene_id]
         pham_no = phage_gene["pham_no"]
         gene = phage_gene["gene"]
-        print pham_no, gene.gene_id
+        # print pham_no, gene.gene_id
         if pham_no is None:
             pham_no = "None"
             pham_color = 'Black'
@@ -832,7 +832,7 @@ def make_pham_genome(phage_genes, phage_name, length, file_path):
         # label gene with pham color and name
         gd_pham_set.add_feature(gene_feature, color=pham_color, name=str(pham_no), label=True, label_position='middle')
     
-    print type(length), length
+    # print type(length), length
     gd_diagram.draw(format='linear', orientation='portrait', pagesize=reportlab.lib.pagesizes.letter, fragments=8,
                     start=0, end=length)
     gd_diagram.write(file_name, "PDF")
@@ -851,7 +851,7 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
     doc = SimpleDocTemplate(file_name, pagesize=reportlab.lib.pagesizes.letter)
     story = []
     just_text = []
-    print "making suggested starts page"
+    # print "making suggested starts page"
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name="paragraph"))
     styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
@@ -975,21 +975,21 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
     story.append(table)
 
     doc.build(story)
-    print "writing text file"
+    # print "writing text file"
     with open(text_file_name, 'w') as outfile:
         outfile.write("\n".join(just_text))
 
 
 def make_fasta_file(genes, fasta_file):
     count = SeqIO.write(genes, fasta_file, 'fasta')
-    print "%s Fasta files written" % count
+    # print "%s Fasta files written" % count
 
 
 def main():
     args = parse_arguments()
-    print "making_files:main(); args.make is ", args.make
+    # print "making_files:main(); args.make is ", args.make
     if 'graph' in args.make:
-        print "making_files.main() make 'graph': args.pickle_file " + args.pickle_file
+        # print "making_files.main() make 'graph': args.pickle_file " + args.pickle_file
         pham = cPickle.load(open(args.pickle_file.strip('"'), 'rb'))
         graph_start_sites(args, pham, args.dir)
 
@@ -1004,12 +1004,12 @@ def main():
         make_suggested_starts(phage, args.phage, args.dir)
 
     if 'text' in args.make:
-        print "making_files.main(): Loading pickle file " + str(args.pickle_file)
+        # print "making_files.main(): Loading pickle file " + str(args.pickle_file)
         pham = cPickle.load(open(args.pickle_file.strip('"'), 'rb'))
         graph_start_sites(args, pham, args.dir)
-        print "making_files.main(): 'text' phage is ", args.phage
+        # print "making_files.main(): 'text' phage is ", args.phage
         if not args.phage:
-            print "making_files.main() 'text': no phage"
+            # print "making_files.main() 'text': no phage"
             make_pham_text(args, pham, args.pham_no, args.dir, only_pham=True)
         else:
             make_pham_text(args, pham, args.pham_no, args.dir)
