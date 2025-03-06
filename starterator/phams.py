@@ -132,7 +132,7 @@ class Pham(object):
             subprocess.check_call(['clustalo', '--infile=%s' % fasta_file, '--outfile=%s' % outfile, '--outfmt=clu', '--threads', str(multiprocessing.cpu_count())])
             # subprocess.check_call(['clustalo', '--infile=%s' % fasta_file, '--outfile=%s' % outfile, '--outfmt=clu'])
         else:
-            subprocess.check_call(['clustalw', '-infile=%s' % (fasta_file), '-quicktree'])
+            subprocess.check_call(['clustalw', '-infile=%s' % (fasta_file), '-quicktree', '-quiet'])
 
         aln_file = fasta_file.replace(".fasta", ".aln")
         alignment = AlignIO.read(aln_file, "clustal")
