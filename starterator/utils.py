@@ -55,7 +55,7 @@ def get_pham_no(db, phage_name, gene_number):
     cursor = db.cursor()
     #Query the database for genes that match the given gene number and phage name
     like_phage_name = phage_name +'%'
-    print like_phage_name, gene_number
+    # print like_phage_name, gene_number
     cursor.execute("SELECT `gene`.`GeneID` , `pham`.`Name` , `phage`.`PhageID`\n\
     FROM `gene`\n\
     JOIN `pham` ON `gene`.`GeneID` = `pham`.`GeneID`\n\
@@ -64,7 +64,7 @@ def get_pham_no(db, phage_name, gene_number):
     AND `gene`.`GeneID` LIKE %s \n\
     ESCAPE '!'", (like_phage_name, '%!_'+ str(gene_number)))
     results = cursor.fetchall()
-    print results, phage_name, gene_number
+    # print results, phage_name, gene_number
     # There should only be one result.
     row = results[0]
     pham_no = row[1]
@@ -92,7 +92,7 @@ def find_phams_of_a_phage(db, phage):
     phage_phams = []
     seq_length = results[0][3]
     for row in results:
-        print row[0], row[1]
+        # print row[0], row[1]
         phage_phams.append([row[0],str(row[1])])
     return phage_phams, seq_length
 
@@ -116,7 +116,7 @@ def update_protein_db():
                     '-in',"\""+ fasta_file + ".fasta" +"\"",
                     "-dbtype","prot", "-title", "Proteins",
                      "-out", "%s"% fasta_file]
-        print blast_db_command
+        # print blast_db_command
     # else:
     #     blast_db_command = [BLAST_DIR + 'formatdb',
     #                 '-i', "\""+ fasta_file+ "\"",
@@ -205,7 +205,7 @@ def write_to_config_file(config_info):
     config.add_section('Starterator')
     for name in config_info:
         config.set('Starterator', name, config_info[name])
-    print 'write'
+    print 'writing to config file'
     with open(config_file, 'w') as configfile:
         config.write(configfile)
 
