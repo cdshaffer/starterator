@@ -15,7 +15,7 @@ from .database import DB
 from Bio.Blast.Applications import NcbiblastpCommandline as Blastp
 # from Bio.Blast.Applications import BlastallCommandline
 from Bio.SeqRecord import SeqRecord
-from Bio.Alphabet import IUPAC
+# from Bio.Alphabet import IUPAC
 from Bio.Seq import Seq
 from Bio import SeqIO
 from Bio.SeqFeature import SeqFeature, FeatureLocation

@@ -98,6 +98,7 @@ def find_phams_of_a_phage(db, phage):
 
 
 def get_protein_sequences():
+    from .database import get_db
     proteins = []
     get_db().execute('SELECT GeneID, Translation from gene')
     results = cursor.fetchall()
@@ -147,7 +148,7 @@ def add_desktop_file():
     '''
     desktop = ConfigParser.RawConfigParser()
     desktop.optionxform = str
-    desktop.readfp(open(DESKTOP_FILE))
+    desktop.read_file(open(DESKTOP_FILE))
     desktop_info = dict(desktop.items("Desktop Entry"))
     desktop_info["Exec"] = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "Starterator")
     desktop_info["Icon"] = os.path.join(os.environ["HOME"], ".starterator/", "starterator.svg")
@@ -247,7 +248,8 @@ def db_connect(config_info):
     db = MySQLdb.connect(config_info['database_server'], 
             config_info['database_user'],
             config_info['database_password'],
-            config_info['database_name'])
+            config_info['database_name']
+            unix_socket = "/var/run/mysqld/mysqld.sock")
     return db
     
 def attempt_db_connect(config_info):
