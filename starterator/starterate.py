@@ -18,8 +18,8 @@ from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import letter, A4
 #from gi.repository import Gtk, Gdk, GObject
-from . import report
-from . import phamgene
+import report
+import phamgene
 
 """
 def gui():

@@ -11,7 +11,7 @@
 
 from .phage import new_phage
 from .database import DB
-from Bio.Blast import NCBIXML
+# from Bio.Blast import NCBIXML
 from Bio.Blast.Applications import NcbiblastpCommandline as Blastp
 # from Bio.Blast.Applications import BlastallCommandline
 from Bio.SeqRecord import SeqRecord

@@ -109,7 +109,7 @@ class PhageReport(Report):
 
     # def make_suggested_starts_page(self):
     #   pickle_file = 
-    #   cPickle.dump(self.phage_genes, open(pickle_file, "wb"))
+    #   pickle.dump(self.phage_genes, open(pickle_file, "wb"))
 
     def merge_reports(self):
         merger = PyPDF2.PdfFileMerger()
