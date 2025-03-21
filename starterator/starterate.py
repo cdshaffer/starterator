@@ -18,8 +18,8 @@ from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import letter, A4
 #from gi.repository import Gtk, Gdk, GObject
-import report
-import phamgene
+from . import report
+from . import phamgene
 
 """
 def gui():
@@ -134,7 +134,7 @@ from . import utils
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def main():
-    config_path = "/usr/src/app/starterator/extras/starterator.config"
+    config_path = "/home/vivek/PycharmProjects/starterator-py3/starterator/extras/starterator.config"
     
     # Check if the configuration file exists
     if not os.path.exists(config_path):

@@ -248,7 +248,7 @@ def db_connect(config_info):
     db = MySQLdb.connect(config_info['database_server'], 
             config_info['database_user'],
             config_info['database_password'],
-            config_info['database_name']
+            config_info['database_name'],
             unix_socket = "/var/run/mysqld/mysqld.sock")
     return db
     
