@@ -1,13 +1,13 @@
-from database import DB, get_db
-from phamgene import new_PhamGene
+from .database import DB, get_db
+from .phamgene import new_PhamGene
 from Bio import AlignIO
 from Bio import SeqIO
 from collections import Counter
-import utils
+from . import utils
 import subprocess
 import multiprocessing
 import os
-from utils import StarteratorError
+from .utils import StarteratorError
 import json
 
 
@@ -141,7 +141,7 @@ class Pham(object):
     def make_fasta(self, file_name=None):
         if file_name is None:
             file_name = os.path.join(utils.INTERMEDIATE_DIR, "%sPham%s" % (self.file, self.pham_no))
-        genes = [gene.sequence for gene in self.genes.values()]
+        genes = [gene.sequence for gene in list(self.genes.values())]
         count = SeqIO.write(genes, "%s.fasta" % file_name, "fasta")
 
     def align(self):
@@ -152,7 +152,7 @@ class Pham(object):
         """
         # files?
         file_name = os.path.join(utils.INTERMEDIATE_DIR, "%sPham%s" % (self.file, self.pham_no))
-        genes = [gene.sequence for gene in self.genes.values()]
+        genes = [gene.sequence for gene in list(self.genes.values())]
         count = SeqIO.write(genes, "%s.fasta" % file_name, "fasta")
         if len(self.genes) == 1:
             alignment = [gene.sequence]
@@ -170,7 +170,7 @@ class Pham(object):
         """ Returns a list of all the candidate starts from the alignment
         """
         self.total_possible_starts = []
-        for gene in self.genes.values():
+        for gene in list(self.genes.values()):
             for site in gene.alignment_candidate_starts:
                 if site not in self.total_possible_starts:
                     self.total_possible_starts.append(site) 
@@ -178,7 +178,7 @@ class Pham(object):
         return self.total_possible_starts
 
     def add_alignment_stats_to_phamgenes(self):
-        for gene in self.genes.values():
+        for gene in list(self.genes.values()):
             gene.add_alignment_start_stats(self)
         return
 
@@ -190,7 +190,7 @@ class Pham(object):
         """
         groups = []
         i = 0
-        genes = self.genes.values()
+        genes = list(self.genes.values())
 
         grouped = [False for gene in genes]
         while i < len(self.genes):
@@ -260,11 +260,11 @@ class Pham(object):
         # use term Called_start for all genes irrespective of method to determine location of start codon
         # use term Annotated_start for genes in which manual annotation was used to determine start codon
         # use term predicted_start for gene in which computational prediction was used to determine start codon
-        all_start_sites = [gene.alignment_start_site for gene in self.genes.values()]
-        all_annotated_start_sites = [gene.alignment_start_site for gene in self.genes.values() if not gene.draftStatus]
-        all_predicted_start_sites = [gene.alignment_start_site for gene in self.genes.values() if gene.draftStatus]
+        all_start_sites = [gene.alignment_start_site for gene in list(self.genes.values())]
+        all_annotated_start_sites = [gene.alignment_start_site for gene in list(self.genes.values()) if not gene.draftStatus]
+        all_predicted_start_sites = [gene.alignment_start_site for gene in list(self.genes.values()) if gene.draftStatus]
 
-        all_start_sites_set = set([gene.alignment_start_site for gene in self.genes.values()])
+        all_start_sites_set = set([gene.alignment_start_site for gene in list(self.genes.values())])
         start_stats = {}
         # creates two lists each containing a list of gene ids
         # for each candidate start of the pham:
@@ -280,7 +280,7 @@ class Pham(object):
             start_stats["possible"][i+1] = []
             # start_stats["most_called"][i+1] = []
             start_stats["called_starts"][i+1] = []
-            for gene in self.genes.values():
+            for gene in list(self.genes.values()):
                 if site in gene.alignment_candidate_starts:
                     start_stats["possible"][i+1].append(gene.full_name)
                 if site == gene.alignment_start_site:
@@ -316,27 +316,27 @@ class Pham(object):
         start_stats["most_annotated"] = []
         start_stats["most_not_annotated"] = []
         start_stats["no_most_annot"] = []
-        start_stats["annot_list"] = [g for g in self.genes.values() if not g.draftStatus]
-        start_stats["draft_list"] = [g for g in self.genes.values() if g.draftStatus]
+        start_stats["annot_list"] = [g for g in list(self.genes.values()) if not g.draftStatus]
+        start_stats["draft_list"] = [g for g in list(self.genes.values()) if g.draftStatus]
 
         start_stats['called_counts'] = {}
-        for k, l in start_stats['called_starts'].items():
+        for k, l in list(start_stats['called_starts'].items()):
             if len(l) > 0:
                 start_stats['called_counts'][k] = len(l)
 
         start_stats['annot_counts'] = {}
-        not_drafts = [pg for pg in self.genes.values() if not pg.draftStatus]
+        not_drafts = [pg for pg in list(self.genes.values()) if not pg.draftStatus]
         for gene in not_drafts:
-            start_number = [key for key,val in start_stats['called_starts'].items() if gene.full_name in val]
+            start_number = [key for key,val in list(start_stats['called_starts'].items()) if gene.full_name in val]
             start_number = start_number[0]
-            if start_number not in start_stats['annot_counts'].keys():
+            if start_number not in list(start_stats['annot_counts'].keys()):
                 start_stats['annot_counts'][start_number] = 0
             start_stats['annot_counts'][start_number] += 1
              #   start_stats['annot_counts'][k] = len(annotated)
 
         genes_without_most_called = []
-        print "phams.find_most_common_start: genes_start_most_called " + str(genes_start_most_called)
-        for gene in self.genes.values():
+        print("phams.find_most_common_start: genes_start_most_called " + str(genes_start_most_called))
+        for gene in list(self.genes.values()):
             # check if the gene even has the most called start
             if gene.full_name in start_stats["possible"][most_called_start_index]:
                 if gene.full_name in genes_start_most_called:
@@ -440,7 +440,7 @@ class Pham(object):
         summary_dict['Aligner'] = self.aligner
 
         genelist = []
-        for gene in self.genes.values():
+        for gene in list(self.genes.values()):
             gene_dict = {}
             gene_dict['GeneID'] = gene.gene_id
             gene_dict['Start'] = gene.start
@@ -459,8 +459,8 @@ class Pham(object):
 
         summary_dict['Genes'] = genelist
         annotlist = {}
-        annotlist['Starts'] = self.stats['most_common']['annot_counts'].keys()
-        annotlist['Counts'] = self.stats['most_common']['annot_counts'].values()
+        annotlist['Starts'] = list(self.stats['most_common']['annot_counts'].keys())
+        annotlist['Counts'] = list(self.stats['most_common']['annot_counts'].values())
         summary_dict['Annots'] = annotlist
 
         conservationdict = {}
@@ -478,9 +478,9 @@ class Pham(object):
     def add_cluster_stats(self, self_stats):
         clusters_present = set()
         genes_by_cluster = {}
-        for g, pg in self.genes.items():
+        for g, pg in list(self.genes.items()):
             clusters_present.add(pg.subcluster)
-            if pg.subcluster in genes_by_cluster.keys():
+            if pg.subcluster in list(genes_by_cluster.keys()):
                 genes_by_cluster[pg.subcluster].append(g)
             else:
                 genes_by_cluster[pg.subcluster] = [g]

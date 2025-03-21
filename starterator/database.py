@@ -18,7 +18,7 @@
 
 import MySQLdb
 import time
-from utils import get_config, StarteratorError
+from .utils import get_config, StarteratorError
 
 class DB(object):
 
@@ -88,7 +88,7 @@ class DB(object):
             result = cursor.fetchall()
             return result
         except MySQLdb.OperationalError as e:
-            print("OperationalError: %s" % e)
+            print(("OperationalError: %s" % e))
             self.reconnect()
             return self.query(query, params)
         finally:
@@ -96,7 +96,7 @@ class DB(object):
                 try:
                     cursor.close()
                 except MySQLdb.OperationalError as e:
-                    print("Error closing cursor: %s" % e)
+                    print(("Error closing cursor: %s" % e))
 
 
     def get(self, query, params):
@@ -132,7 +132,7 @@ class DB(object):
             else:
                 return cursor.execute(query, (params,))
         except MySQLdb.OperationalError:
-            print("Error connecting to MySQL on %s" % self.host)
+            print(("Error connecting to MySQL on %s" % self.host))
             self.close()
             raise StarteratorError("Error connecting to database! Please enter correct login credentials in Preferences menu.")
             

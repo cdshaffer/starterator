@@ -11,15 +11,15 @@
 # Starterate function 
 
 import argparse
-import utils
-from utils import clean_up_files
+from . import utils
+from .utils import clean_up_files
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import letter, A4
 #from gi.repository import Gtk, Gdk, GObject
-import report
-import phamgene
+from . import report
+from . import phamgene
 
 """
 def gui():
@@ -128,7 +128,7 @@ def starterate(info, gui=None, event=None):
 
 import os
 import logging
-import utils
+from . import utils
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -148,12 +148,12 @@ def main():
     # Existing code
     args = get_arguments()
     config = utils.get_config()
-    print config["count"]
+    print(config["count"])
     phamgene.check_protein_db(config["count"])
     # --Phamerated and only one gene
     if args.gene_number != -1 and args.phage is not None and args.unphamed is False:
         gene = report.GeneReport(args.phage, args.gene_number, True)
-        print gene
+        print(gene)
         gene.get_pham()
         gene.make_report()
         final_file, s = gene.merge_report()
@@ -168,7 +168,7 @@ def main():
         gene_name = args.phage + '_' + str(args.gene_number)
         gene = report.GeneReport(args.phage, args.gene_number, fasta_file=args.fasta)
         gene.make_unpham_gene(given_start, given_stop, given_orientation)
-        print gene
+        print(gene)
         gene.make_report()
         final_file, s = gene.merge_report()
 
