@@ -11,7 +11,7 @@
 # Starterate function 
 
 import argparse
-from . import utils
+from starterator import utils
 from .utils import clean_up_files
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.enums import TA_CENTER
