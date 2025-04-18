@@ -17,6 +17,7 @@
 
 
 import MySQLdb
+import mysql.connector
 import time
 from .utils import get_config, StarteratorError
 
@@ -38,10 +39,11 @@ class DB(object):
 
         self._db_args = args
 
-        try:
+
+        """try:
             self.reconnect()
         except Exception:
-            raise
+            raise"""
 
     def __del__(self):
         self.close()
@@ -124,19 +126,20 @@ class DB(object):
         self._ensure_connected()
         return self._db.cursor()
 
-    def _execute(self, cursor, query, params):
+    def _execute(self, query):
         try:
-            if params is None:
-                return cursor.execute(query)
-            elif isinstance(params, tuple):
-                return cursor.execute(query, params)
-            else:
-                return cursor.execute(query, (params,))
+            with mysql.connector.connect(**self._db_args) as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(query)
+                    results =  cursor.fetchall()
+
         except MySQLdb.OperationalError:
             print(("Error connecting to MySQL on %s" % self.host))
             self.close()
             raise StarteratorError("Error connecting to database! Please enter correct login credentials in Preferences menu.")
-            
+
+        return results
+
 class Row(dict):
     """A dict that allows for object-like property access syntax."""
     def __getattr__(self, name):
@@ -148,4 +151,5 @@ class Row(dict):
 
 def get_db():
     database = DB()
+    print("here")
     return database

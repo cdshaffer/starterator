@@ -31,11 +31,14 @@ import os
 
 def get_protein_sequences():
     proteins = []
-    results = get_db().query('SELECT GeneID, Translation from gene')
+    DB = get_db()
+    results = DB._execute('SELECT GeneID, Translation from gene')
+
+
     for row in results:
         gene_id = row[0].replace("-", "_")
-        protein = SeqRecord(Seq(row[1].replace('-', ''), IUPAC.protein),
-                            id=gene_id+"_", name=row[0], description=gene_id)
+        seq = row[1].decode()
+        protein = SeqRecord(Seq(seq), id=gene_id+"_", name=row[0], description=gene_id)
         proteins.append(protein)
     return proteins
 
@@ -65,7 +68,9 @@ def update_protein_db():
 
 
 def check_protein_db(count):
-    results = get_db().query('SELECT count(*) from gene')
+    DB = get_db()
+    results = DB._execute('SELECT count(*) from gene')
+
     new_count = results[0][0]
     print(new_count)
     if int(new_count) != int(count):
