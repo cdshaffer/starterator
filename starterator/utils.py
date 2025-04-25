@@ -103,7 +103,7 @@ def get_protein_sequences():
     get_db().execute('SELECT GeneID, Translation from gene')
     results = cursor.fetchall()
     for row in results:
-        protein = SeqRecord(Seq(row[1], IUPAC.protein), id=row[0]+"+", name=row[0], description=row[0])
+        protein = SeqRecord(Seq(row[1]), id=row[0]+"+", name=row[0], description=row[0])
         proteins.append(protein)
     return proteins
 

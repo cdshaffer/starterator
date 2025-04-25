@@ -138,25 +138,25 @@ def find_upstream_stop_site(start, stop, orientation, phage_sequence):
             if start + ahead_of_start > len(phage_sequence):     # i.e. hit end of phage while looking for stop
                 ahead_of_start = len(phage_sequence) - start   # start is zero based counting
                 ahead_of_start = ahead_of_start - ahead_of_start % 3
-                sequence = Seq(phage_sequence[stop:(start+ahead_of_start)], IUPAC.unambiguous_dna)
+                sequence = Seq(phage_sequence[stop:(start+ahead_of_start)])
                 sequence = sequence.reverse_complement()
                 return sequence, ahead_of_start
 
-            sequence = Seq(phage_sequence[stop:(start+ahead_of_start)], IUPAC.unambiguous_dna)
+            sequence = Seq(phage_sequence[stop:(start+ahead_of_start)])
             sequence = sequence.reverse_complement()
             if stop < 400:
                 return sequence, ahead_of_start
         else:
             if start < ahead_of_start:
                 ahead_of_start = start - start % 3
-                sequence = Seq(phage_sequence[(start-ahead_of_start):stop], IUPAC.unambiguous_dna)
+                sequence = Seq(phage_sequence[(start-ahead_of_start):stop])
                 return sequence, ahead_of_start
             if stop < start:
                 end_sequence = phage_sequence[(start-ahead_of_start):]
                 start_sequence = phage_sequence[:stop]
-                sequence = Seq(end_sequence+start_sequence, IUPAC.unambiguous_dna)
+                sequence = Seq(end_sequence+start_sequence)
             else:
-                sequence = Seq(phage_sequence[(start-ahead_of_start):stop], IUPAC.unambiguous_dna)
+                sequence = Seq(phage_sequence[(start-ahead_of_start):stop])
         sequence_ahead_of_start = sequence[:ahead_of_start]
         sequence_ahead_of_start = sequence_ahead_of_start[::-1]
         
