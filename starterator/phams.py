@@ -78,8 +78,9 @@ class Pham(object):
             gene = new_PhamGene(gene_id, start, stop, orientation, phage_id, name)
             # Data validations: screen out incompatible annotations:
             # screen out phage with N's in the genome sequence:
-            genome_query_results = get_db().query("SELECT sequence FROM phage WHERE phageid = %s", phage_id)
-            genome_seq, = genome_query_results[0][0],
+            query_text = "SELECT sequence FROM phage WHERE phageid = '" + phage_id + "';"
+            genome_query_results = get_db()._execute(query_text, None)
+            genome_seq = str(genome_query_results[0][0],)
             if "N" in genome_seq:
                 continue
 
