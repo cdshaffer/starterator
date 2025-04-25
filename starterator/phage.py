@@ -26,9 +26,8 @@ class Phage(object):
 
     def get_name(self):
         if not self.name:
-            row = get_db().get(
-                "SELECT Name, Cluster, Sequence, Status, AnnotationAuthor, Subcluster from phage where PhageID = %s",
-                self.phage_id)
+            query_text = "SELECT Name, Cluster, Sequence, Status, AnnotationAuthor, Subcluster from phage where Name like " + self.phage_id + ";"
+            row = get_db().get(query_text, None)
             self.name = row[0]
             self.cluster = row[1]
             self.sequence = row[2]
@@ -39,8 +38,8 @@ class Phage(object):
 
     def get_id(self):
         if not self.phage_id:
-            query_text = "SELECT PhageID, Cluster, Sequence, Status, AnnotationAuthor, Subcluster from phage where Name like " + self.name + ";"
-            row = get_db()._execute(query_text)
+            query_text = "SELECT PhageID, Cluster, Sequence, Status, AnnotationAuthor, Subcluster from phage where Name like " + self.phage_id + ";"
+            row = get_db().get(query_text)
             self.phage_id = row[0]
             self.cluster = row[1]
             self.sequence = row[2]

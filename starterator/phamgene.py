@@ -32,7 +32,7 @@ import os
 def get_protein_sequences():
     proteins = []
     DB = get_db()
-    results = DB._execute('SELECT GeneID, Translation from gene')
+    results = DB._execute('SELECT GeneID, Translation from gene', None)
 
 
     for row in results:
@@ -69,7 +69,7 @@ def update_protein_db():
 
 def check_protein_db(count):
     DB = get_db()
-    results = DB._execute('SELECT count(*) from gene')
+    results = DB._execute('SELECT count(*) from gene', None)
 
     new_count = results[0][0]
     print(new_count)

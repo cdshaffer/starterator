@@ -104,7 +104,7 @@ class DB(object):
 
     def get(self, query, params):
         """Returns the first row returned for the given query."""
-        rows = self.query(query, params)
+        rows = self._execute(query, None)
         if not rows:
             return None
         elif len(rows) > 1:
@@ -126,7 +126,7 @@ class DB(object):
         self._ensure_connected()
         return self._db.cursor()
 
-    def _execute(self, query):
+    def _execute(self, query, params):
         try:
             with mysql.connector.connect(**self._db_args) as connection:
                 with connection.cursor() as cursor:
