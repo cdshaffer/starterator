@@ -65,7 +65,7 @@ class Pham(object):
             Get the genes of the Phamily
         """
         query_text = "SELECT gene.GeneID, gene.phageID, Length, Start, Stop, Orientation, gene.name FROM gene WHERE gene.PhamID=" + str(self.pham_no) + ";"
-        results = get_db()._execute(query_text)
+        results = get_db()._execute(query_text, None)
         genes = {}
         self.count = len(results)
         for gene_info in results:
