@@ -40,7 +40,7 @@ class Phage(object):
         if not self.phage_id:
             query_text = "SELECT PhageID, Cluster, Sequence, Status, AnnotationAuthor, Subcluster from phage where Name like '" + self.phage_id + "';"
             row = get_db().get(query_text)
-            self.phage_id = row[0]
+            self.phage_id = row[0] # required to be unique
             self.cluster = row[1]
             self.sequence = row[2]
             self.status = row[3] # 'draft' = auto-annotated, 'final' = final/approved, 'unknown' imported non Pitt phage

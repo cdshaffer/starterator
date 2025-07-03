@@ -84,6 +84,7 @@ class Pham(object):
             if "N" in genome_seq:
                 continue
 
+
             # and only keep if there is a valid start at the annotation start of the gene
             if gene.has_valid_start():
                 genes[gene.gene_id] = gene
@@ -104,12 +105,13 @@ class Pham(object):
         """
             Get the color of the phamily from the database
         """
-        try:
-            result = get_db().get("SELECT `phamid`, `color`\n\
-                FROM `pham` WHERE `phamid` = %s;", self.pham_no)
-            return result[1]
-        except:
-            raise StarteratorError("Pham number %s not found in database!" % self.pham_no)
+
+
+
+        query_text = "SELECT phamid, color FROM pham WHERE phamid = " + self.pham_no + ";"
+        pham_colors = get_db()._execute(query_text, None)
+        return pham_colors[0][1]
+
 
     def add_alignment(self, alignment):
         """
