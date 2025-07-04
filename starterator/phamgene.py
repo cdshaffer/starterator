@@ -452,7 +452,7 @@ class PhamGene(Gene):
             else:
                 start_point = breakpoints[end_point_index - 1]
 
-            seq_feature = SeqFeature(FeatureLocation(start_point, end_point), type=type_of_block, strand=None)
+            seq_feature = SeqFeature(FeatureLocation(start_point, end_point, strand=None), type=type_of_block)
             self.alignment.features.append(seq_feature)
 
     def has_valid_start(self):

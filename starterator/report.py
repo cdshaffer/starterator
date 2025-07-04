@@ -37,7 +37,7 @@ class Report(object):
     def make_file(self, specifics, whole_phage=False):
         if whole_phage:
             specifics = ["-a", 'All'] + specifics
-        args = ['python', utils.MAKING_FILES, "-d", utils.INTERMEDIATE_DIR] + specifics
+        args = [sys.executable, utils.MAKING_FILES, "-d", utils.INTERMEDIATE_DIR] + specifics
         sargs = " ".join(args)
         print(sargs)
         subprocess.check_call(args)
