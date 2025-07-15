@@ -1,5 +1,5 @@
-from .database import DB, get_db
-from .phamgene import new_PhamGene
+from starterator.database import DB, get_db
+from starterator.phamgene import new_PhamGene
 from Bio import AlignIO
 from Bio import SeqIO
 from collections import Counter

@@ -26,9 +26,9 @@ import PyPDF2
 from Bio import SeqIO
 import math
 import io
-from . import utils
-from . import phams
-from . import phamgene
+import utils
+import starterator.phams
+import starterator.phamgene
 import os
 # from phage import
 # from reportlab.lib import colors
@@ -449,7 +449,7 @@ def make_gene_track(gd_diagram, pham, gene_group, num_on_diagram, total, seqColo
     gd_feature_set = gd_gene_track.new_set()
 
     start_site = gene.alignment_start_site
-    start_site_feature = SeqFeature(FeatureLocation(start_site, start_site + 1), strand=None)
+    start_site_feature = SeqFeature(FeatureLocation(start_site, start_site + 1))
     for feature in gene.alignment.features:
         if feature.type == 'seq':
             if seqColor % 2 == 0:
@@ -459,11 +459,11 @@ def make_gene_track(gd_diagram, pham, gene_group, num_on_diagram, total, seqColo
             gd_seq_set.add_feature(feature, color=trackColor)
     for site in gene.alignment_candidate_starts:
         site_color = pham.total_possible_starts.index(site) % len(start_bar_colors)
-        possible_site = SeqFeature(FeatureLocation(site, site), strand=None)
+        possible_site = SeqFeature(FeatureLocation(site, site))
         gd_feature_set.add_feature(possible_site, color=start_bar_colors[site_color],
                                    name=str(pham.total_possible_starts.index(site) + 1), label=True)
     end_gene_feature = SeqFeature(FeatureLocation(len(gene.alignment), 
-                                  len(gene.alignment)+1), strand=None)
+                                  len(gene.alignment)+1))
 
     # draw blue called start only if non-draft gene in gene group, if all draft use yellow
 
