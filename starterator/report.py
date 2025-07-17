@@ -22,7 +22,6 @@ from time import sleep
 from Bio import SeqIO
 import math
 import os
-from .utils import StarteratorError
 import csv
 from . import annotate
 from collections import Counter

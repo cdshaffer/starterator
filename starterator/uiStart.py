@@ -18,8 +18,8 @@ import os
 import subprocess
 import sys
 from . import utils
-from .uiStarterate import StarteratorEnterInformation
-from .uiDialogs import DatabaseInfoDialog, PreferencesDialog
+from . import uiStarterate.StarteratorEnterInformation
+from . import uiDialogs.DatabaseInfoDialog, uiDialogs.PreferencesDialog
 import time
 from . import phamgene
 from . import phams

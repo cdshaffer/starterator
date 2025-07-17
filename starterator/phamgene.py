@@ -9,8 +9,8 @@
 # April 4, 2014
 # Class and functions for pham genes
 
-from .phage import new_phage
-from .database import DB
+from . import phage.new_phage
+from . import database.DB, database.get_db
 # from Bio.Blast import NCBIXML
 from Bio.Blast.Applications import NcbiblastpCommandline as Blastp
 # from Bio.Blast.Applications import BlastallCommandline
@@ -20,10 +20,8 @@ from Bio.Seq import Seq
 from Bio import SeqIO
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 import re
-from .database import get_db
 from itertools import groupby
 from . import utils
-from .utils import StarteratorError, clean_up_files
 import subprocess
 import math
 import os

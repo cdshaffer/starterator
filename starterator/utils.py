@@ -19,7 +19,7 @@ from Bio.Seq import Seq
 from Bio import SeqIO
 # from Bio.Alphabet import IUPAC
 import shutil
-import logging 
+import logging
 
 
 MAKING_FILES = os.path.join(os.path.dirname(os.path.abspath(__file__)))+ "/making_files.py" # absolute path to making files file

@@ -1,5 +1,5 @@
-from starterator.database import DB, get_db
-from starterator.phamgene import new_PhamGene
+from . import database.DB, database.get_db
+from . import phamgene.new_PhamGene
 from Bio import AlignIO
 from Bio import SeqIO
 from collections import Counter
@@ -7,7 +7,6 @@ from . import utils
 import subprocess
 import multiprocessing
 import os
-from .utils import StarteratorError
 import json
 
 

@@ -19,7 +19,7 @@
 import MySQLdb
 import mysql.connector
 import time
-from .utils import get_config, StarteratorError
+from . import utils.get_config, utils.StarteratorError
 
 class DB(object):
 

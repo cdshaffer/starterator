@@ -1,5 +1,5 @@
-from .utils import *
-from .phams import *
+from . import utils
+from . import phams
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.enums import TA_CENTER

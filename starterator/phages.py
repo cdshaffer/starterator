@@ -1,15 +1,13 @@
 from . import genes
+from . import phams
 from . import utils
-from .genes import *
-from .phams import *
-from .utils import *
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 import PyPDF2
 from reportlab.lib import colors
-from .phage import new_phage
+from . import phage.new_phage
 
 class PhageReport(object):
     def __init__(self, name, is_phamerated, fasta_file=None, profile_file=None, gui=None, event=None):
