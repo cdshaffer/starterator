@@ -1,4 +1,4 @@
-from . import database.DB, database.get_db
+from . import database
 from . import phamgene
 # don't want mutliples of phage object
 # before making a phage, 

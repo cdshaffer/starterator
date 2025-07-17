@@ -13,9 +13,9 @@ import MySQLdb
 from gi.repository import Gtk, Gdk
 import threading
 import time
-from . import uiDialogs.StarteratorFinishedDialog
+from . import uiDialogs
 from . import starterate
-from . import utils.StarteratorError
+from . import utils
 from . import database
 from . import phamgene
 

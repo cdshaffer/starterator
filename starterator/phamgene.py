@@ -10,7 +10,7 @@
 # Class and functions for pham genes
 
 from . import phage.new_phage
-from . import database.DB, database.get_db
+from . import database
 # from Bio.Blast import NCBIXML
 from Bio.Blast.Applications import NcbiblastpCommandline as Blastp
 # from Bio.Blast.Applications import BlastallCommandline

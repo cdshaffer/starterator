@@ -1,5 +1,5 @@
-from . import database.DB, database.get_db
-from . import phamgene.new_PhamGene
+from . import database
+from . import phamgene
 from Bio import AlignIO
 from Bio import SeqIO
 from collections import Counter

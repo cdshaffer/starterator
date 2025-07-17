@@ -7,7 +7,7 @@ from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 import PyPDF2
 from reportlab.lib import colors
-from . import phage.new_phage
+from . import phage
 
 class PhageReport(object):
     def __init__(self, name, is_phamerated, fasta_file=None, profile_file=None, gui=None, event=None):
