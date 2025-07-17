@@ -19,7 +19,7 @@
 import MySQLdb
 import mysql.connector
 import time
-from . import utils
+from .utils import get_config
 
 class DB(object):
 
@@ -87,7 +87,7 @@ class DB(object):
         #Potential fix for connection error from github copilot
         cursor = self._cursor()
         try:
-            self._execute(cursor, query, params)
+            self._execute(query, params)
             result = cursor.fetchall()
             return result
         except MySQLdb.OperationalError as e:

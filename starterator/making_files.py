@@ -26,13 +26,12 @@ import PyPDF2
 from Bio import SeqIO
 import math
 import io
-from . import utils
-from . import phams
-from . import phamgene
+from .utils import *
+from .phams import *
+from .phamgene import *
 import os
 # from phage import
 # from reportlab.lib import colors
-
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -685,7 +684,7 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     story.append(Paragraph(text, styles['Center']))
     story.append(Spacer(1, 12))
     current_date = time.strftime("%x")
-    db_version = phams.get_version()
+    db_version = get_version()
     run_date = '<font size=12>This analysis was run %s on database version %s. </font>' % (current_date, db_version)
     story.append(Paragraph(run_date, styles["Normal"]))
     story.append(Spacer(1, 12))

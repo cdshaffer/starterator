@@ -9,8 +9,8 @@
 # April 4, 2014
 # Class and functions for pham genes
 
-from . import phage.new_phage
-from . import database
+from .phage import new_phage
+from .database import *
 # from Bio.Blast import NCBIXML
 from Bio.Blast.Applications import NcbiblastpCommandline as Blastp
 # from Bio.Blast.Applications import BlastallCommandline
