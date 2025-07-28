@@ -111,7 +111,7 @@ class PhageReport(Report):
     #   pickle.dump(self.phage_genes, open(pickle_file, "wb"))
 
     def merge_reports(self):
-        merger = PyPDF2.PdfFileMerger()
+        merger = PyPDF2.PdfMerger()
         phage_starts = open(os.path.join(self.output_dir, "%sSuggestedStarts.pdf" % self.name))
         phage_genome = open("%s/%sPhamsGraph.pdf" % (self.output_dir, self.name))
         merger.append(fileobj=phage_genome)
@@ -402,7 +402,7 @@ class GeneReport(Report):
     def merge_report(self):
         """
         """
-        merger = PyPDF2.PdfFileMerger()
+        merger = PyPDF2.PdfMerger()
         graph = open(os.path.join(self.output_dir, "%sOnePham%sGraph.pdf" % (self.phage_name, self.pham.pham_no)), "rb")
         text = open(os.path.join(self.output_dir, '%sOnePham%sText.pdf' % (self.phage_name, self.pham.pham_no)), 'rb')
         merger.append(fileobj=graph)
@@ -478,7 +478,7 @@ class PhamReport(Report):
         self.make_file(args)
 
     def merge_report(self):
-        merger = PyPDF2.PdfFileMerger()
+        merger = PyPDF2.PdfMerger()
         graph = open(os.path.join(self.output_dir, "OnePham%sGraph.pdf" % self.pham_no), "rb")
         text = open(os.path.join(self.output_dir, 'Pham%sText.pdf' % self.pham_no), 'rb')
         merger.append(fileobj=graph)

@@ -382,7 +382,7 @@ def output_start_sites_by_phage(stats, genelist):
 def add_pham_no_title(args, pham_no, first_graph_path, i="", zoom=False):
     # print i, type(i)
     # print first_graph_path
-    packet = io.StringIO()
+    packet = io.BytesIO()
     can = canvas.Canvas(packet, pagesize=reportlab.lib.pagesizes.letter)
     # width, height = reportlab.lib.pagesizes.letter
     # print width, height
@@ -394,9 +394,9 @@ def add_pham_no_title(args, pham_no, first_graph_path, i="", zoom=False):
     can.save()
 
     packet.seek(0)
-    new_pdf = PyPDF2.PdfFileReader(packet)
-    existing_pdf = PyPDF2.PdfFileReader(file(first_graph_path, 'rb'))
-    output = PyPDF2.PdfFileWriter()
+    new_pdf = PyPDF2.PdfReader(packet)
+    existing_pdf = PyPDF2.PdfReader(file(first_graph_path, 'rb'))
+    output = PyPDF2.PdfWriter()
     print(first_graph_path)
     page = existing_pdf.getPage(0)
     page.mergePage(new_pdf.getPage(0))
@@ -412,7 +412,7 @@ def add_pham_no_title(args, pham_no, first_graph_path, i="", zoom=False):
 
 
 def combine_graphs(args, phage, pham_no, num_pages):
-    merger = PyPDF2.PdfFileMerger()
+    merger = PyPDF2.PdfMerger()
     for j in range(0, num_pages + 1):
         print(os.path.join(args.dir, "%sPham%sGraph%d.pdf" % (phage + args.one_or_all, pham_no, j)))
         graph = open(os.path.join(args.dir, "%sPham%sGraph%d.pdf" % (phage + args.one_or_all, pham_no, j)), "rb")
@@ -684,7 +684,7 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     story.append(Paragraph(text, styles['Center']))
     story.append(Spacer(1, 12))
     current_date = time.strftime("%x")
-    db_version = get_version()
+    db_version = "579" ## hard coded for now -- TODO: fix get version
     run_date = '<font size=12>This analysis was run %s on database version %s. </font>' % (current_date, db_version)
     story.append(Paragraph(run_date, styles["Normal"]))
     story.append(Spacer(1, 12))

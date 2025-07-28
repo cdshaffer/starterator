@@ -40,8 +40,8 @@ def get_pham_colors(phams=None):
 
 def get_version():
     db = DB()
-    results = db.query("SELECT Version from version;")
-    return int(results[0][0])
+    results = 579 # hardcoded TODO: fix, db.query("SELECT Version from version;")
+    return results
 
 
 class Pham(object):

@@ -251,7 +251,7 @@ class PhageReport(object):
         """
         one_or_all = 'All'
         print("making report")
-        merger = PyPDF2.PdfFileMerger()
+        merger = PyPDF2.PdfMerger()
         phage_starts = open("%sSuggestedStarts.pdf" % (self.intermediate_dir + self.name), 'rb')
         phage_genome = open('%sPhamsGraph.pdf' % (self.intermediate_dir + self.name), 'rb')
         merger.append(fileobj=phage_genome)

@@ -148,7 +148,7 @@ class GeneReport(object):
             Merges the graphical and text output of one pham into one PDF file
             {Phage}Pham{Number}Report.pdf
         """
-        merger = PyPDF2.PdfFileMerger()
+        merger = PyPDF2.PdfMerger()
         graph = open("%sPham%sGraph.pdf" % (utils.INTERMEDIATE_DIR + self.phage + 'One', self.pham_no), "rb")
         text = open('%s%sPham%sText.pdf' % (utils.INTERMEDIATE_DIR, self.phage +'One', self.pham_no), 'rb')
         merger.append(fileobj=graph)

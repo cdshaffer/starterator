@@ -87,8 +87,7 @@ class DB(object):
         #Potential fix for connection error from github copilot
         cursor = self._cursor()
         try:
-            self._execute(query, params)
-            result = cursor.fetchall()
+            result = self._execute(query, params)
             return result
         except MySQLdb.OperationalError as e:
             print(("OperationalError: %s" % e))
