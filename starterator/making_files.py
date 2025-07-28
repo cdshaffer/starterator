@@ -403,12 +403,12 @@ def add_pham_no_title(args, pham_no, first_graph_path, i="", zoom=False):
     output.addPage(page)
     print(utils.INTERMEDIATE_DIR)
     print("old graph?", os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage + args.one_or_all, pham_no, i)))
-    output_strm = file(os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage + args.one_or_all, pham_no, i)), 'wb')
+    # output_strm = file(os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage + args.one_or_all, pham_no, i)), 'wb')
     # print outputStream
     print(output_strm)
     os.remove(first_graph_path)
-    output.write(output_strm)
-    output_strm.close()
+    with open(os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage + args.one_or_all, pham_no, i)), 'wb') as output_strm:
+        output.write(output_strm)
 
 
 def combine_graphs(args, phage, pham_no, num_pages):
