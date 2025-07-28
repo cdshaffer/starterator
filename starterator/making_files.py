@@ -417,7 +417,9 @@ def combine_graphs(args, phage, pham_no, num_pages):
         print(os.path.join(args.dir, "%sPham%sGraph%d.pdf" % (phage + args.one_or_all, pham_no, j)))
         graph = open(os.path.join(args.dir, "%sPham%sGraph%d.pdf" % (phage + args.one_or_all, pham_no, j)), "rb")
         merger.append(fileobj=graph)
-    merger.write(open(os.path.join(args.dir, "%sPham%sGraph.pdf" % (phage + args.one_or_all, pham_no)), "wb"))
+    with open(os.path.join(args.dir, "%sPham%sGraph.pdf" % (phage + args.one_or_all, pham_no)), "wb") as f:
+        merger.write(f)
+    # merger.write(open(os.path.join(args.dir, "%sPham%sGraph.pdf" % (phage + args.one_or_all, pham_no)), "wb"))
 
 
 def make_gene_track(gd_diagram, pham, gene_group, num_on_diagram, total, seqColor):

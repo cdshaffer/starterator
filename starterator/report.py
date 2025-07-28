@@ -408,7 +408,9 @@ class GeneReport(Report):
         merger.append(fileobj=graph)
         merger.append(fileobj=text)
         file_path = os.path.join(self.final_dir, "%sPham%sReport.pdf" % (self.phage_name, self.pham.pham_no))
-        merger.write(open(file_path, 'wb'))
+        with open(file_path, 'wb') as f:
+            merger.write(f)
+        # merger.write(open(file_path, 'wb'))
         return file_path, "%sPham%sReport.pdf" % (self.phage_name, self.pham.pham_no)
 
 
@@ -484,5 +486,7 @@ class PhamReport(Report):
         merger.append(fileobj=graph)
         merger.append(fileobj=text)
         file_path = os.path.join(self.final_dir, "Pham%sReport.pdf" % self.pham_no)
-        merger.write(open(file_path, 'wb'))
+        with open(file_path, 'wb') as f:
+            merger.write(f)
+        # merger.write(open(file_path, 'wb'))
         return file_path, "Pham%sReport.pdf" % self.pham_no

@@ -265,5 +265,7 @@ class PhageReport(object):
                 merger.append(fileobj=graph)
                 merger.append(fileobj=text)
                 phams_added.append(pham)
-        merger.write(open("%s%sReport.pdf" % (self.final_dir, self.name), 'wb'))
+        with open("%s%sReport.pdf" % (self.final_dir, self.name), 'wb') as f:
+            merger.write(f)
+        # merger.write(open("%s%sReport.pdf" % (self.final_dir, self.name), 'wb'))
         return "%s%sReport.pdf" % (self.final_dir, self.name), '%sReport.pdf' % self.name
