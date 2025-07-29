@@ -11,6 +11,7 @@
 # April 4, 2014
 # Functions that create the PDF outputs
 
+import copy
 import pickle
 import argparse
 import time
@@ -400,20 +401,21 @@ def add_pham_no_title(args, pham_no, first_graph_path, i="", zoom=False):
         existing_pdf = PyPDF2.PdfReader(f)
         page = existing_pdf.pages[0]
         page.merge_page(new_pdf.pages[0])
-    output = PyPDF2.PdfWriter()
-    print(first_graph_path)
-   # page = existing_pdf.getPage(0)
-   # page.mergePage(new_pdf.getPage(0))
+        output = PyPDF2.PdfWriter()
+        print(first_graph_path)
+       # page = existing_pdf.getPage(0)
+       # page.mergePage(new_pdf.getPage(0))
 
-    output.add_page(page)
-    print(utils.INTERMEDIATE_DIR)
-    print("old graph?", os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage + args.one_or_all, pham_no, i)))
-    # output_strm = file(os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage + args.one_or_all, pham_no, i)), 'wb')
-    # print outputStream
-    print(output_strm)
-    os.remove(first_graph_path)
-    with open(os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage + args.one_or_all, pham_no, i)), 'wb') as output_strm:
-        output.write(output_strm)
+        output.add_page(page)
+        print(utils.INTERMEDIATE_DIR)
+        print("old graph?", os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage + args.one_or_all, pham_no, i)))
+        # output_strm = file(os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage + args.one_or_all, pham_no, i)), 'wb')
+        # print outputStream
+        #print(output_strm)
+        os.remove(first_graph_path)
+
+        with open(os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage + args.one_or_all, pham_no, i)), 'wb') as output_strm:
+            output.write(output_strm)
 
 
 def combine_graphs(args, phage, pham_no, num_pages):
