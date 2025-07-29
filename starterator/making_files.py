@@ -398,14 +398,14 @@ def add_pham_no_title(args, pham_no, first_graph_path, i="", zoom=False):
     # existing_pdf = PyPDF2.PdfReader(file(first_graph_path, 'rb'))
     with open(first_graph_path, 'rb') as f:
         existing_pdf = PyPDF2.PdfReader(f)
+        page = existing_pdf.pages[0]
+        page.merge_page(new_pdf.pages[0])
     output = PyPDF2.PdfWriter()
     print(first_graph_path)
    # page = existing_pdf.getPage(0)
-    page = existing_pdf.pages[0]
    # page.mergePage(new_pdf.getPage(0))
-    page.mergePage(new_pdf.pages[0])
 
-    output.addPage(page)
+    output.add_page(page)
     print(utils.INTERMEDIATE_DIR)
     print("old graph?", os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage + args.one_or_all, pham_no, i)))
     # output_strm = file(os.path.join(args.dir, "%sPham%sGraph%s.pdf" % (args.phage + args.one_or_all, pham_no, i)), 'wb')
