@@ -27,9 +27,9 @@ import PyPDF2
 from Bio import SeqIO
 import math
 import io
-from .utils import *
-from .phams import *
-from .phamgene import *
+from starterator.utils import *
+from starterator.phams import *
+from starterator.phamgene import *
 import os
 # from phage import
 # from reportlab.lib import colors

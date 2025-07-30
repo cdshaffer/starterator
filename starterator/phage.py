@@ -38,7 +38,7 @@ class Phage(object):
 
     def get_id(self):
         if not self.phage_id:
-            query_text = "SELECT PhageID, Cluster, Sequence, Status, AnnotationAuthor, Subcluster from phage where Name like '" + self.phage_id + "';"
+            query_text = "SELECT PhageID, Cluster, Sequence, Status, AnnotationAuthor, Subcluster from phage where Name like '" + self.name + "';"
             row = get_db().get(query_text)
             self.phage_id = row[0] # required to be unique
             self.cluster = row[1]
