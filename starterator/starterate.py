@@ -11,6 +11,8 @@
 # Starterate function 
 
 import argparse
+from multiprocessing import Pool, Process, Queue, Semaphore
+from phams import generate_pham_hashes, get_all_phams, process_all_phams
 import utils
 from utils import clean_up_files
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
@@ -85,6 +87,14 @@ def get_arguments():
     parser.add_argument('-f', '--fasta', help='Path to Fasta File')
     parser.add_argument('-j', '--save_json', type=bool, default=False,
                         help='Boolean, use with -n to save json file describing complete results.')
+    parser.add_argument('--all-phams', action='store_true',
+                        help='Batch process all phams in the database')
+    parser.add_argument('--verbose', action='store_true',
+                        help='Enable verbose output')
+    parser.add_argument('--get-phams', action='store_true',
+                        help='Get all pham ids (one per line)')
+    parser.add_argument('--get-pham-hashes', action='store_true',
+                        help='Get all pham hashes')
     return parser.parse_args()
 
 
@@ -134,22 +144,41 @@ import utils
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def main():
-    config_path = "/usr/src/app/starterator/extras/starterator.config"
+    # Use the same configuration approach as utils.py
+    config_path = os.path.abspath(os.path.join(
+        os.getenv("STARTERATOR_CONFIG_DIR", os.path.join(os.environ["HOME"], ".starterator")), 
+        "starterator.config"))
     
-    # Check if the configuration file exists
-    if not os.path.exists(config_path):
-        logging.error("Configuration file {} does not exist.".format(config_path))
-        return
-    
-    # Log the content of the configuration file
-    with open(config_path, 'r') as config_file:
-        logging.info("Configuration file {} content:\n{}".format(config_path, config_file.read()))
-    
-    # Existing code
-    args = get_arguments()
+    # Configuration will be created automatically if it doesn't exist
     config = utils.get_config()
-    # print config["count"]
+    args = get_arguments()
+    if args.verbose:
+        # Log the content of the configuration file
+        with open(config_path, 'r') as config_file:
+            logging.info("Configuration file {} content:\n{}".format(config_path, config_file.read()))
+
+    # Existing code
+    config = utils.get_config()
+
+    if args.get_phams:
+        phams = get_all_phams()
+        # phams returned one per line
+        for pham in phams:
+            print(pham)
+
+
+
+    if args.get_pham_hashes:
+        generate_pham_hashes()
+        return
+
     phamgene.check_protein_db(config["count"])
+
+    if args.all_phams:
+        process_all_phams()
+        return
+
+
     # --Phamerated and only one gene
     if args.gene_number != -1 and args.phage is not None and args.unphamed is False:
         gene = report.GeneReport(args.phage, args.gene_number, True)
@@ -168,7 +197,7 @@ def main():
         gene_name = args.phage + '_' + str(args.gene_number)
         gene = report.GeneReport(args.phage, args.gene_number, fasta_file=args.fasta)
         gene.make_unpham_gene(given_start, given_stop, given_orientation)
-        print gene
+        print(gene)
         gene.make_report()
         final_file, s = gene.merge_report()
 

@@ -16,8 +16,11 @@
 
 
 
-import MySQLdb
+import pymysql
+pymysql.install_as_MySQLdb()
+import pymysql as MySQLdb
 import time
+import os
 from utils import get_config, StarteratorError
 
 class DB(object):
@@ -28,12 +31,15 @@ class DB(object):
         self._db = None
         args = {}
         config = get_config()
-        args["user"] = config["database_user"]
-        args["passwd"] = ""
-        args["db"] = config["database_name"]
-        args["unix_socket"] = "/tmp/mysqld.sock"
-        args["host"] = config["database_server"]
-        args["port"] =  3307
+        args["user"] = os.getenv("DB_USER", config.get("database_user", ""))
+        args["passwd"] = os.getenv("DB_PASSWORD", config.get("database_password", ""))
+        args["db"] = os.getenv("DB_NAME", config.get("database_name", ""))
+        args["host"] = os.getenv("DB_HOST", config.get("database_server", "localhost"))
+        args["port"] = int(os.getenv("DB_PORT", config.get("database_port", "3306")))
+
+        # Only use unix_socket for local connections
+        if args["host"] in ["localhost", "127.0.0.1", "::1"] and not os.getenv("DB_HOST"):
+            args["unix_socket"] = "/tmp/mysqld.sock"
         self.host = "{0}:{1}".format(args['host'], args['port'])
 
         self._db_args = args

@@ -1,3 +1,5 @@
+import math
+import time
 from database import DB, get_db
 from phamgene import new_PhamGene
 from Bio import AlignIO
@@ -9,7 +11,101 @@ import multiprocessing
 import os
 from utils import StarteratorError
 import json
+from hashlib import sha256
 
+
+def generate_pham_hashes(output_file=True):
+    db = get_db()
+
+    db_version = db.query("SELECT Version from version;")[0][0]
+
+    pham_ids = [row[0] for row in db.query("SELECT PhamID from pham;")]
+    total_phams = len(pham_ids)
+    pham_hashes = {}
+    BATCH_SIZE = 500
+    for i in range(0, len(pham_ids), BATCH_SIZE):
+        batch_phams = pham_ids[i:i+BATCH_SIZE]
+        print(f"Processing hash batch {math.floor(i / BATCH_SIZE)+1}/{math.ceil(total_phams/BATCH_SIZE)}")
+        query = """
+        SELECT phage.PhageID, phage.Cluster, phage.Subcluster, phage.Status, pham.PhamID, gene.Translation, gene.Name, gene.LocusTag, gene.Notes, gene.GeneID
+        FROM pham
+        JOIN gene ON pham.PhamID = gene.PhamID
+        JOIN phage ON gene.PhageID = phage.PhageID
+        WHERE pham.PhamID IN %s
+        ORDER BY pham.PhamID, gene.GeneID
+        """
+        db_results = db.query(query, (tuple(batch_phams),))
+        pham_groups = {}
+        for row in db_results:
+            if row[4] not in pham_groups:
+                pham_groups[row[4]] = []
+            pham_groups[row[4]].append(row)
+        # Generate hashes for each pham in the batch
+        for pham_id, genes in pham_groups.items():
+            sorted_genes = sorted(genes, key=lambda x: x[-1])  # Sort by GeneID
+            membership_data = '|'.join([g[-1] for g in sorted_genes])
+            sequences_data = '|'.join([utils.decode_if_bytes(g[5]) for g in sorted_genes])
+            annotations_data = '|'.join([g[6] for g in sorted_genes])
+            # Cluster, Subcluster, LocusTag and Status
+            metadata_data = '|'.join([f"{g[7]}|{g[8]}|{g[9]}|{g[3]}" for g in sorted_genes])
+            membership_hash = sha256(membership_data.encode()).hexdigest()
+            sequences_hash = sha256(sequences_data.encode()).hexdigest()
+            annotations_hash = sha256(annotations_data.encode()).hexdigest()
+            metadata_hash = sha256(metadata_data.encode()).hexdigest()
+            combined_hash = sha256(f"{membership_hash}|{sequences_hash}|{annotations_hash}|{metadata_hash}".encode()).hexdigest()
+            pham_hashes[pham_id] = {
+                "membership_hash": membership_hash,
+                "sequences_hash": sequences_hash,
+                "annotations_hash": annotations_hash,
+                "metadata_hash": metadata_hash,
+                "combined_hash": combined_hash,
+                "gene_count": len(sorted_genes)
+            }
+        pham_groups.clear()
+    all_combined_hashes = '|'.join([hash_info["combined_hash"] for hash_info in pham_hashes.values()])
+    overall_hash = sha256(all_combined_hashes.encode()).hexdigest()
+    hash_output = {
+        "database_version": db_version,
+        # Iso time
+        "generated_timestamp": time.ctime(),
+        "overall_hash": overall_hash,
+        "total_phams": len(pham_hashes),
+        "phams": pham_hashes
+    }
+    if output_file:
+        with open(os.path.join(utils.FINAL_DIR, f"pham_hashes_v{db_version}.json"), 'w') as f:
+            json.dump(hash_output, f, indent=2)
+        print(f"Output written to {utils.FINAL_DIR}/pham_hashes_v{db_version}.json")
+    return hash_output
+
+def get_all_phams():
+    """Get all pham numbers from the database"""
+    db = get_db()
+    # results = db.query("SELECT DISTINCT PhamID FROM pham WHERE PhamID IS NOT NULL ORDER BY PhamID")
+    #
+    results = db.query("""select distinct gene.phamid,count(gene.phamid) as member_count from pham 
+                       join gene on gene.phamid=pham.phamid 
+                       group by gene.phamid having member_count > 1 ORDER BY member_count desc;""")
+    return [row[0] for row in results]
+
+def start_pham_job(pham_no):
+    """
+    Start a subprocess for the given pham number.
+    """
+    start_time = time.time()
+    print(f"Processing {pham_no}")
+    subprocess.call(['python3', 'starterate.py', '-n', str(pham_no), '-j', 'True'])
+    print(f"Finished processing Pham {pham_no} in {int(time.time()-start_time)} seconds")
+
+def process_all_phams():
+    """
+    Process all phams in the database.
+    """
+    phams = get_all_phams()
+    print(f"Found {len(phams)} phams to process")
+    with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+        pool.map(start_pham_job, phams, chunksize=2)
+    print("\nBatch pham processing complete!")
 
 def get_pham_number(phage_name, gene_number):
     try:
@@ -82,6 +178,7 @@ class Pham(object):
             # screen out phage with N's in the genome sequence:
             genome_query_results = get_db().query("SELECT sequence FROM phage WHERE phageid = %s", phage_id)
             genome_seq, = genome_query_results[0][0],
+            genome_seq = utils.decode_if_bytes(genome_seq)
             if "N" in genome_seq:
                 continue
 
@@ -132,7 +229,8 @@ class Pham(object):
             subprocess.check_call(['clustalo', '--infile=%s' % fasta_file, '--outfile=%s' % outfile, '--outfmt=clu', '--threads', str(multiprocessing.cpu_count())])
             # subprocess.check_call(['clustalo', '--infile=%s' % fasta_file, '--outfile=%s' % outfile, '--outfmt=clu'])
         else:
-            subprocess.check_call(['clustalw', '-infile=%s' % (fasta_file), '-quicktree', '-quiet'])
+            with open(os.devnull, 'w') as devnull:
+                subprocess.check_call(['clustalw', '-infile=%s' % (fasta_file), '-quicktree', '-quiet'], stderr=devnull, stdout=devnull)
 
         aln_file = fasta_file.replace(".fasta", ".aln")
         alignment = AlignIO.read(aln_file, "clustal")
@@ -155,7 +253,7 @@ class Pham(object):
         genes = [gene.sequence for gene in self.genes.values()]
         count = SeqIO.write(genes, "%s.fasta" % file_name, "fasta")
         if len(self.genes) == 1:
-            alignment = [gene.sequence]
+            alignment = [genes[0]]
         else:
             try:
                 alignment = AlignIO.read(file_name + ".aln", "clustal")
@@ -190,7 +288,7 @@ class Pham(object):
         """
         groups = []
         i = 0
-        genes = self.genes.values()
+        genes = list(self.genes.values())
 
         grouped = [False for gene in genes]
         while i < len(self.genes):
@@ -450,7 +548,7 @@ class Pham(object):
             gene_dict['AvailableCoord'] = [gene.alignment_index_to_coord(s) for s in gene.alignment_candidate_starts]
             if gene.locustag is None:
                 gene.get_locustag()
-            if gene.locustag is not "":
+            if gene.locustag != "":
                 gene_dict['locustag'] = gene.locustag
             if gene.annot_author == 1 and gene.status == 'final': # Pitt "owns" it and is in genbank already
                 gene_dict['Editable'] = "True"
@@ -459,8 +557,8 @@ class Pham(object):
 
         summary_dict['Genes'] = genelist
         annotlist = {}
-        annotlist['Starts'] = self.stats['most_common']['annot_counts'].keys()
-        annotlist['Counts'] = self.stats['most_common']['annot_counts'].values()
+        annotlist['Starts'] = list(self.stats['most_common']['annot_counts'].keys())
+        annotlist['Counts'] = list(self.stats['most_common']['annot_counts'].values())
         summary_dict['Annots'] = annotlist
 
         conservationdict = {}

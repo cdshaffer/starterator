@@ -10,7 +10,7 @@
 # Making of the Starterator Reports
 
 import subprocess
-import cPickle
+import pickle
 import PyPDF2
 import sys
 
@@ -59,7 +59,7 @@ class PhageReport(Report):
         self.get_phams()
         for phm in self._phams.keys():
             if self._phams[phm][0].orientation == 'R' and self._phams[phm][0].start == self.seq_length:
-                print 'found probable broken gene, deleting ' + self._phams[phm][0].gene_id + ' from list to starterate'
+                print('found probable broken gene, deleting ' + self._phams[phm][0].gene_id + ' from list to starterate')
                 pass  # change this to delete the entry from self._phams
 
         self.make_reports()
@@ -79,7 +79,7 @@ class PhageReport(Report):
     def make_reports(self):
         pham_counter = 0
         total_no = len(self._phams.keys())
-        pham_items = self._phams.items()
+        pham_items = list(self._phams.items())
         pham_items.sort(key=lambda item: (item[1][0].start_codon_location, item[0]))
         sorted_keys = [item[0] for item in pham_items]
         for pham_no in sorted_keys:
@@ -103,7 +103,7 @@ class PhageReport(Report):
 
     def make_phage_pages(self):
         pickle_file = os.path.join(self.output_dir, "%s.pickle" % self.name)
-        cPickle.dump(self.phage_genes, open(pickle_file, "wb"))
+        pickle.dump(self.phage_genes, open(pickle_file, "wb"))
         args = ["-p", self.name, "-f", pickle_file, "-l", str(self.seq_length), "-m", "genome"]
         self.make_file(args, True)
 
@@ -112,20 +112,32 @@ class PhageReport(Report):
     #   cPickle.dump(self.phage_genes, open(pickle_file, "wb"))
 
     def merge_reports(self):
-        merger = PyPDF2.PdfFileMerger()
-        phage_starts = open(os.path.join(self.output_dir, "%sSuggestedStarts.pdf" % self.name))
-        phage_genome = open("%s/%sPhamsGraph.pdf" % (self.output_dir, self.name))
-        merger.append(fileobj=phage_genome)
-        merger.append(fileobj=phage_starts)
+        merger = PyPDF2.PdfWriter()
+        
+        # Add phage genome pages
+        with open("%s/%sPhamsGraph.pdf" % (self.output_dir, self.name), 'rb') as phage_genome:
+            reader = PyPDF2.PdfReader(phage_genome)
+            for page in reader.pages:
+                merger.add_page(page)
+        
+        # Add phage starts pages  
+        with open(os.path.join(self.output_dir, "%sSuggestedStarts.pdf" % self.name), 'rb') as phage_starts:
+            reader = PyPDF2.PdfReader(phage_starts)
+            for page in reader.pages:
+                merger.add_page(page)
         phams_added = []
-        for gene_no in sorted(self.phage_genes.iterkeys()):
+        for gene_no in sorted(self.phage_genes.keys()):
             phage_gene = self.phage_genes[gene_no]
             pham = phage_gene["pham_no"]
             if pham not in phams_added and pham is not None:
-                graph = open(os.path.join(self.output_dir, "%sAllPham%sGraph.pdf" % (self.name, pham)))
-                text = open("%s/%sAllPham%sText.pdf" % (self.output_dir, self.name, pham))
-                merger.append(fileobj=graph)
-                merger.append(fileobj=text)
+                with open(os.path.join(self.output_dir, "%sAllPham%sGraph.pdf" % (self.name, pham)), 'rb') as graph:
+                    reader = PyPDF2.PdfReader(graph)
+                    for page in reader.pages:
+                        merger.add_page(page)
+                with open("%s/%sAllPham%sText.pdf" % (self.output_dir, self.name, pham), 'rb') as text:
+                    reader = PyPDF2.PdfReader(text)
+                    for page in reader.pages:
+                        merger.add_page(page)
                 phams_added.append(pham)
         merger.write(open(os.path.join(self.final_dir, "%sReport.pdf" % self.name), 'wb'))
         return (os.path.join(self.final_dir,"%sReport.pdf" % self.name), "%sReport.pdf" % self.name)
@@ -161,7 +173,7 @@ class UnPhamPhageReport(PhageReport):
         if not self.sequence:
             try:
                 with open(self.fasta, "rb") as fasta_file:
-                    fasta_file.next()
+                    next(fasta_file)
                     sequence = ""
                     for line in fasta_file:
                         sequence += (line.strip())
@@ -194,9 +206,9 @@ class UnPhamPhageReport(PhageReport):
                         first_word = first_line.split()[0]
                         if first_word == "Profile":
                             csv_reader = csv.reader(profile)
-                            line = csv_reader.next()
+                            line = next(csv_reader)
                             #  print line
-                            csv_reader.next()
+                            next(csv_reader)
                             for row in csv_reader:
                                 # print row
                                 feature_type = row[8].strip()
@@ -369,7 +381,7 @@ class GeneReport(Report):
 
     def get_sequence(self):
         with open(self.fasta) as fasta_file:
-            fasta_file.next()
+            next(fasta_file)
             sequence = ""
             for line in fasta_file:
                 sequence += (line.strip())
@@ -388,7 +400,7 @@ class GeneReport(Report):
         self.pham.find_most_common_start()
         pickle_file = os.path.join(self.output_dir, "%s%s.pickle" % (self.pham.file, self.pham.pham_no)) # TODO: Figure out base name things
         f = open(pickle_file, "wb")
-        cPickle.dump(self.pham, f)
+        pickle.dump(self.pham, f)
         f.close()
 
         args = ["-p", self.phage_name, "-n", str(self.pham.pham_no),  "-f", pickle_file, "-m", "text"]
@@ -403,11 +415,15 @@ class GeneReport(Report):
     def merge_report(self):
         """
         """
-        merger = PyPDF2.PdfFileMerger()
-        graph = open(os.path.join(self.output_dir, "%sOnePham%sGraph.pdf" % (self.phage_name, self.pham.pham_no)), "rb")
-        text = open(os.path.join(self.output_dir, '%sOnePham%sText.pdf' % (self.phage_name, self.pham.pham_no)), 'rb')
-        merger.append(fileobj=graph)
-        merger.append(fileobj=text)
+        merger = PyPDF2.PdfWriter()
+        with open(os.path.join(self.output_dir, "%sOnePham%sGraph.pdf" % (self.phage_name, self.pham.pham_no)), "rb") as graph:
+            reader = PyPDF2.PdfReader(graph)
+            for page in reader.pages:
+                merger.add_page(page)
+        with open(os.path.join(self.output_dir, '%sOnePham%sText.pdf' % (self.phage_name, self.pham.pham_no)), 'rb') as text:
+            reader = PyPDF2.PdfReader(text)
+            for page in reader.pages:
+                merger.add_page(page)
         file_path = os.path.join(self.final_dir, "%sPham%sReport.pdf" % (self.phage_name, self.pham.pham_no))
         merger.write(open(file_path, 'wb'))
         return file_path, "%sPham%sReport.pdf" % (self.phage_name, self.pham.pham_no)
@@ -425,7 +441,7 @@ class UnPhamGeneReport(GeneReport):
         if not self.sequence:
             try:
                 with open(self.fasta_file) as fasta_file:
-                    fasta_file.next()
+                    next(fasta_file)
                     sequence = ""
                     for line in fasta_file:
                         sequence.join(line.strip())
@@ -469,7 +485,7 @@ class PhamReport(Report):
         self.pham.find_most_common_start()
         pickle_file = os.path.join(self.output_dir, "%s.pickle" % self.pham.pham_no)  # TODO:Figure out base name things
         f = open(pickle_file, "wb")
-        cPickle.dump(self.pham, f)
+        pickle.dump(self.pham, f)
         f.close()
         if save_json:
             json_file = pickle_file.replace(".pickle", ".json")
@@ -479,11 +495,15 @@ class PhamReport(Report):
         self.make_file(args)
 
     def merge_report(self):
-        merger = PyPDF2.PdfFileMerger()
-        graph = open(os.path.join(self.output_dir, "OnePham%sGraph.pdf" % self.pham_no), "rb")
-        text = open(os.path.join(self.output_dir, 'Pham%sText.pdf' % self.pham_no), 'rb')
-        merger.append(fileobj=graph)
-        merger.append(fileobj=text)
+        merger = PyPDF2.PdfWriter()
+        with open(os.path.join(self.output_dir, "OnePham%sGraph.pdf" % self.pham_no), "rb") as graph:
+            reader = PyPDF2.PdfReader(graph)
+            for page in reader.pages:
+                merger.add_page(page)
+        with open(os.path.join(self.output_dir, 'Pham%sText.pdf' % self.pham_no), 'rb') as text:
+            reader = PyPDF2.PdfReader(text)
+            for page in reader.pages:
+                merger.add_page(page)
         file_path = os.path.join(self.final_dir, "Pham%sReport.pdf" % self.pham_no)
         merger.write(open(file_path, 'wb'))
         return file_path, "Pham%sReport.pdf" % self.pham_no

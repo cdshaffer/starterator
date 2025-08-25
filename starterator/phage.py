@@ -1,5 +1,6 @@
 from database import DB, get_db
 import phamgene
+from starterator.utils import StarteratorError
 # don't want mutliples of phage object
 # before making a phage, 
 phage_list = {}
@@ -29,6 +30,8 @@ class Phage(object):
             row = get_db().get(
                 "SELECT Name, Cluster, Sequence, Status, AnnotationAuthor, Subcluster from phage where PhageID = %s",
                 self.phage_id)
+            if row is None:
+                raise StarteratorError(f"Phage {self.phage_id} not found")
             self.name = row[0]
             self.cluster = row[1]
             self.sequence = row[2]
@@ -42,6 +45,8 @@ class Phage(object):
             row = get_db().get(
                 "SELECT PhageID, Cluster, Sequence, Status, AnnotationAuthor, Subcluster from phage where Name like %s",
                 self.name)
+            if row is None:
+                raise StarteratorError(f"Phage {self.name} not found")
             self.phage_id = row[0]
             self.cluster = row[1]
             self.sequence = row[2]
@@ -55,10 +60,14 @@ class Phage(object):
             if self.phage_id:
                 row = get_db().get(
                     "SELECT Sequence from phage where phageID = %s", self.phage_id)
+                if row is None:
+                    raise StarteratorError(f"Phage {self.phage_id} not found")
                 self.sequence = row[0]
             elif self.name:
                 row = get_db().get(
                     "SELECT Sequence from phage where Name like %s", self.name)
+                if row is None:
+                    raise StarteratorError(f"Phage {self.name} not found")
                 self.sequence = row[0]
         return self.sequence
 

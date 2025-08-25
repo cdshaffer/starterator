@@ -10,7 +10,7 @@
 # Annotation of Phage genomes using Glimmer and Genemark
 
 import requests
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 from bs4 import BeautifulSoup
 from operator import attrgetter
 

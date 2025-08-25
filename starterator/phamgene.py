@@ -12,10 +12,7 @@
 from phage import new_phage
 from database import DB
 from Bio.Blast import NCBIXML
-from Bio.Blast.Applications import NcbiblastpCommandline as Blastp
-# from Bio.Blast.Applications import BlastallCommandline
 from Bio.SeqRecord import SeqRecord
-from Bio.Alphabet import IUPAC
 from Bio.Seq import Seq
 from Bio import SeqIO
 from Bio.SeqFeature import SeqFeature, FeatureLocation
@@ -34,7 +31,8 @@ def get_protein_sequences():
     results = get_db().query('SELECT GeneID, Translation from gene')
     for row in results:
         gene_id = row[0].replace("-", "_")
-        protein = SeqRecord(Seq(row[1].replace('-', ''), IUPAC.protein),
+        translation = utils.decode_if_bytes(row[1])
+        protein = SeqRecord(Seq(translation.replace('-', '')),
                             id=gene_id+"_", name=row[0], description=gene_id)
         proteins.append(protein)
     return proteins
@@ -47,7 +45,7 @@ def update_protein_db():
         fasta_file = os.path.join(utils.PROTEIN_DB, "Proteins.fasta")
         SeqIO.write(proteins, fasta_file, 'fasta')
     except:
-        print "creating proteins folder in correct place"
+        print("creating proteins folder in correct place")
         utils.create_folders()
         fasta_file = os.path.join(utils.PROTEIN_DB, "Proteins.fasta")
         SeqIO.write(proteins, fasta_file, 'fasta')
@@ -133,29 +131,29 @@ def find_upstream_stop_site(start, stop, orientation, phage_sequence):
             if start + ahead_of_start > len(phage_sequence):     # i.e. hit end of phage while looking for stop
                 ahead_of_start = len(phage_sequence) - start   # start is zero based counting
                 ahead_of_start = ahead_of_start - ahead_of_start % 3
-                sequence = Seq(phage_sequence[stop:(start+ahead_of_start)], IUPAC.unambiguous_dna)
+                sequence = Seq(phage_sequence[stop:(start+ahead_of_start)])
                 sequence = sequence.reverse_complement()
                 return sequence, ahead_of_start
 
-            sequence = Seq(phage_sequence[stop:(start+ahead_of_start)], IUPAC.unambiguous_dna)
+            sequence = Seq(phage_sequence[stop:(start+ahead_of_start)])
             sequence = sequence.reverse_complement()
             if stop < 400:
                 return sequence, ahead_of_start
         else:
             if start < ahead_of_start:
                 ahead_of_start = start - start % 3
-                sequence = Seq(phage_sequence[(start-ahead_of_start):stop], IUPAC.unambiguous_dna)
+                sequence = Seq(phage_sequence[(start-ahead_of_start):stop])
                 return sequence, ahead_of_start
             if stop < start:
                 end_sequence = phage_sequence[(start-ahead_of_start):]
                 start_sequence = phage_sequence[:stop]
-                sequence = Seq(end_sequence+start_sequence, IUPAC.unambiguous_dna)
+                sequence = Seq(end_sequence+start_sequence)
             else:
-                sequence = Seq(phage_sequence[(start-ahead_of_start):stop], IUPAC.unambiguous_dna)
+                sequence = Seq(phage_sequence[(start-ahead_of_start):stop])
         sequence_ahead_of_start = sequence[:ahead_of_start]
         sequence_ahead_of_start = sequence_ahead_of_start[::-1]
         
-        for index in xrange(0, len(sequence_ahead_of_start), 3):
+        for index in range(0, len(sequence_ahead_of_start), 3):
             codon = str(sequence_ahead_of_start[index:index+3])
             if codon in stop_codons:
                 new_ahead_of_start = index
@@ -294,7 +292,7 @@ class PhamGene(Gene):
         gene_sequence = self.sequence.seq
         starts = []
         start_codons = ['ATG', 'GTG', 'TTG']
-        for index in xrange(0, len(gene_sequence), 3):
+        for index in range(0, len(gene_sequence), 3):
             codon = str(gene_sequence[index:index+3])
             if codon in start_codons:
                 starts.append(index)
@@ -347,7 +345,7 @@ class PhamGene(Gene):
 
         num_gene_in_pham = len(pham.genes)
 
-        for startnum, genelist in pham.stats['most_common']['possible'].iteritems():
+        for startnum, genelist in pham.stats['most_common']['possible'].items():
             if self.full_name in genelist:
                 self.alignment_candidate_start_nums.append(startnum)
 
@@ -367,7 +365,7 @@ class PhamGene(Gene):
                 self.alignment_annot_start_nums.append(num)
                 self.alignment_annot_start_counts.append(annot_count)
 
-        for startnum, genelist in pham.stats['most_common']['called_starts'].iteritems():
+        for startnum, genelist in pham.stats['most_common']['called_starts'].items():
             if self.full_name in genelist:
                 self.alignment_start_num_called = startnum
 
@@ -406,7 +404,7 @@ class PhamGene(Gene):
                 The coordinate is 1 based count, not zero based
         """
         new_start_index = 0
-        for i in xrange(0, index):
+        for i in range(0, index):
             if self.alignment.seq[i] != '-':
                 new_start_index += 1
         if self.orientation == 'R':
@@ -447,7 +445,7 @@ class PhamGene(Gene):
             else:
                 start_point = breakpoints[end_point_index - 1]
 
-            seq_feature = SeqFeature(FeatureLocation(start_point, end_point), type=type_of_block, strand=None)
+            seq_feature = SeqFeature(FeatureLocation(start_point, end_point), type=type_of_block)
             self.alignment.features.append(seq_feature)
 
     def has_valid_start(self):
@@ -474,7 +472,7 @@ class PhamGene(Gene):
         self.sequence.features.sort()
         other.sequence.features.sort()
         for feature1, feature2 in zip(self.sequence.features, other.sequence.features):
-            print "phamgene.is_equal comparing features"
+            print("phamgene.is_equal comparing features")
             if feature1.location.start != feature2.location.start:
                 return False
             if feature1.location.end != feature2.location.end:
@@ -558,7 +556,7 @@ class UnPhamGene(PhamGene):
             return None
         else:
             result2 = db.query("SELECT phamid FROM gene WHERE geneid = %s", result[0])
-            print "pham %s by exact match to gene %s"%(result2[0],result[0])
+            print("pham %s by exact match to gene %s"%(result2[0],result[0]))
             number, = result2[0]
             self.pham_no = number
 
@@ -582,11 +580,7 @@ class UnPhamGene(PhamGene):
                 e_value = math.pow(10, -20)
 
             SeqIO.write(protein, '%s/%s.fasta' % (utils.INTERMEDIATE_DIR, self.gene_id), 'fasta')
-            blast_command = Blastp(
-                            query='%s%s.fasta' % (utils.INTERMEDIATE_DIR, self.gene_id),
-                            db="\"%s/\"" % (os.path.abspath(utils.PROTEIN_DB)), evalue=e_value, outfmt=5,
-                            out="%s.xml" % (os.path.join(utils.INTERMEDIATE_DIR, self.gene_id)))
-            # print self.gene_id, "\"%sProteins\"" % (utils.PROTEIN_DB)
+            # Using subprocess approach instead of deprecated Bio.Application
             blast_args = ["%sblastp" % utils.BLAST_DIR,
                           "-out", '%s/%s.xml' % (utils.INTERMEDIATE_DIR, self.gene_id),
                           "-outfmt", "5",
@@ -612,7 +606,7 @@ class UnPhamGene(PhamGene):
             result_handle.close()
             result_handle = open('%s/%s.xml' % (self.output_dir, self.name))
             blast_records = NCBIXML.parse(result_handle)
-            blast_record = blast_records.next()
+            blast_record = next(blast_records)
 
         if len(blast_record.descriptions) > 0:
             first_result = blast_record.descriptions[0].title.split(',')[0].split(' ')[-1]
