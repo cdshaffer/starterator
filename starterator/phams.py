@@ -95,20 +95,16 @@ def compare_hashes_current(hash_file_name1, hash_file_name2):
         hash_report["overall_hash_matches"] = False
     phams1 = hash1["phams"]
     phams2 = hash2["phams"]
-    added_phams = []
-    removed_phams = []
     modified_phams = []
+    phams1_ids = set(phams1.keys())
+    phams2_ids = set(phams2.keys())
     for pham_id, pham_info in phams1.items():
-        if pham_id not in phams2:
-            added_phams.append(pham_id)
-        elif pham_info != phams2[pham_id]:
+        if pham_id in phams2 and pham_info != phams2[pham_id]:
             modified_phams.append(pham_id)
-    for pham_id in phams2.keys():
-        if pham_id not in phams1:
-            removed_phams.append(pham_id)
-
-    hash_report["phams_added"] = added_phams
-    hash_report["phams_removed"] = removed_phams
+    added_phams = phams2_ids - phams1_ids
+    removed_phams = phams1_ids - phams2_ids
+    hash_report["phams_added"] = list(added_phams)
+    hash_report["phams_removed"] = list(removed_phams)
     hash_report["phams_modified"] = modified_phams
 
     return hash_report

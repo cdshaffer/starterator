@@ -173,9 +173,12 @@ def main():
         # Returns changed phams one per line
         results = compare_hashes_current(args.compare_hash_files[0], args.compare_hash_files[1])
         if not results["overall_hash_matches"]:
-            all_changed_phams = [*results["phams_modified"], *results["phams_added"], *results["phams_removed"]]
-            for pham_id in all_changed_phams:
-                print(pham_id)
+            for pham_id in results["phams_added"]:
+                print(f"+{pham_id}")
+            for pham_id in results["phams_modified"]:
+                print(f"~{pham_id}")
+            for pham_id in results["phams_removed"]:
+                print(f"-{pham_id}")
         return
 
     if args.get_pham_hashes:
