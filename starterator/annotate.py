@@ -159,7 +159,7 @@ def glimmer_annotate(text):
 
 def post_to_ncbi(end_url, fasta_file):
 	sequence = ""
-	with open(fasta_file, 'rU') as fasta:
+	with open(fasta_file, 'r') as fasta:
 		for line in fasta:
 			sequence += line
 	body = { "sequence": sequence, "gencode": 11, "topology": 0}

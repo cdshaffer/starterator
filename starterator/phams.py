@@ -1,3 +1,4 @@
+import logging
 import math
 import time
 from database import DB, get_db
@@ -78,6 +79,40 @@ def generate_pham_hashes(output_file=True):
         print(f"Output written to {utils.FINAL_DIR}/pham_hashes_v{db_version}.json")
     return hash_output
 
+def compare_hashes_current(hash_file_name1, hash_file_name2):
+    """
+    Compares two hash file outputs generated from generate_pham_hashes.
+    Outputs a report with the phams with differences: add, removed, modified.
+    """
+    with open(hash_file_name1, 'r') as f:
+        hash1 = json.load(f)
+    with open(hash_file_name2, 'r') as f:
+        hash2 = json.load(f)
+    hash_report = {}
+    if hash1["overall_hash"] == hash2["overall_hash"]:
+        hash_report["overall_hash_matches"] = True
+    else:
+        hash_report["overall_hash_matches"] = False
+    phams1 = hash1["phams"]
+    phams2 = hash2["phams"]
+    added_phams = []
+    removed_phams = []
+    modified_phams = []
+    for pham_id, pham_info in phams1.items():
+        if pham_id not in phams2:
+            added_phams.append(pham_id)
+        elif pham_info != phams2[pham_id]:
+            modified_phams.append(pham_id)
+    for pham_id in phams2.keys():
+        if pham_id not in phams1:
+            removed_phams.append(pham_id)
+
+    hash_report["phams_added"] = added_phams
+    hash_report["phams_removed"] = removed_phams
+    hash_report["phams_modified"] = modified_phams
+
+    return hash_report
+
 def get_all_phams():
     """Get all pham numbers from the database"""
     db = get_db()
@@ -93,19 +128,19 @@ def start_pham_job(pham_no):
     Start a subprocess for the given pham number.
     """
     start_time = time.time()
-    print(f"Processing {pham_no}")
+    logging.info(f"Started processing Pham {pham_no}")
     subprocess.call(['python3', 'starterate.py', '-n', str(pham_no), '-j', 'True'])
-    print(f"Finished processing Pham {pham_no} in {int(time.time()-start_time)} seconds")
+    logging.info(f"Finished processing Pham {pham_no} in {int(time.time()-start_time)} seconds")
 
 def process_all_phams():
     """
     Process all phams in the database.
     """
     phams = get_all_phams()
-    print(f"Found {len(phams)} phams to process")
+    logging.info(f"Found {len(phams)} phams to process")
     with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
         pool.map(start_pham_job, phams, chunksize=2)
-    print("\nBatch pham processing complete!")
+    logging.info("Batch pham processing complete!")
 
 def get_pham_number(phage_name, gene_number):
     try:

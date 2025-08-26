@@ -10,9 +10,10 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 import PyPDF2
 from reportlab.lib import colors
 from phage import new_phage
+import sys
 
 class PhageReport(object):
-    def __init__(self, name, is_phamerated, fasta_file=None, profile_file=None, gui=None, event=None):
+    def __init__(self, name, is_phamerated, fasta_file=None, profile_file=None, gui=None, event=None, config=None):
         self.name = name
         self.phage = new_phage(name=name)
         self.genes = {}
