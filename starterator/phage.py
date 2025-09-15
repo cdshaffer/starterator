@@ -98,10 +98,10 @@ class Phage(object):
             self.get_name()
             self.phams = {}
             # gene.Name can be in from gp<Number>, gene<Number>, or <PHAGE_NAME>_<Number>
-            results = get_db().query(
-                "SELECT `gene`.`GeneID`, `gene`.`PhamID`, `gene`.`Name`,\n\
-                `gene`.`Start`, `gene`.`Stop`, `gene`.`Orientation` , `gene`.`length`\n\
-                FROM gene WHERE `gene`.`PhageID` = %s", self.phage_id)
+            results = get_db()._execute(
+                'SELECT gene.GeneID, gene.PhamID, gene.Name,\
+                gene.Start, gene.Stop, gene.Orientation , gene.length \
+                FROM gene WHERE gene.PhageID = "' + self.phage_id + '";', None)
             for row in results:
                 if row[4] - row[3] != row[6]:   #inconsistent gene data; likely wrap around gene, skip for now
                     continue

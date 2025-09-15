@@ -101,7 +101,7 @@ class DB(object):
                     print(("Error closing cursor: %s" % e))
 
 
-    def get(self, query, params):
+    def get(self, query, params=None):
         """Returns the first row returned for the given query."""
         rows = self._execute(query, None)
         if not rows:
