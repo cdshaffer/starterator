@@ -14,17 +14,17 @@ import pickle
 import PyPDF2
 import sys
 
-import phams
-import phamgene
-import phage
-import utils
+from . import phams
+from . import phamgene
+from . import phage
+from . import utils
 from time import sleep
 from Bio import SeqIO
 import math
 import os
-from utils import StarteratorError
+from .utils import StarteratorError
 import csv
-import annotate
+from . import annotate
 from collections import Counter
 
 

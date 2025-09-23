@@ -1,6 +1,6 @@
-from database import DB, get_db
-import phamgene
-from utils import StarteratorError
+from .database import DB, get_db
+from . import phamgene
+from .utils import StarteratorError
 # don't want mutliples of phage object
 # before making a phage, 
 phage_list = {}

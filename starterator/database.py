@@ -21,7 +21,7 @@ pymysql.install_as_MySQLdb()
 import pymysql as MySQLdb
 import time
 import os
-from utils import get_config, StarteratorError
+from .utils import get_config, StarteratorError
 
 class DB(object):
 
