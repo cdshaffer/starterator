@@ -107,7 +107,7 @@ class Pham(object):
 
 
 
-        query_text = "SELECT phamid, color FROM pham WHERE phamid = " + self.pham_no + ";"
+        query_text = "SELECT phamid, color FROM pham WHERE phamid = " + str(self.pham_no) + ";"
         pham_colors = get_db()._execute(query_text, None)
         return pham_colors[0][1]
 

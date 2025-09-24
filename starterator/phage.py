@@ -52,11 +52,11 @@ class Phage(object):
         if not self.sequence:
             if self.phage_id:
                 row = get_db().get(
-                    "SELECT Sequence from phage where phageID = %s", self.phage_id)
+                    'SELECT Sequence from phage where phageID = "' + self.phage_id + '";')
                 self.sequence = row[0]
             elif self.name:
                 row = get_db().get(
-                    "SELECT Sequence from phage where Name like %s", self.name)
+                    'SELECT Sequence from phage where Name like "' + self.name + '%";')
                 self.sequence = row[0]
         return self.sequence
 

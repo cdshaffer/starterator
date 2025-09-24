@@ -812,7 +812,7 @@ def make_pham_genome(phage_genes, phage_name, length, file_path):
     if check_file(file_name):
         return
     phams_in_genome = [g['pham_no'] for g in list(phage_genes.values())]
-    pham_colors = phams.get_pham_colors(phams_in_genome)
+    pham_colors = get_pham_colors(phams_in_genome)
     gd_diagram = GenomeDiagram.Diagram(phage_name)
     gd_track = gd_diagram.new_track(1, name=phage_name, greytrack=1)
     gd_pham_set = gd_track.new_set()
