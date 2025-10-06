@@ -21,7 +21,7 @@ from Bio import SeqIO
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 import re
 from itertools import groupby
-from . import utils
+from .utils import *
 import subprocess
 import math
 import os
@@ -42,7 +42,7 @@ def get_protein_sequences():
 
 
 def update_protein_db():
-    clean_up_files(utils.INTERMEDIATE_DIR)
+    clean_up_files(INTERMEDIATE_DIR)
     proteins = get_protein_sequences()
     try:
         fasta_file = os.path.join(utils.PROTEIN_DB, "Proteins.fasta")
