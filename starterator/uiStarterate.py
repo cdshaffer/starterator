@@ -9,7 +9,9 @@
 # April 4, 2014
 # Starterate Window
 
-import MySQLdb
+import pymysql
+pymysql.install_as_MySQLdb()
+import pymysql as MySQLdb
 from gi.repository import Gtk, Gdk
 import threading
 import time

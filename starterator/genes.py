@@ -9,7 +9,9 @@ import PyPDF2
 # from Bio.Blast import NCBIXML
 from Bio.Blast.Applications import NcbiblastpCommandline as Blastp
 from Bio.Blast.Applications import BlastallCommandline
-import MySQLdb
+import pymysql
+pymysql.install_as_MySQLdb()
+import pymysql as MySQLdb
 
 class GeneReport(object):
     def __init__(self, number, phage, is_phamerated=True, fasta_file=None, is_all=False):

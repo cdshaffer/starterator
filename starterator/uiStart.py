@@ -11,7 +11,9 @@
 # April 4, 2014
 # Starting window of Starterator
 
-import MySQLdb
+import pymysql
+pymysql.install_as_MySQLdb()
+import pymysql as MySQLdb
 from gi.repository import Gtk
 import configparser
 import os

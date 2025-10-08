@@ -9,7 +9,9 @@
 # April 4, 2014
 # Utility functions for Starterator
 
-import MySQLdb
+import pymysql
+pymysql.install_as_MySQLdb()
+import pymysql as MySQLdb
 import configparser
 import getpass
 import os, subprocess

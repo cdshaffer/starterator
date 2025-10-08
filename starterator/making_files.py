@@ -833,7 +833,7 @@ def make_pham_genome(phage_genes, phage_name, length, file_path):
         else:
             strand = -1
             gene_location = FeatureLocation(gene.stop, gene.start)
-        gene_feature = SeqFeature(gene_location, strand=strand)
+        gene_feature = SeqFeature(gene_location)
         gene_number = get_gene_number(gene.gene_id)
         # label the gene with the gene number
         gd_pham_set.add_feature(gene_feature, name=str(gene_number), label=True, label_size=6, label_angle=75)

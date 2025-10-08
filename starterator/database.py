@@ -16,7 +16,9 @@
 
 
 
-import MySQLdb
+import pymysql
+pymysql.install_as_MySQLdb()
+import pymysql as MySQLdb
 import mysql.connector
 import time
 from .utils import get_config
