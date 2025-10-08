@@ -205,7 +205,7 @@ class PhageReport(object):
             else:
                 strand = -1
                 gene_location = FeatureLocation(gene.annotations['stop'], gene.annotations['start'])
-            gene_feature = SeqFeature(gene_location, strand=strand)
+            gene_feature = SeqFeature(gene_location)
             gene_number = get_gene_number(gene.id)
             # label the gene with the gene number
             gd_pham_set.add_feature(gene_feature, name=str(gene_number), label=True, 
