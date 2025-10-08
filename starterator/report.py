@@ -111,20 +111,33 @@ class PhageReport(Report):
     #   pickle.dump(self.phage_genes, open(pickle_file, "wb"))
 
     def merge_reports(self):
-        merger = PyPDF2.PdfMerger()
-        phage_starts = open(os.path.join(self.output_dir, "%sSuggestedStarts.pdf" % self.name))
-        phage_genome = open("%s/%sPhamsGraph.pdf" % (self.output_dir, self.name))
-        merger.append(fileobj=phage_genome)
-        merger.append(fileobj=phage_starts)
+        merger = PyPDF2.PdfWriter()
+
+        # Add phage genome pages
+        with open("%s/%sPhamsGraph.pdf" % (self.output_dir, self.name), 'rb') as phage_genome:
+            reader = PyPDF2.PdfReader(phage_genome)
+            for page in reader.pages:
+                merger.add_page(page)
+
+        # Add phage starts pages
+        with open(os.path.join(self.output_dir, "%sSuggestedStarts.pdf" % self.name), 'rb') as phage_starts:
+            reader = PyPDF2.PdfReader(phage_starts)
+            for page in reader.pages:
+                merger.add_page(page)
+
         phams_added = []
         for gene_no in sorted(self.phage_genes.keys()):
             phage_gene = self.phage_genes[gene_no]
             pham = phage_gene["pham_no"]
             if pham not in phams_added and pham is not None:
-                graph = open(os.path.join(self.output_dir, "%sAllPham%sGraph.pdf" % (self.name, pham)))
-                text = open("%s/%sAllPham%sText.pdf" % (self.output_dir, self.name, pham))
-                merger.append(fileobj=graph)
-                merger.append(fileobj=text)
+                with open(os.path.join(self.output_dir, "%sAllPham%sGraph.pdf" % (self.name, pham)), 'rb') as graph:
+                    reader = PyPDF2.PdfReader(graph)
+                    for page in reader.pages:
+                        merger.add_page(page)
+                with open("%s/%sAllPham%sText.pdf" % (self.output_dir, self.name, pham), 'rb') as text:
+                    reader = PyPDF2.PdfReader(text)
+                    for page in reader.pages:
+                        merger.add_page(page)
                 phams_added.append(pham)
         merger.write(open(os.path.join(self.final_dir, "%sReport.pdf" % self.name), 'wb'))
         return (os.path.join(self.final_dir,"%sReport.pdf" % self.name), "%sReport.pdf" % self.name)
