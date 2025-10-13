@@ -172,7 +172,7 @@ class UnPhamPhageReport(PhageReport):
     def get_sequence(self):
         if not self.sequence:
             try:
-                with open(self.fasta, "rb") as fasta_file:
+                with open(self.fasta, "r") as fasta_file:
                     next(fasta_file)
                     sequence = ""
                     for line in fasta_file:
