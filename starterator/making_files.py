@@ -26,9 +26,9 @@ import PyPDF2
 from Bio import SeqIO
 import math
 from io import StringIO, BytesIO
-import utils
-import phams
-import phamgene
+from starterator.utils import *
+from starterator.phams import *
+from starterator.phamgene import *
 import os
 # from phage import
 # from reportlab.lib import colors
@@ -688,7 +688,7 @@ def make_pham_text(args, pham, pham_no, output_dir, only_pham=False):
     story.append(Paragraph(text, styles['Center']))
     story.append(Spacer(1, 12))
     current_date = time.strftime("%x")
-    db_version = phams.get_version()
+    db_version = get_version()
     run_date = '<font size=12>This analysis was run %s on database version %s. </font>' % (current_date, db_version)
     story.append(Paragraph(run_date, styles["Normal"]))
     story.append(Spacer(1, 12))
@@ -807,7 +807,7 @@ def make_pham_genome(phage_genes, phage_name, length, file_path):
     if check_file(file_name):
         return
     phams_in_genome = [g['pham_no'] for g in phage_genes.values()]
-    pham_colors = phams.get_pham_colors(phams_in_genome)
+    pham_colors = get_pham_colors(phams_in_genome)
     gd_diagram = GenomeDiagram.Diagram(phage_name)
     gd_track = gd_diagram.new_track(1, name=phage_name, greytrack=1)
     gd_pham_set = gd_track.new_set()
@@ -829,7 +829,7 @@ def make_pham_genome(phage_genes, phage_name, length, file_path):
             strand = -1
             gene_location = FeatureLocation(gene.stop, gene.start)
         gene_feature = SeqFeature(gene_location)
-        gene_number = phamgene.get_gene_number(gene.gene_id)
+        gene_number = get_gene_number(gene.gene_id)
         # label the gene with the gene number
         gd_pham_set.add_feature(gene_feature, name=str(gene_number), label=True, label_size=6, label_angle=75)
         # label gene with pham color and name
