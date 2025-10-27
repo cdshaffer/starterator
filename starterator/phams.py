@@ -1,16 +1,16 @@
 import logging
 import math
 import time
-from database import DB, get_db
-from phamgene import new_PhamGene
+from .database import DB, get_db
+from .phamgene import new_PhamGene
 from Bio import AlignIO
 from Bio import SeqIO
 from collections import Counter
-import utils
+from . import utils
 import subprocess
 import multiprocessing
 import os
-from utils import StarteratorError
+from .utils import StarteratorError
 import json
 from hashlib import sha256
 

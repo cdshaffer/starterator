@@ -9,18 +9,17 @@
 # April 4, 2014
 # Class and functions for pham genes
 
-from phage import new_phage
-from database import DB
+from .phage import new_phage
+from .database import DB, get_db
 from Bio.Blast import NCBIXML
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 from Bio import SeqIO
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 import re
-from database import get_db
 from itertools import groupby
-import utils
-from utils import StarteratorError, clean_up_files
+from . import utils
+from .utils import StarteratorError, clean_up_files
 import subprocess
 import math
 import os

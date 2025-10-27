@@ -12,16 +12,16 @@
 
 import argparse
 from multiprocessing import Pool, Process, Queue, Semaphore
-from phams import compare_hashes_current, generate_pham_hashes, get_all_phams, process_all_phams
-import utils
-from utils import clean_up_files
+from .phams import compare_hashes_current, generate_pham_hashes, get_all_phams, process_all_phams
+from . import utils
+from .utils import clean_up_files
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import letter, A4
 #from gi.repository import Gtk, Gdk, GObject
-import report
-import phamgene
+from . import report
+from . import phamgene
 
 """
 def gui():
@@ -140,7 +140,7 @@ def starterate(info, gui=None, event=None):
 
 import os
 import logging
-import utils
+from . import utils
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
