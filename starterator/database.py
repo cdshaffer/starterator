@@ -32,14 +32,14 @@ class DB(object):
         args = {}
         config = get_config()
         args["user"] = os.getenv("DB_USER", config.get("database_user", ""))
-        args["passwd"] = os.getenv("DB_PASSWORD", config.get("database_password", ""))
-        args["db"] = os.getenv("DB_NAME", config.get("database_name", ""))
+        args["password"] = os.getenv("DB_PASSWORD", config.get("database_password", ""))
+        args["database"] = os.getenv("DB_NAME", config.get("database_name", ""))
         args["host"] = os.getenv("DB_HOST", config.get("database_server", "localhost"))
         args["port"] = int(os.getenv("DB_PORT", config.get("database_port", "3306")))
 
         # Only use unix_socket for local connections
         if args["host"] in ["localhost", "127.0.0.1", "::1"] and not os.getenv("DB_HOST"):
-            args["unix_socket"] = "/tmp/mysqld.sock"
+            args["unix_socket"] = "/var/run/mysqld/mysqld.sock"
         self.host = "{0}:{1}".format(args['host'], args['port'])
 
         self._db_args = args

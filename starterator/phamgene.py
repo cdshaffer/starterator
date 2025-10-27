@@ -49,8 +49,13 @@ def update_protein_db():
         fasta_file = os.path.join(utils.PROTEIN_DB, "Proteins.fasta")
         SeqIO.write(proteins, fasta_file, 'fasta')
 
-    blast_db_command = [utils.BLAST_DIR + 'makeblastdb', '-in', "\"" + fasta_file + "\"",
-                        "-dbtype", "prot", "-title", "Proteins", "-out", "%s" % fasta_file]
+    blast_db_command =  [
+           'makeblastdb',
+           '-in', fasta_file,
+           '-dbtype', 'prot',
+           '-title', 'Proteins',
+           '-out', fasta_file
+    ]
     # print blast_db_command
     # else:
     #     blast_db_command = [BLAST_DIR + 'formatdb',
