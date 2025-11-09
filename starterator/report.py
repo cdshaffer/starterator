@@ -307,20 +307,32 @@ class UnPhamPhageReport(PhageReport):
         else:
             cluster = "Unassigned"
 
-        subcluster_guess, subguess_count = subcluster_counts.most_common(1)[0]
-        penult_subcluster, penult_subcount = subcluster_counts.most_common(2)[1]
-
-        best_subfraction = subguess_count/(total_genes * 1.0)
-        penult_subfraction = penult_subcount/(total_genes * 1.0)
-        if best_subfraction > 0.97 or (best_subfraction > 0.9 and (best_subfraction - penult_subfraction) > 0.10):
-            subcluster = subcluster_guess
-            cluster = subcluster_guess
-        elif cluster != "Unassigned":
-            subcluster = cluster
-        else:
+        # start of changes
+        if cluster == "Unassigned":
             subcluster = "Unassigned"
             cluster = "Unassigned"
+        else:
+            # If no subcluster hits, cluster = subcluster
+            if not subcluster_counts:
+                subcluster = cluster
+            else:
+                subcluster_guess, subguess_count = subcluster_counts.most_common(1)[0]
+                # no more error with only one item
+                top2 = subcluster_counts.most_common(2)
+                penult_subcount = top2[1][1] if len(top2) > 1 else 0
 
+                best_subfraction = subguess_count / (total_genes * 1.0)
+                penult_subfraction = penult_subcount / (total_genes * 1.0)
+                if best_subfraction > 0.97 or (
+                        best_subfraction > 0.9 and (best_subfraction - penult_subfraction) > 0.10):
+                    subcluster = subcluster_guess
+                    # dont overwrite subcluster
+                elif cluster != "Unassigned":
+                    subcluster = cluster
+                else:
+                    subcluster = "Unassigned"
+                    cluster = "Unassigned"
+        # end of changes
 
         for genelist in self._phams.values():
             ch = sum([pow(ord(elem), i + 1) for i, elem in enumerate(subcluster)])
