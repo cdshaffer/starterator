@@ -101,7 +101,7 @@ class PhageReport(Report):
                     # print gene.gene_id
                     phage_gene = pham.genes[gene.gene_id]
                     gene_no = phamgene.get_gene_number(gene.gene_id)
-                    self.phage_genes[gene_no] = {'suggested_start': phage_gene.suggested_start["most_called"],
+                    self.phage_genes[int(gene_no)] = {'suggested_start': phage_gene.suggested_start["most_called"],
                                                  'gene': pham.genes[gene.gene_id],
                                                  'pham_no': pham_no}
 
@@ -362,7 +362,7 @@ class UnPhamPhageReport(PhageReport):
                                                  'pham_no': pham_no}
             else:
                 for gene in genes:
-                    self.phage_genes[gene.gene_id] = {'pham_no': None, "gene": gene, "suggested_start": None}
+                    self.phage_genes[int(gene_no)] = {'pham_no': None, "gene": gene, "suggested_start": None}
             pham_counter += 1
 
 
