@@ -572,17 +572,19 @@ class Pham(object):
         for gene in self.genes.values():
             gene_dict = {}
             gene_dict['GeneID'] = gene.gene_id
-            gene_dict['Start'] = gene.start
-            gene_dict['Stop'] = gene.stop
+            gene_dict['Start'] = gene.start if gene.orientation == "R" else gene.start + 1 #switch to 1 based counting
+            gene_dict['Stop'] = gene.stop  if gene.orientation == "F" else gene.start + 1 #switch to 1 based counting
             gene_dict['Orientation'] = gene.orientation
             gene_dict['AvailableStarts'] = gene.alignment_candidate_start_nums
             gene_dict['AvailableCoord'] = [gene.alignment_index_to_coord(s) for s in gene.alignment_candidate_starts]
+            gene_dict['DraftStatus'] = "Draft" if gene.draftStatus == "True" else "Final"
+
             if gene.locustag is None:
                 gene.get_locustag()
             if gene.locustag != "":
                 gene_dict['locustag'] = gene.locustag
-            if gene.annot_author == 1 and gene.status == 'final': # Pitt "owns" it and is in genbank already
-                gene_dict['Editable'] = "True"
+            gene_dict['seaphage'] = "True" if gene.annot_author == 1 else "False"
+
 
             genelist.append(gene_dict)
 
