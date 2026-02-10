@@ -254,9 +254,13 @@ class PhamGene(Gene):
         self.bad_adjacent_candidate_starts = sorted(set(bad))
         self.has_bad_adjacent_candidate_starts = bool(self.bad_adjacent_candidate_starts)
 
+
+        '''
         if self.has_bad_adjacent_candidate_starts:
             print(
                 f"[QC] bad adjacent starts (offsets) gene={getattr(self, 'gene_no', getattr(self, 'number', '?'))}: {self.bad_adjacent_candidate_starts}")
+        '''
+
 
         self.alignment = None
         self.alignment_start_site = None
@@ -444,7 +448,50 @@ class PhamGene(Gene):
 
         self.alignment_annot_counts_by_start = dict(zip(self.alignment_annot_start_nums, self.alignment_annot_start_counts))
 
+
+        # ---- Adjacent-start QC: determine whether the CALLED start is one of the bad ones ----
+        # bad_adjacent_candidate_starts are OFFSETS (bp) in self.sequence coordinates (0-based into gene sequence)
+        # We want to flag only if the called start corresponds to one of those "bad" offsets (NOT the last in a run).
+
+        self.bad_adjacent_start_nums = []
+        self.called_start_is_bad = False
+
+        try:
+            # offset(bp) -> alignment index
+            if self.candidate_starts and self.alignment_candidate_starts:
+                offset_to_aln = dict(zip(self.candidate_starts, self.alignment_candidate_starts))
+            else:
+                offset_to_aln = {}
+
+            total_possible = getattr(pham, "total_possible_starts", None)
+
+            if total_possible and offset_to_aln and getattr(self, "bad_adjacent_candidate_starts", None):
+                bad_nums = set()
+
+                for off in self.bad_adjacent_candidate_starts:
+                    aln_idx = offset_to_aln.get(off)
+                    if aln_idx is None:
+                        continue
+                    if aln_idx in total_possible:
+                        # start num is 1-based index into total_possible
+                        bad_nums.add(total_possible.index(aln_idx) + 1)
+
+                self.bad_adjacent_start_nums = sorted(bad_nums)
+
+                # Only flag red if CALLED start num is one of the bad nums.
+                self.called_start_is_bad = (self.alignment_start_num_called in bad_nums)
+
+        except Exception:
+            # keep defaults if anything goes wrong
+            self.bad_adjacent_start_nums = []
+            self.called_start_is_bad = False
+
+
         return
+
+
+
+
 
     def alignment_index_to_coord(self, index):
         """
@@ -589,9 +636,12 @@ class UnPhamGene(PhamGene):
 
 # test change
 
+        '''
         if self.has_bad_adjacent_candidate_starts:
             print(
                 f"[QC] bad adjacent starts (offsets) gene={getattr(self, 'gene_no', getattr(self, 'number', '?'))}: {self.bad_adjacent_candidate_starts}")
+        '''
+
 
         self.alignment = None
         self.alignment_start = None

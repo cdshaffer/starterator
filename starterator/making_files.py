@@ -894,6 +894,10 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
 
         # building summary table colm 0 geneID
         gene = phage_genes[gene_id]['gene']
+
+        #debug
+        print(gene.full_name, hasattr(gene, "called_start_is_bad"), getattr(gene, "called_start_is_bad", None))
+
         if gene.pham_no is None:
             continue
         gene_summary = list()
