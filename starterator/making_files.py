@@ -956,7 +956,11 @@ def make_suggested_starts(phage_genes, phage_name, file_path):
            'currently annotated start (as shown in the "Start Num" column) versus the number of manual annotations ' \
            'for the most manually annotated alternative start found in the listed gene. ' \
            'Background color is based on the difference in the two numbers ' \
-           '(green if greater than +3, red if less than -3, and yellow if between +3 and -3).'
+           '(green if greater than +3, red if less than -3, and yellow if between +3 and -3).' \
+           'A corollary to the choosing start guidelines: sometimes the best start leads to the choice ' \
+           'between 2 tandem start codons (i.e. one is right after the other). From a small amount of mass ' \
+           'spec data and some basic biology principles, always choose the second start codon. A Start num square ' \
+           'highlighted in red indicates that the start violates the tandem start rule.'
 
     story.append(Paragraph(text, styles['paragraph']))
     story.append(Spacer(1, 12))
