@@ -683,15 +683,20 @@ class UnPhamGene(PhamGene):
             return self.pham_no
 
     def blast(self):
-        # not sure where to put this... this makes more sense, 
-        # but I wanted to keep the Genes out of file making...
-        # print "Running BLASTp"
-        try:
-            result_handle = open("%s/%s.xml" % (utils.INTERMEDIATE_DIR, self.gene_id))
-            result_handle.close()
-        except:
+        """
+        Runs BLASTp for this UnPhamGene (if needed) and returns the pham number.
+        Uses cached XML if present, but deletes it if it's empty (common failure case).
+        """
+        xml_path = os.path.join(utils.INTERMEDIATE_DIR, f"{self.gene_id}.xml")
+
+        # If cached XML exists but is empty, delete it so BLAST reruns
+        if os.path.exists(xml_path) and os.path.getsize(xml_path) == 0:
+            os.remove(xml_path)
+
+        # If XML doesn't exist, run BLAST
+        if not os.path.exists(xml_path):
             protein = SeqRecord(self.sequence[self.candidate_starts[0]:].seq.translate(), id=self.gene_id)
-            # print protein, self.sequence
+
             # short proteins need lower e_value
             query_len = (self.stop - self.start) / 3
             if query_len < 50:
@@ -699,34 +704,48 @@ class UnPhamGene(PhamGene):
             else:
                 e_value = math.pow(10, -20)
 
-            SeqIO.write(protein, '%s/%s.fasta' % (utils.INTERMEDIATE_DIR, self.gene_id), 'fasta')
-            # Using subprocess approach instead of deprecated Bio.Application
-            blast_args = ["%sblastp" % utils.BLAST_DIR,
-                          "-out", '%s/%s.xml' % (utils.INTERMEDIATE_DIR, self.gene_id),
-                          "-outfmt", "5",
-                          "-query", '%s/%s.fasta' % (utils.INTERMEDIATE_DIR, self.gene_id),
-                          "-db", "\"%s/Proteins.fasta\"" % (utils.PROTEIN_DB),
-                          "-evalue", str(e_value)
-                          ]
-            # print " ".join(blast_args)
+            fasta_path = os.path.join(utils.INTERMEDIATE_DIR, f"{self.gene_id}.fasta")
+            SeqIO.write(protein, fasta_path, "fasta")
+
+            db_path = os.path.join(utils.PROTEIN_DB, "Proteins.fasta")  # no quotes
+            # Ensure the BLAST database exists (makeblastdb outputs)
+            db_required = [db_path + ext for ext in (".pin", ".psq", ".phr")]
+            if not all(os.path.exists(p) for p in db_required):
+                update_protein_db()
+
+            blast_args = [
+                os.path.join(utils.BLAST_DIR, "blastp"),
+                "-out", xml_path,
+                "-outfmt", "5",
+                "-query", fasta_path,
+                "-db", db_path,
+                "-evalue", str(e_value),
+            ]
+
             try:
                 subprocess.check_call(blast_args)
-            except:
-                raise StarteratorError("Blast could not run!")
-        # print blast_command
-        # stdout, stderr = blast_command()
+            except Exception as e:
+                raise StarteratorError(f"Blast could not run! ({e})")
+
+            # If BLAST produced an empty XML anyway, fail clearly
+            if not os.path.exists(xml_path) or os.path.getsize(xml_path) == 0:
+                raise StarteratorError("BLAST produced an empty XML output file.")
+
         return self.parse_blast()
 
     def parse_blast(self):
-        result_handle = open("%s/%s.xml" % (utils.INTERMEDIATE_DIR, self.gene_id))
+        # Always read the BLAST XML from the intermediate directory.
+        xml_path = os.path.join(utils.INTERMEDIATE_DIR, f"{self.gene_id}.xml")
 
+        # First try: NCBIXML.read (expects exactly one record)
         try:
-            blast_record = NCBIXML.read(result_handle)
+            with open(xml_path, "r") as result_handle:
+                blast_record = NCBIXML.read(result_handle)
         except:
-            result_handle.close()
-            result_handle = open('%s/%s.xml' % (self.output_dir, self.name))
-            blast_records = NCBIXML.parse(result_handle)
-            blast_record = next(blast_records)
+            # Fallback: NCBIXML.parse (iterator) in case file contains multiple records
+            with open(xml_path, "r") as result_handle:
+                blast_records = NCBIXML.parse(result_handle)
+                blast_record = next(blast_records)
 
         if len(blast_record.descriptions) > 0:
             first_result = blast_record.descriptions[0].title.split(',')[0].split(' ')[-1]
