@@ -242,7 +242,7 @@ class PhamGene(Gene):
         self.sequence = self.make_gene()
         self.candidate_starts = self.add_candidate_starts()
 
-        # --- QC: adjacent-start clusters and "bad starts" (all-but-last in each cluster) ---
+        #adjacent-start clusters and "bad starts" (all-but-last in each cluster)
         self.adjacent_candidate_start_groups = self._find_adjacent_start_groups()
 
         # Flatten clusters into a single "bad starts" list:
@@ -449,7 +449,7 @@ class PhamGene(Gene):
         self.alignment_annot_counts_by_start = dict(zip(self.alignment_annot_start_nums, self.alignment_annot_start_counts))
 
 
-        # ---- Adjacent-start QC: determine whether the CALLED start is one of the bad ones ----
+        #Adjacent-start checking: determine whether the CALLED start is one of the bad ones
         # bad_adjacent_candidate_starts are OFFSETS (bp) in self.sequence coordinates (0-based into gene sequence)
         # We want to flag only if the called start corresponds to one of those "bad" offsets (NOT the last in a run).
 
@@ -620,7 +620,7 @@ class UnPhamGene(PhamGene):
         self.sequence = self.make_gene(phage_sequence)
         self.candidate_starts = self.add_candidate_starts()
 
-        # --- QC: adjacent-start clusters and "bad starts" (all-but-last in each cluster) ---
+        #find all but the last start
         self.adjacent_candidate_start_groups = self._find_adjacent_start_groups()
 
         bad = []
@@ -634,12 +634,10 @@ class UnPhamGene(PhamGene):
 
 
 
-# test change
-
         '''
         if self.has_bad_adjacent_candidate_starts:
             print(
-                f"[QC] bad adjacent starts (offsets) gene={getattr(self, 'gene_no', getattr(self, 'number', '?'))}: {self.bad_adjacent_candidate_starts}")
+                f"bad adjacent starts (offsets) gene={getattr(self, 'gene_no', getattr(self, 'number', '?'))}: {self.bad_adjacent_candidate_starts}")
         '''
 
 
@@ -685,7 +683,7 @@ class UnPhamGene(PhamGene):
     def blast(self):
         """
         Runs BLASTp for this UnPhamGene (if needed) and returns the pham number.
-        Uses cached XML if present, but deletes it if it's empty (common failure case).
+        Uses cached XML if present, but deletes it if it's empty (common point of failure).
         """
         xml_path = os.path.join(utils.INTERMEDIATE_DIR, f"{self.gene_id}.xml")
 
