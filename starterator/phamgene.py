@@ -180,6 +180,8 @@ class Gene(object):
 
 pham_genes = {}
 
+PRINTED_BAD_STARTS = set()
+
 
 def new_PhamGene(db_id, start, stop, orientation, phage_id, name, phage_sequence=None):
     if db_id is None:
@@ -239,6 +241,27 @@ class PhamGene(Gene):
         self.ahead_of_start = None
         self.sequence = self.make_gene()
         self.candidate_starts = self.add_candidate_starts()
+
+        #adjacent-start clusters and "bad starts" (all-but-last in each cluster)
+        self.adjacent_candidate_start_groups = self._find_adjacent_start_groups()
+
+        # Flatten clusters into a single "bad starts" list:
+        # for each adjacent run [a,b,c], treat [a,b] as bad (drop last), then merge across runs.
+        bad = []
+        for grp in self.adjacent_candidate_start_groups:
+            if len(grp) >= 2:
+                bad.extend(grp[:-1])
+        self.bad_adjacent_candidate_starts = sorted(set(bad))
+        self.has_bad_adjacent_candidate_starts = bool(self.bad_adjacent_candidate_starts)
+
+
+        '''
+        if self.has_bad_adjacent_candidate_starts:
+            print(
+                f"[QC] bad adjacent starts (offsets) gene={getattr(self, 'gene_no', getattr(self, 'number', '?'))}: {self.bad_adjacent_candidate_starts}")
+        '''
+
+
         self.alignment = None
         self.alignment_start_site = None
         self.alignment_candidate_starts = None
@@ -301,6 +324,32 @@ class PhamGene(Gene):
             if codon in start_codons:
                 starts.append(index)
         return sorted(starts)
+
+    def _find_adjacent_start_groups(self):
+        """Returns groups of start sites that are adjacent in the same ORF (exactly 3 apart)
+
+        groups neighboring start sites, ignoring ones that aren't adjacent
+
+        bad_starts should NOT be called. Starts where there is at least 1 start codon immediately following it.
+        """
+
+        starts_sorted = sorted(self.candidate_starts)
+        bad_groups = []
+        current = [starts_sorted[0]]
+
+        for s in starts_sorted[1:]:
+            if s - current[-1] == 3:
+                current.append(s)
+            else:
+                if len(current) >= 2:
+                    bad_groups.append(current)
+                current = [s]
+
+        if len(current) >= 2:
+            bad_groups.append(current)
+        return bad_groups
+
+
 
     def add_alignment_start_site(self):
         """
@@ -399,7 +448,50 @@ class PhamGene(Gene):
 
         self.alignment_annot_counts_by_start = dict(zip(self.alignment_annot_start_nums, self.alignment_annot_start_counts))
 
+
+        #Adjacent-start checking: determine whether the CALLED start is one of the bad ones
+        # bad_adjacent_candidate_starts are OFFSETS (bp) in self.sequence coordinates (0-based into gene sequence)
+        # We want to flag only if the called start corresponds to one of those "bad" offsets (NOT the last in a run).
+
+        self.bad_adjacent_start_nums = []
+        self.called_start_is_bad = False
+
+        try:
+            # offset(bp) -> alignment index
+            if self.candidate_starts and self.alignment_candidate_starts:
+                offset_to_aln = dict(zip(self.candidate_starts, self.alignment_candidate_starts))
+            else:
+                offset_to_aln = {}
+
+            total_possible = getattr(pham, "total_possible_starts", None)
+
+            if total_possible and offset_to_aln and getattr(self, "bad_adjacent_candidate_starts", None):
+                bad_nums = set()
+
+                for off in self.bad_adjacent_candidate_starts:
+                    aln_idx = offset_to_aln.get(off)
+                    if aln_idx is None:
+                        continue
+                    if aln_idx in total_possible:
+                        # start num is 1-based index into total_possible
+                        bad_nums.add(total_possible.index(aln_idx) + 1)
+
+                self.bad_adjacent_start_nums = sorted(bad_nums)
+
+                # Only flag red if CALLED start num is one of the bad nums.
+                self.called_start_is_bad = (self.alignment_start_num_called in bad_nums)
+
+        except Exception:
+            # keep defaults if anything goes wrong
+            self.bad_adjacent_start_nums = []
+            self.called_start_is_bad = False
+
+
         return
+
+
+
+
 
     def alignment_index_to_coord(self, index):
         """
@@ -527,6 +619,28 @@ class UnPhamGene(PhamGene):
 
         self.sequence = self.make_gene(phage_sequence)
         self.candidate_starts = self.add_candidate_starts()
+
+        #find all but the last start
+        self.adjacent_candidate_start_groups = self._find_adjacent_start_groups()
+
+        bad = []
+        for grp in self.adjacent_candidate_start_groups:
+            if len(grp) >= 2:
+                bad.extend(grp[:-1])
+        self.bad_adjacent_candidate_starts = sorted(set(bad))
+        self.has_bad_adjacent_candidate_starts = bool(self.bad_adjacent_candidate_starts)
+
+
+
+
+
+        '''
+        if self.has_bad_adjacent_candidate_starts:
+            print(
+                f"bad adjacent starts (offsets) gene={getattr(self, 'gene_no', getattr(self, 'number', '?'))}: {self.bad_adjacent_candidate_starts}")
+        '''
+
+
         self.alignment = None
         self.alignment_start = None
         self.alignment_candidate_starts = None
@@ -567,15 +681,20 @@ class UnPhamGene(PhamGene):
             return self.pham_no
 
     def blast(self):
-        # not sure where to put this... this makes more sense, 
-        # but I wanted to keep the Genes out of file making...
-        # print "Running BLASTp"
-        try:
-            result_handle = open("%s/%s.xml" % (utils.INTERMEDIATE_DIR, self.gene_id))
-            result_handle.close()
-        except:
+        """
+        Runs BLASTp for this UnPhamGene (if needed) and returns the pham number.
+        Uses cached XML if present, but deletes it if it's empty (common point of failure).
+        """
+        xml_path = os.path.join(utils.INTERMEDIATE_DIR, f"{self.gene_id}.xml")
+
+        # If cached XML exists but is empty, delete it so BLAST reruns
+        if os.path.exists(xml_path) and os.path.getsize(xml_path) == 0:
+            os.remove(xml_path)
+
+        # If XML doesn't exist, run BLAST
+        if not os.path.exists(xml_path):
             protein = SeqRecord(self.sequence[self.candidate_starts[0]:].seq.translate(), id=self.gene_id)
-            # print protein, self.sequence
+
             # short proteins need lower e_value
             query_len = (self.stop - self.start) / 3
             if query_len < 50:
@@ -583,34 +702,48 @@ class UnPhamGene(PhamGene):
             else:
                 e_value = math.pow(10, -20)
 
-            SeqIO.write(protein, '%s/%s.fasta' % (utils.INTERMEDIATE_DIR, self.gene_id), 'fasta')
-            # Using subprocess approach instead of deprecated Bio.Application
-            blast_args = ["%sblastp" % utils.BLAST_DIR,
-                          "-out", '%s/%s.xml' % (utils.INTERMEDIATE_DIR, self.gene_id),
-                          "-outfmt", "5",
-                          "-query", '%s/%s.fasta' % (utils.INTERMEDIATE_DIR, self.gene_id),
-                          "-db", "\"%s/Proteins.fasta\"" % (utils.PROTEIN_DB),
-                          "-evalue", str(e_value)
-                          ]
-            # print " ".join(blast_args)
+            fasta_path = os.path.join(utils.INTERMEDIATE_DIR, f"{self.gene_id}.fasta")
+            SeqIO.write(protein, fasta_path, "fasta")
+
+            db_path = os.path.join(utils.PROTEIN_DB, "Proteins.fasta")  # no quotes
+            # Ensure the BLAST database exists (makeblastdb outputs)
+            db_required = [db_path + ext for ext in (".pin", ".psq", ".phr")]
+            if not all(os.path.exists(p) for p in db_required):
+                update_protein_db()
+
+            blast_args = [
+                os.path.join(utils.BLAST_DIR, "blastp"),
+                "-out", xml_path,
+                "-outfmt", "5",
+                "-query", fasta_path,
+                "-db", db_path,
+                "-evalue", str(e_value),
+            ]
+
             try:
                 subprocess.check_call(blast_args)
-            except:
-                raise StarteratorError("Blast could not run!")
-        # print blast_command
-        # stdout, stderr = blast_command()
+            except Exception as e:
+                raise StarteratorError(f"Blast could not run! ({e})")
+
+            # If BLAST produced an empty XML anyway, fail clearly
+            if not os.path.exists(xml_path) or os.path.getsize(xml_path) == 0:
+                raise StarteratorError("BLAST produced an empty XML output file.")
+
         return self.parse_blast()
 
     def parse_blast(self):
-        result_handle = open("%s/%s.xml" % (utils.INTERMEDIATE_DIR, self.gene_id))
+        # Always read the BLAST XML from the intermediate directory.
+        xml_path = os.path.join(utils.INTERMEDIATE_DIR, f"{self.gene_id}.xml")
 
+        # First try: NCBIXML.read (expects exactly one record)
         try:
-            blast_record = NCBIXML.read(result_handle)
+            with open(xml_path, "r") as result_handle:
+                blast_record = NCBIXML.read(result_handle)
         except:
-            result_handle.close()
-            result_handle = open('%s/%s.xml' % (self.output_dir, self.name))
-            blast_records = NCBIXML.parse(result_handle)
-            blast_record = next(blast_records)
+            # Fallback: NCBIXML.parse (iterator) in case file contains multiple records
+            with open(xml_path, "r") as result_handle:
+                blast_records = NCBIXML.parse(result_handle)
+                blast_record = next(blast_records)
 
         if len(blast_record.descriptions) > 0:
             first_result = blast_record.descriptions[0].title.split(',')[0].split(' ')[-1]

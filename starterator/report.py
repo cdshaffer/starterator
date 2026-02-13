@@ -207,21 +207,38 @@ class UnPhamPhageReport(PhageReport):
                     with open(self.profile, "r") as profile:
                         # print self.profile, "has been opened!"
                         first_line = profile.readline()
-                        first_word = first_line.split()[0]
+
+                        # ---- CHANGE 1: make first_word parsing robust (avoid crash on blank/whitespace) ----
+                        first_word = first_line.split()[0] if first_line.strip() else ""
+
                         if first_word == "Profile":
+                            # ---- CHANGE 2: reset file pointer so csv_reader includes the first line again ----
+                            profile.seek(0)
+
                             csv_reader = csv.reader(profile)
-                            line = next(csv_reader)
+                            line = next(csv_reader)  # header 1
                             #  print line
-                            next(csv_reader)
+                            next(csv_reader)  # header 2
+
                             for row in csv_reader:
+                                # ---- CHANGE 3: guard against short/blank rows ----
+                                if len(row) < 9:
+                                    continue
+
                                 # print row
                                 feature_type = row[8].strip()
                                 #  print feature_type
                                 if feature_type == "ORF":
                                     number = row[1].replace('"', "")
                                     orientation = row[2]
-                                    start = int(row[5])
-                                    stop = int(row[6])
+
+                                    # ---- CHANGE 4: guard numeric parsing ----
+                                    try:
+                                        start = int(row[5])
+                                        stop = int(row[6])
+                                    except:
+                                        continue
+
                                     # print number, start, stop, orientation, self.name
                                     gene = phamgene.UnPhamGene(number, start, stop, orientation, self.name, sequence)
                                     genes.append(gene)
@@ -251,16 +268,27 @@ class UnPhamPhageReport(PhageReport):
                                             line3 = line2.replace(")", "")
                                             line_items = line3.split()
 
+                                            # ---- CHANGE 5: guard against malformed CDS lines ----
+                                            if len(line_items) < 4:
+                                                continue
+
                                             if line_items[1] == "complement":
                                                 gene_orientation = "R"
-                                                gene_start = int(line_items[2])
-                                                gene_end = int(line_items[4])
-
+                                                try:
+                                                    gene_start = int(line_items[2])
+                                                    gene_end = int(line_items[4])
+                                                except:
+                                                    continue
                                             else:
                                                 gene_orientation = "F"
-                                                gene_start = int(line_items[1])
-                                                gene_end = int(line_items[3])
-                                        gene = phamgene.UnPhamGene(gene_count, gene_start, gene_end, gene_orientation, self.name, sequence)
+                                                try:
+                                                    gene_start = int(line_items[1])
+                                                    gene_end = int(line_items[3])
+                                                except:
+                                                    continue
+
+                                        gene = phamgene.UnPhamGene(gene_count, gene_start, gene_end, gene_orientation,
+                                                                   self.name, sequence)
                                         genes.append(gene)
                                         pham_no = gene.phambymatch()
                                         if pham_no is None:
@@ -276,9 +304,18 @@ class UnPhamPhageReport(PhageReport):
                                     else:
                                         continue
                             else:
-                                raise StarteratorError("The profile file (%s) could not be read correctly! Please make sure it is correct." % self.profile)
-                except:
-                    raise StarteratorError("The profile file (%s) could not be read correctly! Please make sure it is correct." % self.profile)
+                                raise StarteratorError(
+                                    "The profile file (%s) could not be read correctly! Please make sure it is correct." % self.profile
+                                )
+
+                # ---- CHANGE 6: don't swallow the real exception type/message ----
+                except StarteratorError:
+                    raise
+                except Exception as e:
+                    raise StarteratorError(
+                        "The profile file (%s) could not be read correctly! (%s)" % (self.profile, str(e))
+                    )
+
         return self._phams
 
     def get_cluster(self):
