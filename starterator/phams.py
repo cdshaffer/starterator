@@ -186,6 +186,7 @@ class Pham(object):
             whole = "All" if len(genes) > 1 else "One"
             self.file = "%s%s" % (genes[0].phage_name, whole)
         self.aligner = None
+        self.alignmentlength = None
 
     def get_genes(self):
         """
@@ -243,7 +244,8 @@ class Pham(object):
     def add_alignment(self, alignment):
         """
             Using the alignment, add the alignment to the each gene in the pham
-        """ 
+        """
+
         for record in alignment:
             gene = self.genes[record.id]
             gene.alignment = record
@@ -293,6 +295,7 @@ class Pham(object):
                 # cline()
                 alignment = self.call_clustal(file_name + ".fasta")
                 # alignment = AlignIO.read(file_name+".aln", "clustal")
+        self.alignmentlength = alignment.alignment.length
         self.add_alignment(alignment)
 
     def add_total_possible_starts(self):
@@ -567,6 +570,9 @@ class Pham(object):
         summary_dict['TotalStarts'] = len(self.total_possible_starts)
         summary_dict['DbVersion'] = get_version()
         summary_dict['Aligner'] = self.aligner
+        summary_dict['AlignmentLength'] = self.alignmentlength - 1
+        summary_dict['StartLocation'] = self.total_possible_starts
+
 
         genelist = []
         for gene in self.genes.values():
@@ -577,7 +583,30 @@ class Pham(object):
             gene_dict['Orientation'] = gene.orientation
             gene_dict['AvailableStarts'] = gene.alignment_candidate_start_nums
             gene_dict['AvailableCoord'] = [gene.alignment_index_to_coord(s) for s in gene.alignment_candidate_starts]
-            gene_dict['DraftStatus'] = "Draft" if gene.draftStatus == "True" else "Final"
+            gene_dict['DraftStatus'] = "Draft" if gene.draftStatus == True else "Final"
+            alignmentstarts = []
+            alignmentends = []
+            for feat in gene.alignment.features:
+                if feat.type == 'seq':
+                    alignmentstarts.append(int(feat.location.start)+1)
+                    alignmentends.append(int(feat.location.end))
+
+            #merge adjacent blocks
+            m_starts = [alignmentstarts[0]]
+            m_ends = [alignmentends[0]]
+
+            for i in range(1, len(alignmentstarts)):
+                # If the next start is exactly 1 bp after the current end, they are contiguous
+                if alignmentstarts[i] == m_ends[-1] + 1:
+                    m_ends[-1] = alignmentends[i]
+                else:
+                    # Create a new disjoint block
+                    m_starts.append(alignmentstarts[i])
+                    m_ends.append(alignmentends[i])
+
+            gene_dict['AlignmentBlockStarts'] = m_starts
+            gene_dict['AlignmentBlockEnds'] = m_ends
+
 
             if gene.locustag is None:
                 gene.get_locustag()

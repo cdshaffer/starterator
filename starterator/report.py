@@ -540,12 +540,13 @@ class PhamReport(Report):
         f = open(pickle_file, "wb")
         pickle.dump(self.pham, f)
         f.close()
-        if save_json:
-            json_file = pickle_file.replace(".pickle", ".json")
-            self.pham.export_json(json_file)
 
         args = ["-n", self.pham_no, "-f", pickle_file, '-m', "text"]
         self.make_file(args)
+
+        if save_json:
+            json_file = pickle_file.replace(".pickle", ".json")
+            self.pham.export_json(json_file)
 
     def merge_report(self):
         merger = PyPDF2.PdfWriter()
