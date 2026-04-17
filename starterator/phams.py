@@ -93,6 +93,20 @@ def compare_hashes_current(hash_file_name1, hash_file_name2):
         hash_report["overall_hash_matches"] = True
     else:
         hash_report["overall_hash_matches"] = False
+
+    #remove orphams from hash lists
+    hash1["phams"] = {
+        key: phams_info
+        for key, phams_info in hash1["phams"].items()
+        if phams_info.get("gene_count", 0) > 1
+    }
+
+    hash2["phams"] = {
+        key: phams_info
+        for key, phams_info in hash2["phams"].items()
+        if phams_info.get("gene_count", 0) > 1
+    }
+
     phams1 = hash1["phams"]
     phams2 = hash2["phams"]
     modified_phams = []
